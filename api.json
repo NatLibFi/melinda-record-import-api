@@ -90,7 +90,7 @@
           },
           {
             "name": "creationTime",
-            "description": "The query is done using a time range if the parameter if provided twice",
+            "description": "The query is done using a time range if the parameter is provided twice",
             "in": "query",
             "schema": {
               "type": "string",
@@ -99,7 +99,7 @@
           },
           {
             "name": "modificationTime",
-            "description": "The query is done using a time range if the parameter if provided twice",
+            "description": "The query is done using a time range if the parameter is provided twice",
             "in": "query",
             "schema": {
               "type": "string",
@@ -117,12 +117,12 @@
                   "items": {
                     "type": "string",
                     "format": "uri"
-                  }
-                },
-                "example": [
-                  "https://record-import.api.melinda.kansalliskirjasto.fi/v1/blob/1234",
-                  "https://record-import.api.melinda.kansalliskirjasto.fi/v1/blob/5678"
-                ]
+                  },
+                  "example": [
+                    "https://record-import.api.melinda.kansalliskirjasto.fi/v1/blob/1234",
+                    "https://record-import.api.melinda.kansalliskirjasto.fi/v1/blob/5678"
+                  ]
+                }
               }
             }
           },
@@ -144,6 +144,7 @@
         "tags": ["blobs"],
         "responses": {
           "200": {
+            "description": "Return content",
             "content": {
               "application/json": {
                 "schema": {
@@ -170,81 +171,14 @@
           "content": {
             "application/json": {
               "schema": {
-                "example": {
-                  "op": "transformationResult",
-                  "numberOfRecords": 1000
-                },
-                "type": "object",
-                "properties": {
-                  "anyOf": [
-                    {
-                      "description": "Blob processing is aborted. State is set to ABORTED and all records of the blob are removed from the import queue",
-                      "type": "object",
-                      "properties": {
-                        "op": {
-                          "type": "string",
-                          "pattern": "^abort$"
-                        }
-                      }
-                    },
-                    {
-                      "description": "Blob transformation is started. State is set to TRANSFORMATION_IN_PROGRESS",
-                      "type": "object",
-                      "properties": {
-                        "op": {
-                          "type": "string",
-                          "pattern": "^transformationStarted$"
-                        }
-                      }
-                    },
-                    {
-                      "description": "Blob state is set to TRANSFORMED and numberOfRecords is set to the provided value",
-                      "type": "object",
-                      "properties": {
-                        "op": {
-                          "type": "string",
-                          "pattern": "^transformationResult$"
-                        },
-                        "numberOfRecords": {
-                          "type": "number"
-                        }
-                      }
-                    },
-                    {
-                      "description": "Blob state is set to TRANSFORMATION_FAILED and transformationError is set to the provided value",
-                      "type": "object",
-                      "properties": {
-                        "op": {
-                          "type": "string",
-                          "pattern": "^transformationError$"
-                        },
-                        "error": {
-                          "type": "any"
-                        }
-                      }
-                    },
-                    {
-                      "description": "The record result is appended to the imported property if import status is CREATED or UPDATED. Otherwise the result is append to failed property. If the sum of results in failed and imported properties equals numberOfRecords state if set to PROCESSED",
-                      "type": "object",
-                      "properties": {
-                        "op": {
-                          "type": "string",
-                          "pattern": "^recordImportResult"
-                        },
-                        "content": {
-                          "$ref": "#/components/schemas/RecordImportResult"
-                        }
-                      }
-                    }
-                  ]
-                }
+                "$ref": "#/components/schemas/BlobMetadataUpdate"
               }
             }
           }
         },
         "responses": {
-          "200": {
-            "description": ""
+          "204": {
+            "description": "The metadata was updated"
           },
           "400": {
             "description": "Malformed content"
@@ -265,11 +199,20 @@
       },
       "delete": {
         "summary": "Delete a blob",
-        "description": "The blob is completely remove with the records in queue",
+        "description": "The blob is completely removed including all related records in the queue",
         "tags": ["blobs"],
         "responses": {
-          "200": {
-            "description": ""
+          "204": {
+            "description": "The blob was removed"
+          },
+          "401": {
+            "description": "Authentication failed"
+          },
+          "403": {
+            "description": "Not authorized"
+          },
+          "404": {
+            "description": "Content not found"
           }
         }
       }
@@ -279,8 +222,36 @@
         "summary": "Retrieve blob content",
         "tags": ["blobs"],
         "responses": {
-          "200": {
-            "description": ""
+          "204": {
+            "description": "Return the content"
+          },
+          "401": {
+            "description": "Authentication failed"
+          },
+          "403": {
+            "description": "Not authorized"
+          },
+          "404": {
+            "description": "Content not found"
+          }
+        }
+      },
+      "delete": {
+        "summary": "Delete blob content",
+        "description": "The blob content is removed. If blob state is PENDING_TRANSFORMATION it is set to ABORTED",
+        "tags": ["blobs"],
+        "responses": {
+          "204": {
+            "description": "The content was removed"
+          },
+          "401": {
+            "description": "Authentication failed"
+          },
+          "403": {
+            "description": "Not authorized"
+          },
+          "404": {
+            "description": "Content not found"
           }
         }
       }
@@ -299,8 +270,26 @@
           }
         },
         "responses": {
-          "200": {
-            "description": ""
+          "201": {
+            "description": "The profile was created"
+          },
+          "204": {
+            "description": "The profile was updated"
+          },
+          "400": {
+            "description": "Malformed content"
+          },
+          "401": {
+            "description": "Authentication failed"
+          },
+          "403": {
+            "description": "Not authorized"
+          },
+          "404": {
+            "description": "The profile does not exist"
+          },
+          "422": {
+            "description": "Invalid syntax"
           }
         }
       },
@@ -309,7 +298,7 @@
         "tags": ["profiles"],
         "responses": {
           "200": {
-            "description": "",
+            "description": "Return the profile",
             "content": {
               "application/json": {
                 "schema": {
@@ -317,7 +306,16 @@
                 }
               }
             }
-          }
+          },
+          "401": {
+            "description": "Authentication failed"
+          },
+          "403": {
+            "description": "Not authorized"
+          },
+          "404": {
+            "description": "The profile does not exist"
+          },
         }
       }
     }
@@ -372,7 +370,7 @@
             ]
           },
           "metadata": {
-            "type": "any"
+            "type": "object"
           }
         }
       },
@@ -441,11 +439,11 @@
           },
           "creationTime": {
             "type": "string",
-            "format": "date"
+            "format": "date-time"
           },
           "modificationTime": {
             "type": "string",
-            "format": "date"
+            "format": "date-time"
           },
           "processingInfo": {
             "type": "object",
@@ -456,21 +454,105 @@
               "numberOfRecords": {
                 "type": "number"
               },
-              "imported": {
+              "importResults": {
                 "type": "array",
                 "items": {
                   "$ref": "#/components/schemas/RecordImportResult"
                 }
-              },
-              "failed": {
-                "type": "array",
-                "items": {
-                  "type": "any"
-                }
               }
             }
           }
+        },
+        "example": {
+          "id": 123456,
+          "profile": "foobar",
+          "contentType": "application/json",
+          "state": "PENDING_TRANSFORMATION",
+          "creationTime": "2018-01-01T00:00:00Z",
+          "modificationTime": "2018-01-01T00:01:00Z",
+          "processingInfo": {
+            "numberOfRecords": 1000,
+            "importResults": [
+              {
+                "id": 6000,
+                "state": "CREATED"
+              }
+            ]
+          }
         }
+      },
+      "BlobMetadataUpdate": {
+        "example": {
+          "op": "transformationResult",
+          "numberOfRecords": 1000
+        },
+        "anyOf": [
+          {
+            "description": "Blob processing is aborted. State is set to ABORTED and all the records related to the blob are removed from the import queue",
+            "type": "object",
+            "properties": {
+              "op": {
+                "type": "string",
+                "pattern": "^abort$"
+              }
+            }
+          },
+          {
+            "description": "Blob transformation is started. State is set to TRANSFORMATION_IN_PROGRESS",
+            "type": "object",
+            "properties": {
+              "op": {
+                "type": "string",
+                "pattern": "^transformationStarted$"
+              }
+            }
+          },
+          {
+            "description": "Blob state is set to TRANSFORMED and numberOfRecords is set to the provided value",
+            "type": "object",
+            "properties": {
+              "op": {
+                "type": "string",
+                "pattern": "^transformationDone$"
+              },
+              "numberOfRecords": {
+                "type": "number"
+              },
+              "failedRecords": {
+                "type": "array",
+                "items": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          {
+            "description": "Blob state is set to TRANSFORMATION_FAILED and transformationError is set to the provided value",
+            "type": "object",
+            "properties": {
+              "op": {
+                "type": "string",
+                "pattern": "^transformationFailed$"
+              },
+              "error": {
+                "type": "object"
+              }
+            }
+          },
+          {
+            "description": "The record result is appended to the importResults property. If the number of items in the importResults property equals numberOfRecords state if set to PROCESSED",
+            "type": "object",
+            "properties": {
+              "op": {
+                "type": "string",
+                "pattern": "^recordProcessed"
+              },
+              "content": {
+                "$ref": "#/components/schemas/RecordImportResult"
+              }
+            }
+          }
+        ]
       }
     }
   }
