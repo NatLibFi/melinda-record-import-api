@@ -1,559 +1,617 @@
+/**
+*
+* @licstart  The following is the entire license notice for the JavaScript code in this file. 
+*
+* API microservice of Melinda record batch import system
+*
+* Copyright (C) 2018 University Of Helsinki (The National Library Of Finland)
+*
+* This file is part of melinda-record-import-api
+*
+* melinda-record-import-api program is free software: you can redistribute it and/or modify
+* it under the terms of the GNU Affero General Public License as
+* published by the Free Software Foundation, either version 3 of the
+* License, or (at your option) any later version.
+*
+* melinda-record-import-api is distributed in the hope that it will be useful,
+* but WITHOUT ANY WARRANTY; without even the implied warranty of
+* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+* GNU Affero General Public License for more details.
+*
+* You should have received a copy of the GNU Affero General Public License
+* along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*
+* @licend  The above is the entire license notice
+* for the JavaScript code in this file.
+*
+*/
+
+/* eslint-disable no-unused-vars */
+
 {
-  "openapi": "3.0.0",
-  "info": {
-    "title": "foo",
-    "version": "1.0.0"
-  },
-  "servers": [
-    {
-      "url": "https://record-import.api.melinda.kansalliskirjasto.fi/v1"
-    }
-  ],
-  "tags": [
-    {
-      "name": "blobs",
-      "description": "Operate on blobs"
+    "openapi": "3.0.0",
+    "info": {
+        "title": "foo",
+        "version": "1.0.0"
     },
-    {
-      "name": "profiles",
-      "description": "Operate on profiles"
-    }
-  ],
-  "security": [
-    {
-      "httpBasic": []
-    }
-  ],
-  "paths": {
-    "/blobs": {
-      "post": {
-        "summary": "Create a new blob",
-        "tags": ["blobs"],
-        "parameters": [
-          {
-            "name": "Import-Profile",
-            "in": "header",
-            "description": "Name of the import profile to use",
-            "required": true
-          }
-        ],
-        "responses": {
-          "201": {
-            "description": "The blob was succesfully created. State is set to PENDING_TRANSFORMATION",
-            "headers": {
-              "Location": {
-                "description": "URL pointing to the the created resource"
-              }
-            }
-          },
-          "401": {
-            "description": "Authentication failed"
-          },
-          "403": {
-            "description": "Not authorized"
-          },
-          "400": {
-            "description": "The profile does not exist or the user is not authorized to it"
-          },
-          "413": {
-            "description": "Request body is too large"
-          },
-          "415": {
-            "description": "Content type was not specified"
-          }
+    "servers": [
+        {
+            "url": "https://record-import.api.melinda.kansalliskirjasto.fi/v1"
         }
-      },
-      "get": {
-        "summary": "Query for blobs",
-        "tags": ["blobs"],
-        "parameters": [
-          {
-            "name": "profile",
-            "in": "query",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "contentType",
-            "in": "query",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "state",
-            "in": "query",
-            "schema": {
-              "$ref": "#/components/schemas/BlobState"
-            }
-          },
-          {
-            "name": "creationTime",
-            "description": "The query is done using a time range if the parameter is provided twice",
-            "in": "query",
-            "schema": {
-              "type": "string",
-              "format": "date-time"
-            }
-          },
-          {
-            "name": "modificationTime",
-            "description": "The query is done using a time range if the parameter is provided twice",
-            "in": "query",
-            "schema": {
-              "type": "string",
-              "format": "date-time"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "A list of URLs pointing to blob resources. Empty list if no resources were found",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "type": "string",
-                    "format": "uri"
-                  },
-                  "example": [
-                    "https://record-import.api.melinda.kansalliskirjasto.fi/v1/blob/1234",
-                    "https://record-import.api.melinda.kansalliskirjasto.fi/v1/blob/5678"
-                  ]
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "Authentication failed"
-          },
-          "403": {
-            "description": "Not authorized"
-          },
-          "400": {
-            "description": "Invalid query"
-          }
-        }
-      }
-    },
-    "/blobs/{id}": {
-      "get": {
-        "summary": "Retrieve blob metadata",
-        "tags": ["blobs"],
-        "responses": {
-          "200": {
-            "description": "Return content",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/BlobMetadata"
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "Authentication failed"
-          },
-          "403": {
-            "description": "Not authorized"
-          },
-          "404": {
-            "description": "The blob does not exist"
-          }
-        }
-      },
-      "post": {
-        "summary": "Update blob metadata",
-        "tags": ["blobs"],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/BlobMetadataUpdate"
-              }
-            }
-          }
+    ],
+    "tags": [
+        {
+            "name": "blobs",
+            "description": "Operate on blobs"
         },
-        "responses": {
-          "204": {
-            "description": "The metadata was updated"
-          },
-          "400": {
-            "description": "Malformed content"
-          },
-          "401": {
-            "description": "Authentication failed"
-          },
-          "403": {
-            "description": "Not authorized"
-          },
-          "404": {
-            "description": "The blob does not exist"
-          },
-          "422": {
-            "description": "Invalid syntax"
-          }
+        {
+            "name": "profiles",
+            "description": "Operate on profiles"
         }
-      },
-      "delete": {
-        "summary": "Delete a blob",
-        "description": "The blob is completely removed including all related records in the queue",
-        "tags": ["blobs"],
-        "responses": {
-          "204": {
-            "description": "The blob was removed"
-          },
-          "401": {
-            "description": "Authentication failed"
-          },
-          "403": {
-            "description": "Not authorized"
-          },
-          "404": {
-            "description": "Content not found"
-          }
+    ],
+    "security": [
+        {
+            "httpBasic": []
         }
-      }
-    },
-    "/blobs/{id}/content": {
-      "get": {
-        "summary": "Retrieve blob content",
-        "tags": ["blobs"],
-        "responses": {
-          "204": {
-            "description": "Return the content"
-          },
-          "401": {
-            "description": "Authentication failed"
-          },
-          "403": {
-            "description": "Not authorized"
-          },
-          "404": {
-            "description": "Content not found"
-          }
-        }
-      },
-      "delete": {
-        "summary": "Delete blob content",
-        "description": "The blob content is removed. If blob state is PENDING_TRANSFORMATION it is set to ABORTED",
-        "tags": ["blobs"],
-        "responses": {
-          "204": {
-            "description": "The content was removed"
-          },
-          "401": {
-            "description": "Authentication failed"
-          },
-          "403": {
-            "description": "Not authorized"
-          },
-          "404": {
-            "description": "Content not found"
-          }
-        }
-      }
-    },
-    "/profiles/{id}": {
-      "put": {
-        "summary": "Create or update a profile",
-        "tags": ["profiles"],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/Profile"
-              }
-            }
-          }
-        },
-        "responses": {
-          "201": {
-            "description": "The profile was created"
-          },
-          "204": {
-            "description": "The profile was updated"
-          },
-          "400": {
-            "description": "Malformed content"
-          },
-          "401": {
-            "description": "Authentication failed"
-          },
-          "403": {
-            "description": "Not authorized"
-          },
-          "404": {
-            "description": "The profile does not exist"
-          },
-          "422": {
-            "description": "Invalid syntax"
-          }
-        }
-      },
-      "get": {
-        "summary": "Retrieve a profile",
-        "tags": ["profiles"],
-        "responses": {
-          "200": {
-            "description": "Return the profile",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Profile"
+    ],
+    "paths": {
+        "/blobs": {
+            "post": {
+                "summary": "Create a new blob",
+                "tags": [
+                    "blobs"
+                ],
+                "parameters": [
+                    {
+                        "name": "Import-Profile",
+                        "in": "header",
+                        "description": "Name of the import profile to use",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "The blob was succesfully created. State is set to PENDING_TRANSFORMATION",
+                        "headers": {
+                            "Location": {
+                                "description": "URL pointing to the the created resource",
+                                "schema": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "The profile does not exist or the user is not authorized to it"
+                    },
+                    "401": {
+                        "description": "Authentication failed"
+                    },
+                    "403": {
+                        "description": "Not authorized"
+                    },
+                    "413": {
+                        "description": "Request body is too large"
+                    },
+                    "415": {
+                        "description": "Content type was not specified"
+                    }
                 }
-              }
-            }
-          },
-          "401": {
-            "description": "Authentication failed"
-          },
-          "403": {
-            "description": "Not authorized"
-          },
-          "404": {
-            "description": "The profile does not exist"
-          },
-        }
-      }
-    }
-  },
-  "components": {
-    "securitySchemes": {
-      "httpBasic": {
-        "type": "http",
-        "scheme": "basic"
-      }
-    },
-    "schemas": {
-      "BlobState": {
-        "type": "string",
-        "enum": [
-          "PENDING_TRANSFORMATION",
-          "TRANSFORMATION_IN_PROGRESS",
-          "TRANSFORMATION_FAILED",
-          "TRANSFORMED",
-          "PROCESSED",
-          "ABORTED"
-        ]
-      },
-      "RecordImportStatus": {
-        "type": "string",
-        "enum": [
-          "CREATED",
-          "UPDATED",
-          "INVALID",
-          "DUPLICATE",
-          "MULTIPLE_MATCHES",
-          "ERROR"
-        ]
-      },
-      "RecordImportResult": {
-        "type": "object",
-        "properties": {
-          "status": {
-            "$ref": "#/components/schemas/RecordImportStatus"
-          },
-          "id": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "array",
-                "items": {
-                  "type": "string"
-                }
-              }
-            ]
-          },
-          "metadata": {
-            "type": "object"
-          }
-        }
-      },
-      "Profile": {
-        "type": "object",
-        "properties": {
-          "auth": {
-            "type": "object",
-            "properties": {
-              "groups": {
-                "type": "array",
-                "items": {
-                  "type": "string"
-                }
-              }
-            }
-          },
-          "transformation": {
-            "type": "object",
-            "properties": {
-              "abortOnInvalidRecords": {
-                "type": "boolean"
-              },
-              "module": {
-                "type": "string"
-              },
-              "parameters": {
-                "type": "object"
-              }
             },
-            "required": ["module"]
-          },
-          "import": {
-            "type": "object",
-            "properties": {
-              "module": {
-                "type": "string"
-              },
-              "parameters": {
-                "type": "object"
-              }
+            "get": {
+                "summary": "Query for blobs",
+                "tags": [
+                    "blobs"
+                ],
+                "parameters": [
+                    {
+                        "name": "profile",
+                        "in": "query",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "contentType",
+                        "in": "query",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "state",
+                        "in": "query",
+                        "schema": {
+                            "$ref": "#/components/schemas/BlobState"
+                        }
+                    },
+                    {
+                        "name": "creationTime",
+                        "description": "The query is done using a time range if the parameter is provided twice",
+                        "in": "query",
+                        "schema": {
+                            "type": "string",
+                            "format": "date-time"
+                        }
+                    },
+                    {
+                        "name": "modificationTime",
+                        "description": "The query is done using a time range if the parameter is provided twice",
+                        "in": "query",
+                        "schema": {
+                            "type": "string",
+                            "format": "date-time"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "A list of URLs pointing to blob resources. Empty list if no resources were found",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "type": "string",
+                                        "format": "uri"
+                                    },
+                                    "example": [
+                                        "https://record-import.api.melinda.kansalliskirjasto.fi/v1/blob/1234",
+                                        "https://record-import.api.melinda.kansalliskirjasto.fi/v1/blob/5678"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid query"
+                    },
+                    "401": {
+                        "description": "Authentication failed"
+                    },
+                    "403": {
+                        "description": "Not authorized"
+                    }
+                }
+            }
+        },
+        "/blobs/{id}": {
+            "get": {
+                "summary": "Retrieve blob metadata",
+                "tags": [
+                    "blobs"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Return content",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/BlobMetadata"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Authentication failed"
+                    },
+                    "403": {
+                        "description": "Not authorized"
+                    },
+                    "404": {
+                        "description": "The blob does not exist"
+                    }
+                }
             },
-            "required": ["module"]
-          }
-        },
-        "required": [
-          "auth",
-          "transformation",
-          "import"
-        ]
-      },
-      "BlobMetadata": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "number"
-          },
-          "profile": {
-            "type": "string"
-          },
-          "contentType": {
-            "type": "string"
-          },
-          "state": {
-            "$ref": "#/components/schemas/BlobState"
-          },
-          "creationTime": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "modificationTime": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "processingInfo": {
-            "type": "object",
-            "properties": {
-              "transformationError": {
-                "type": "object"
-              },
-              "numberOfRecords": {
-                "type": "number"
-              },
-              "importResults": {
-                "type": "array",
-                "items": {
-                  "$ref": "#/components/schemas/RecordImportResult"
+            "post": {
+                "summary": "Update blob metadata",
+                "tags": [
+                    "blobs"
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/BlobMetadataUpdate"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "204": {
+                        "description": "The metadata was updated"
+                    },
+                    "400": {
+                        "description": "Malformed content"
+                    },
+                    "401": {
+                        "description": "Authentication failed"
+                    },
+                    "403": {
+                        "description": "Not authorized"
+                    },
+                    "404": {
+                        "description": "The blob does not exist"
+                    },
+                    "422": {
+                        "description": "Invalid syntax"
+                    }
                 }
-              }
+            },
+            "delete": {
+                "summary": "Delete a blob",
+                "description": "The blob is completely removed including all related records in the queue",
+                "tags": [
+                    "blobs"
+                ],
+                "responses": {
+                    "204": {
+                        "description": "The blob was removed"
+                    },
+                    "401": {
+                        "description": "Authentication failed"
+                    },
+                    "403": {
+                        "description": "Not authorized"
+                    },
+                    "404": {
+                        "description": "Content not found"
+                    }
+                }
             }
-          }
         },
-        "example": {
-          "id": 123456,
-          "profile": "foobar",
-          "contentType": "application/json",
-          "state": "PENDING_TRANSFORMATION",
-          "creationTime": "2018-01-01T00:00:00Z",
-          "modificationTime": "2018-01-01T00:01:00Z",
-          "processingInfo": {
-            "numberOfRecords": 1000,
-            "importResults": [
-              {
-                "id": 6000,
-                "state": "CREATED"
-              }
-            ]
-          }
+        "/blobs/{id}/content": {
+            "get": {
+                "summary": "Retrieve blob content",
+                "tags": [
+                    "blobs"
+                ],
+                "responses": {
+                    "204": {
+                        "description": "Return the content"
+                    },
+                    "401": {
+                        "description": "Authentication failed"
+                    },
+                    "403": {
+                        "description": "Not authorized"
+                    },
+                    "404": {
+                        "description": "Content not found"
+                    }
+                }
+            },
+            "delete": {
+                "summary": "Delete blob content",
+                "description": "The blob content is removed. If blob state is PENDING_TRANSFORMATION it is set to ABORTED",
+                "tags": [
+                    "blobs"
+                ],
+                "responses": {
+                    "204": {
+                        "description": "The content was removed"
+                    },
+                    "401": {
+                        "description": "Authentication failed"
+                    },
+                    "403": {
+                        "description": "Not authorized"
+                    },
+                    "404": {
+                        "description": "Content not found"
+                    }
+                }
+            }
+        },
+        "/profiles/{id}": {
+            "put": {
+                "summary": "Create or update a profile",
+                "tags": [
+                    "profiles"
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/Profile"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "The profile was created"
+                    },
+                    "204": {
+                        "description": "The profile was updated"
+                    },
+                    "400": {
+                        "description": "Malformed content"
+                    },
+                    "401": {
+                        "description": "Authentication failed"
+                    },
+                    "403": {
+                        "description": "Not authorized"
+                    },
+                    "404": {
+                        "description": "The profile does not exist"
+                    },
+                    "422": {
+                        "description": "Invalid syntax"
+                    }
+                }
+            },
+            "get": {
+                "summary": "Retrieve a profile",
+                "tags": [
+                    "profiles"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Return the profile",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Profile"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Authentication failed"
+                    },
+                    "403": {
+                        "description": "Not authorized"
+                    },
+                    "404": {
+                        "description": "The profile does not exist"
+                    }
+                }
+            }
         }
-      },
-      "BlobMetadataUpdate": {
-        "example": {
-          "op": "transformationResult",
-          "numberOfRecords": 1000
+    },
+    "components": {
+        "securitySchemes": {
+            "httpBasic": {
+                "type": "http",
+                "scheme": "basic"
+            }
         },
-        "anyOf": [
-          {
-            "description": "Blob processing is aborted. State is set to ABORTED and all the records related to the blob are removed from the import queue",
-            "type": "object",
-            "properties": {
-              "op": {
+        "schemas": {
+            "BlobState": {
                 "type": "string",
-                "pattern": "^abort$"
-              }
-            }
-          },
-          {
-            "description": "Blob transformation is started. State is set to TRANSFORMATION_IN_PROGRESS",
-            "type": "object",
-            "properties": {
-              "op": {
+                "enum": [
+                    "PENDING_TRANSFORMATION",
+                    "TRANSFORMATION_IN_PROGRESS",
+                    "TRANSFORMATION_FAILED",
+                    "TRANSFORMED",
+                    "PROCESSED",
+                    "ABORTED"
+                ]
+            },
+            "RecordImportStatus": {
                 "type": "string",
-                "pattern": "^transformationStarted$"
-              }
-            }
-          },
-          {
-            "description": "Blob state is set to TRANSFORMED and numberOfRecords is set to the provided value",
-            "type": "object",
-            "properties": {
-              "op": {
-                "type": "string",
-                "pattern": "^transformationDone$"
-              },
-              "numberOfRecords": {
-                "type": "number"
-              },
-              "failedRecords": {
-                "type": "array",
-                "items": {
-                  "type": "object"
+                "enum": [
+                    "CREATED",
+                    "UPDATED",
+                    "INVALID",
+                    "DUPLICATE",
+                    "MULTIPLE_MATCHES",
+                    "ERROR"
+                ]
+            },
+            "RecordImportResult": {
+                "type": "object",
+                "properties": {
+                    "status": {
+                        "$ref": "#/components/schemas/RecordImportStatus"
+                    },
+                    "id": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "array",
+                                "items": {
+                                    "type": "string"
+                                }
+                            }
+                        ]
+                    },
+                    "metadata": {
+                        "type": "object"
+                    }
                 }
-              }
+            },
+            "Profile": {
+                "type": "object",
+                "properties": {
+                    "auth": {
+                        "type": "object",
+                        "properties": {
+                            "groups": {
+                                "type": "array",
+                                "items": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    },
+                    "transformation": {
+                        "type": "object",
+                        "properties": {
+                            "abortOnInvalidRecords": {
+                                "type": "boolean"
+                            },
+                            "module": {
+                                "type": "string"
+                            },
+                            "parameters": {
+                                "type": "object"
+                            }
+                        },
+                        "required": [
+                            "module"
+                        ]
+                    },
+                    "import": {
+                        "type": "object",
+                        "properties": {
+                            "module": {
+                                "type": "string"
+                            },
+                            "parameters": {
+                                "type": "object"
+                            }
+                        },
+                        "required": [
+                            "module"
+                        ]
+                    }
+                },
+                "required": [
+                    "auth",
+                    "transformation",
+                    "import"
+                ]
+            },
+            "BlobMetadata": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "number"
+                    },
+                    "profile": {
+                        "type": "string"
+                    },
+                    "contentType": {
+                        "type": "string"
+                    },
+                    "state": {
+                        "$ref": "#/components/schemas/BlobState"
+                    },
+                    "creationTime": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "modificationTime": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "processingInfo": {
+                        "type": "object",
+                        "properties": {
+                            "transformationError": {
+                                "type": "object"
+                            },
+                            "numberOfRecords": {
+                                "type": "number"
+                            },
+                            "importResults": {
+                                "type": "array",
+                                "items": {
+                                    "$ref": "#/components/schemas/RecordImportResult"
+                                }
+                            }
+                        }
+                    }
+                },
+                "example": {
+                    "id": 123456,
+                    "profile": "foobar",
+                    "contentType": "application/json",
+                    "state": "PENDING_TRANSFORMATION",
+                    "creationTime": "2018-01-01T00:00:00Z",
+                    "modificationTime": "2018-01-01T00:01:00Z",
+                    "processingInfo": {
+                        "numberOfRecords": 1000,
+                        "importResults": [
+                            {
+                                "id": 6000,
+                                "state": "CREATED"
+                            }
+                        ]
+                    }
+                }
+            },
+            "BlobMetadataUpdate": {
+                "example": {
+                    "op": "transformationResult",
+                    "numberOfRecords": 1000
+                },
+                "anyOf": [
+                    {
+                        "description": "Blob processing is aborted. State is set to ABORTED and all the records related to the blob are removed from the import queue",
+                        "type": "object",
+                        "properties": {
+                            "op": {
+                                "type": "string",
+                                "pattern": "^abort$"
+                            }
+                        }
+                    },
+                    {
+                        "description": "Blob transformation is started. State is set to TRANSFORMATION_IN_PROGRESS",
+                        "type": "object",
+                        "properties": {
+                            "op": {
+                                "type": "string",
+                                "pattern": "^transformationStarted$"
+                            }
+                        }
+                    },
+                    {
+                        "description": "Blob state is set to TRANSFORMED and numberOfRecords is set to the provided value",
+                        "type": "object",
+                        "properties": {
+                            "op": {
+                                "type": "string",
+                                "pattern": "^transformationDone$"
+                            },
+                            "numberOfRecords": {
+                                "type": "number"
+                            },
+                            "failedRecords": {
+                                "type": "array",
+                                "items": {
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    {
+                        "description": "Blob state is set to TRANSFORMATION_FAILED and transformationError is set to the provided value",
+                        "type": "object",
+                        "properties": {
+                            "op": {
+                                "type": "string",
+                                "pattern": "^transformationFailed$"
+                            },
+                            "error": {
+                                "type": "object"
+                            }
+                        }
+                    },
+                    {
+                        "description": "The record result is appended to the importResults property. If the number of items in the importResults property equals numberOfRecords state if set to PROCESSED",
+                        "type": "object",
+                        "properties": {
+                            "op": {
+                                "type": "string",
+                                "pattern": "^recordProcessed"
+                            },
+                            "content": {
+                                "$ref": "#/components/schemas/RecordImportResult"
+                            }
+                        }
+                    }
+                ]
             }
-          },
-          {
-            "description": "Blob state is set to TRANSFORMATION_FAILED and transformationError is set to the provided value",
-            "type": "object",
-            "properties": {
-              "op": {
-                "type": "string",
-                "pattern": "^transformationFailed$"
-              },
-              "error": {
-                "type": "object"
-              }
-            }
-          },
-          {
-            "description": "The record result is appended to the importResults property. If the number of items in the importResults property equals numberOfRecords state if set to PROCESSED",
-            "type": "object",
-            "properties": {
-              "op": {
-                "type": "string",
-                "pattern": "^recordProcessed"
-              },
-              "content": {
-                "$ref": "#/components/schemas/RecordImportResult"
-              }
-            }
-          }
-        ]
-      }
+        }
     }
-  }
 }
