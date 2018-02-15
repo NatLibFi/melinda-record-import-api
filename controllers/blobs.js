@@ -33,34 +33,161 @@
 var HttpCodes = require('../utils/HttpCodes'),
     utils = require('../utils/writer.js');
 
-
+/**
+ * Create a new blob
+ * 
+ *
+ * Import-Profile string Name of the import profile to use
+ * no response value expected for this operation
+ *
+exports.operation1 = function (ImportProfile) {
+    return new Promise(function (resolve, reject) {
+        resolve();
+    });
+}
+*/
 module.exports.postBlob = function (req, res, next) {
     res.status(HttpCodes.NotImplemented).send('Endpoint is not yet implemented');
 };
 
+/**
+ * Query for blobs
+ * 
+ *
+ * profile string  (optional)
+ * contentType string  (optional)
+ * state string  (optional)
+ * creationTime string The query is done using a time range if the parameter is provided twice (optional)
+ * modificationTime string The query is done using a time range if the parameter is provided twice (optional)
+ * returns array
+exports.operation2 = function (profile, contentType, state, creationTime, modificationTime) {
+    return new Promise(function (resolve, reject) {
+        var examples = {};
+        examples['application/json'] = [
+      "https://record-import.api.melinda.kansalliskirjasto.fi/v1/blob/1234",
+      "https://record-import.api.melinda.kansalliskirjasto.fi/v1/blob/5678"
+        ];
+        if (Object.keys(examples).length > 0) {
+            resolve(examples[Object.keys(examples)[0]]);
+        } else {
+            resolve();
+        }
+    });
+}
+ **/
 module.exports.getBlob = function (req, res, next) {
     res.status(HttpCodes.NotImplemented).send('Endpoint is not yet implemented');
 };
 
+
+/**
+ * Retrieve blob metadata
+ * 
+ *
+ * returns BlobMetadata
+ *
+exports.operation3 = function () {
+    return new Promise(function (resolve, reject) {
+        var examples = {};
+        examples['application/json'] = {
+            "id": 123456,
+            "profile": "foobar",
+            "contentType": "application/json",
+            "state": "PENDING_TRANSFORMATION",
+            "creationTime": "2018-01-01T00:00:00Z",
+            "modificationTime": "2018-01-01T00:01:00Z",
+            "processingInfo": {
+                "numberOfRecords": 1000,
+                "importResults": [
+                  {
+                      "id": 6000,
+                      "state": "CREATED"
+                  }
+                ]
+            }
+        };
+        if (Object.keys(examples).length > 0) {
+            resolve(examples[Object.keys(examples)[0]]);
+        } else {
+            resolve();
+        }
+    });
+}
+*/
 module.exports.getBlobById = function (req, res, next) {
     res.status(HttpCodes.NotImplemented).send('Endpoint is not yet implemented');
 };
 
+/**
+ * Update blob metadata
+ * 
+ *
+ * body object  (optional)
+ * no response value expected for this operation
+ *
+exports.operation4 = function (body) {
+    return new Promise(function (resolve, reject) {
+        resolve();
+    });
+}
+*/
 module.exports.postBlobById = function (req, res, next) {
     res.status(HttpCodes.NotImplemented).send('Endpoint is not yet implemented');
 };
 
+/**
+ * Delete a blob
+ * The blob is completely removed including all related records in the queue
+ *
+ * no response value expected for this operation
+ *
+exports.operation5 = function () {
+    return new Promise(function (resolve, reject) {
+        resolve();
+    });
+}
+*/
 module.exports.deleteBlobById = function (req, res, next) {
     res.status(HttpCodes.NotImplemented).send('Endpoint is not yet implemented');
 };
 
+/**
+ * Retrieve blob content
+ * 
+ *
+ * no response value expected for this operation
+ *
+exports.operation6 = function () {
+    return new Promise(function (resolve, reject) {
+        resolve();
+    });
+}
+*/
 module.exports.getBlobByIdContent = function (req, res, next) {
     res.status(HttpCodes.NotImplemented).send('Endpoint is not yet implemented');
 };
 
+/**
+ * Delete blob content
+ * The blob content is removed. If blob state is PENDING_TRANSFORMATION it is set to ABORTED
+ *
+ * no response value expected for this operation
+ *
+exports.operation7 = function () {
+    return new Promise(function (resolve, reject) {
+        resolve();
+    });
+}
+*/
 module.exports.deleteBlobByIdContent = function (req, res, next) {
     res.status(HttpCodes.NotImplemented).send('Endpoint is not yet implemented');
 };
+
+
+
+
+
+
 
 /*
 module.exports.operation1 = function operation1 (req, res, next) {
@@ -139,133 +266,4 @@ module.exports.operation7 = function operation7 (req, res, next) {
       utils.writeJson(res, response);
     });
 };
-*/
-
-/**
- * Create a new blob
- * 
- *
- * Import-Profile string Name of the import profile to use
- * no response value expected for this operation
- *
-exports.operation1 = function (ImportProfile) {
-    return new Promise(function (resolve, reject) {
-        resolve();
-    });
-}
-*/
-
-/**
- * Query for blobs
- * 
- *
- * profile string  (optional)
- * contentType string  (optional)
- * state string  (optional)
- * creationTime string The query is done using a time range if the parameter is provided twice (optional)
- * modificationTime string The query is done using a time range if the parameter is provided twice (optional)
- * returns array
-exports.operation2 = function (profile, contentType, state, creationTime, modificationTime) {
-    return new Promise(function (resolve, reject) {
-        var examples = {};
-        examples['application/json'] = [
-      "https://record-import.api.melinda.kansalliskirjasto.fi/v1/blob/1234",
-      "https://record-import.api.melinda.kansalliskirjasto.fi/v1/blob/5678"
-        ];
-        if (Object.keys(examples).length > 0) {
-            resolve(examples[Object.keys(examples)[0]]);
-        } else {
-            resolve();
-        }
-    });
-}
- **/
-
-
-/**
- * Retrieve blob metadata
- * 
- *
- * returns BlobMetadata
- *
-exports.operation3 = function () {
-    return new Promise(function (resolve, reject) {
-        var examples = {};
-        examples['application/json'] = {
-            "id": 123456,
-            "profile": "foobar",
-            "contentType": "application/json",
-            "state": "PENDING_TRANSFORMATION",
-            "creationTime": "2018-01-01T00:00:00Z",
-            "modificationTime": "2018-01-01T00:01:00Z",
-            "processingInfo": {
-                "numberOfRecords": 1000,
-                "importResults": [
-                  {
-                      "id": 6000,
-                      "state": "CREATED"
-                  }
-                ]
-            }
-        };
-        if (Object.keys(examples).length > 0) {
-            resolve(examples[Object.keys(examples)[0]]);
-        } else {
-            resolve();
-        }
-    });
-}
-*/
-
-/**
- * Update blob metadata
- * 
- *
- * body object  (optional)
- * no response value expected for this operation
- *
-exports.operation4 = function (body) {
-    return new Promise(function (resolve, reject) {
-        resolve();
-    });
-}
-
-
-/**
- * Delete a blob
- * The blob is completely removed including all related records in the queue
- *
- * no response value expected for this operation
- *
-exports.operation5 = function () {
-    return new Promise(function (resolve, reject) {
-        resolve();
-    });
-}
-*/
-
-/**
- * Retrieve blob content
- * 
- *
- * no response value expected for this operation
- *
-exports.operation6 = function () {
-    return new Promise(function (resolve, reject) {
-        resolve();
-    });
-}
-*/
-
-/**
- * Delete blob content
- * The blob content is removed. If blob state is PENDING_TRANSFORMATION it is set to ABORTED
- *
- * no response value expected for this operation
- *
-exports.operation7 = function () {
-    return new Promise(function (resolve, reject) {
-        resolve();
-    });
-}
 */

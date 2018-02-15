@@ -33,38 +33,6 @@
 var HttpCodes = require('../utils/HttpCodes'),
     utils = require('../utils/writer.js');
 
-module.exports.upsertProfileById = function (req, res, next) {
-    res.status(HttpCodes.NotImplemented).send('Endpoint is not yet implemented');
-};
-
-module.exports.getProfileById = function (req, res, next) {
-    res.status(HttpCodes.NotImplemented).send('Endpoint is not yet implemented');
-};
-
-/*
-module.exports.operation8 = function operation8 (req, res, next) {
-  var body = req.swagger.params['body'].value;
-  profilesApi.operation8(body)
-    .then(function (response) {
-      utils.writeJson(res, response);
-    })
-    .catch(function (response) {
-      utils.writeJson(res, response);
-    });
-};
-
-module.exports.operation9 = function operation9 (req, res, next) {
-  profilesApi.operation9()
-    .then(function (response) {
-      utils.writeJson(res, response);
-    })
-    .catch(function (response) {
-      utils.writeJson(res, response);
-    });
-};
-*/
-
-
 /**
  * Create or update a profile
  * 
@@ -78,6 +46,9 @@ exports.operation8 = function (body) {
     });
 }
 */
+module.exports.upsertProfileById = function (req, res, next) {
+    res.status(HttpCodes.NotImplemented).send('Endpoint is not yet implemented');
+};
 
 /**
  * Retrieve a profile
@@ -111,4 +82,34 @@ exports.operation9 = function () {
         }
     });
 }
+*/
+module.exports.getProfileById = function (req, res, next) {
+    res.status(HttpCodes.NotImplemented).send('Endpoint is not yet implemented');
+};
+
+
+
+
+
+/*
+module.exports.operation8 = function operation8 (req, res, next) {
+  var body = req.swagger.params['body'].value;
+  profilesApi.operation8(body)
+    .then(function (response) {
+      utils.writeJson(res, response);
+    })
+    .catch(function (response) {
+      utils.writeJson(res, response);
+    });
+};
+
+module.exports.operation9 = function operation9 (req, res, next) {
+  profilesApi.operation9()
+    .then(function (response) {
+      utils.writeJson(res, response);
+    })
+    .catch(function (response) {
+      utils.writeJson(res, response);
+    });
+};
 */
