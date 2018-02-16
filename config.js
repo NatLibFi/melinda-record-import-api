@@ -35,5 +35,5 @@ exports.hostname = process.env.hostname || 'localhost';
 exports.environment = enums.environment.development;
 exports.port = process.env.PORT || 3000;
 exports.mongodb = {
-    uri: process.env.MONGODB_URI || process.env.MONGOLAB_URI || process.env.MONGOHQ_URL || '{{MONGO_URI}}'
+    uri: process.env.MONGODB_URI || process.env.MONGOLAB_URI || process.env.MONGOHQ_URL || 'mongodb://generalAdmin:ToDoChangeAdmin@127.0.0.1:27017/melinda-record-import-api'
 };
