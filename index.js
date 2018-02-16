@@ -72,6 +72,10 @@ if (isProduction) {
     mongoose.set('debug', true);
 }
 
+if (app.config.seedDB) {
+    require('./seed');
+}
+
 //require('./config/passport');
 
 require('./routes')(app, passport);

@@ -28,20 +28,28 @@
 
 /* eslint-disable no-unused-vars */
 
-module.exports = {
-    OK: 200,
-    Created: 201,
-    Accepted: 202,
-    BadRequest: 400,
-    Unauthorized: 401,
-    Forbidden: 403,
-    NotFound: 404,
-    MethodNotAllowed: 405,
-    Conflict: 409,
-    Teapot: 418,
-    ValidationError: 422,
-    InternalServerError: 500,
-    NotImplemented: 501,
-    BadGateway: 502,
-    ServiceUnavailable: 503
-};
+'use strict';
+
+var Blobs = require('./models/m.blobs');
+
+Blobs.find({}).remove(function () {
+    Blobs.create({
+        id:1112,
+        profile: 'standard',
+        contentType: 'standard'
+    }, {
+        id: 1113,
+        profile: 'standard',
+        contentType: 'stylized'
+    }, {
+        id: 1114,
+        profile: 'adminstrator',
+        contentType: 'stylized'
+    }, {
+        id: 1115,
+        profile: 'guest',
+        contentType: 'standard'
+    }, function () {
+        console.log('Finished populating testing blobs');
+    });
+});

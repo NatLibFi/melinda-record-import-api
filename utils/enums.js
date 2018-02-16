@@ -34,3 +34,21 @@ exports.environment = {
     development: 'development',
     testing: 'testing'
 };
+
+exports.blobStates = {
+    pending: 'PENDING_TRANSFORMATION',
+    inProgress: 'TRANSFORMATION_IN_PROGRESS',
+    failed: 'TRANSFORMATION_FAILED',
+    transformed: 'TRANSFORMED',
+    processed: 'PROCESSED',
+    aborted: 'ABORTED'
+};
+
+exports.recodImportStatuses = {
+    created: 'CREATED', 
+    updated: 'UPDATED', 
+    invalid: 'INVALID', 
+    duplicate: 'DUPLICATE', 
+    multiple: 'MULTIPLE_MATCHES', 
+    error: 'ERROR'
+}

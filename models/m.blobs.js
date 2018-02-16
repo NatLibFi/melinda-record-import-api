@@ -30,8 +30,10 @@
 
 'use strict';
 
-var mongoose = require('mongoose');
-var Schema = mongoose.Schema;
+var mongoose = require('mongoose'),
+    Schema = mongoose.Schema,
+    enums = require('../utils/enums'),
+    _ = require('lodash');
 
 var BlobMetadata = new Schema({
     id: { type: Number, required: true },
@@ -39,26 +41,25 @@ var BlobMetadata = new Schema({
     contentType: { type: String, required: true },
     state: {
         type: String,
-        enum: ['PENDING_TRANSFORMATION', 'TRANSFORMATION_IN_PROGRESS', 'TRANSFORMATION_FAILED', 'TRANSFORMED', 'PROCESSED', 'ABORTED'],
-        required: true
+        enum: _.values(enums.blobStates), //Defined in enums
+        default: enums.blobStates.pending
     },
-    creationTime: { type: Date, required: true },
-    modificationTime: { type: Date, required: true },
+    creationTime: { type: Date, default: Date.now },
+    modificationTime: { type: Date, default: Date.now },
     processingInfo: {
-        transformationError: { type: Object, required: true },
-        numberOfRecords: { type: Number, required: true },
+        transformationError: { type: Object },
+        numberOfRecords: { type: Number },
         importResults: [{
             type: String //Array of RecordImportResults UUID's
         }]
     }
 });
 
-
 var RecordImportResult = new Schema({
     UUID: { type: String, required: true, unique: true },
     status: {
         type: String,
-        enum: ['CREATED', 'UPDATED', 'INVALID', 'DUPLICATE', 'MULTIPLE_MATCHES', 'ERROR'],
+        enum: _.values(enums.recodImportStatuses),
         required: true
     },
     id: [{
@@ -67,6 +68,5 @@ var RecordImportResult = new Schema({
     metadata: { type: Object}
 });
 
-
 module.exports = mongoose.model('BlobMetadata', BlobMetadata);
-module.exports = mongoose.model('RecordImportResult', RecordImportResult);
+//module.exports = mongoose.model('RecordImportResult', RecordImportResult);

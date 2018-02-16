@@ -34,8 +34,7 @@ var mongoose = require('mongoose'),
     Profile = require('../models/m.profiles'),
     HttpCodes = require('../utils/HttpCodes'),
     MongoErrorHandler = require('../utils/MongooseErrorHandler'),
-    queryHandler = require('../utils/MongooseQueryHandler'),
-    utils = require('../utils/writer.js');
+    queryHandler = require('../utils/MongooseQueryHandler');
 
 var validationError = function (res, err) {
     return res.json(422, err);
@@ -51,6 +50,10 @@ var validationError = function (res, err) {
 module.exports.upsertProfileById = function (req, res, next) {
     console.log("-------------- Upsert profile --------------");
     console.log(req.body);
+    
+    if( req.body.id !== req.params.id){
+        return res.status(HttpCodes.BadRequest).send("Requests id's do not match")
+    }
 
     var profile = Object.assign({}, req.body);
 

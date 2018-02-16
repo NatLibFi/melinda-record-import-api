@@ -30,29 +30,47 @@
 
 'use strict';
 
-var HttpCodes = require('../utils/HttpCodes'),
-    utils = require('../utils/writer.js');
+var mongoose = require('mongoose'),
+    Blob = require('../models/m.blobs'),
+    HttpCodes = require('../utils/HttpCodes'),
+    enums = require('../utils/enums'),
+    MongoErrorHandler = require('../utils/MongooseErrorHandler'),
+    queryHandler = require('../utils/MongooseQueryHandler'),
+    moment = require('moment');
+
+var validationError = function (res, err) {
+    return res.json(HttpCodes.ValidationError, err);
+};
 
 /**
  * Create a new blob
  * 
- *
  * Import-Profile string Name of the import profile to use
  * no response value expected for this operation
- *
-exports.operation1 = function (ImportProfile) {
-    return new Promise(function (resolve, reject) {
-        resolve();
-    });
-}
 */
 module.exports.postBlob = function (req, res, next) {
-    res.status(HttpCodes.NotImplemented).send('Endpoint is not yet implemented');
+    console.log("-------------- Post blob --------------");
+    console.log(req.body);
+    console.log(req.query);
+
+    if (!req.query['Import-Profile']) {
+        return res.status(HttpCodes.BadRequest).send("The profile does not exist or the user is not authorized to it")
+    }
+
+    req.body.creationTime = moment(); //Use this if you want datetime to be formated etc, otherwise mongoose appends creation and modificationTime
+    req.body.state = enums.blobStates.pending;
+
+    var newBlob = new Blob(req.body);
+    newBlob.save(function (err, result) {
+        if (err) {
+            return validationError(res, err);
+        }
+        return res.status(HttpCodes.OK).send("The blob was succesfully created.")
+    });
 };
 
 /**
  * Query for blobs
- * 
  *
  * profile string  (optional)
  * contentType string  (optional)
@@ -60,23 +78,39 @@ module.exports.postBlob = function (req, res, next) {
  * creationTime string The query is done using a time range if the parameter is provided twice (optional)
  * modificationTime string The query is done using a time range if the parameter is provided twice (optional)
  * returns array
-exports.operation2 = function (profile, contentType, state, creationTime, modificationTime) {
-    return new Promise(function (resolve, reject) {
-        var examples = {};
-        examples['application/json'] = [
-      "https://record-import.api.melinda.kansalliskirjasto.fi/v1/blob/1234",
-      "https://record-import.api.melinda.kansalliskirjasto.fi/v1/blob/5678"
-        ];
-        if (Object.keys(examples).length > 0) {
-            resolve(examples[Object.keys(examples)[0]]);
-        } else {
-            resolve();
-        }
-    });
-}
- **/
+*/
 module.exports.getBlob = function (req, res, next) {
-    res.status(HttpCodes.NotImplemented).send('Endpoint is not yet implemented');
+    console.log("-------------- Query blob --------------");
+    var query = req.query;
+
+    if (query.creationTime){
+        if(query.creationTime.length === 2) {
+            query.creationTime = {
+                $gte: query.creationTime[0],
+                $lte: query.creationTime[1]
+            }
+        }else{
+            delete query.creationTime;
+        }
+    }
+
+    if (query.modificationTime){
+        if(query.modificationTime.length === 2) {
+            query.modificationTime = {
+                $gte: query.modificationTime[0],
+                $lte: query.modificationTime[1]
+            }
+        } else {
+            delete query.modificationTime;
+        }
+    }
+
+    console.log(query);
+
+    Blob.find(query)
+        .exec()
+        .then((documents) => queryHandler.findMany(documents, res))
+        .catch((reason) => MongoErrorHandler(reason, res, next));
 };
 
 
