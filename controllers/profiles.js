@@ -30,86 +30,55 @@
 
 'use strict';
 
-var HttpCodes = require('../utils/HttpCodes'),
+var mongoose = require('mongoose'),
+    Profile = require('../models/m.profiles'),
+    HttpCodes = require('../utils/HttpCodes'),
+    MongoErrorHandler = require('../utils/MongooseErrorHandler'),
+    queryHandler = require('../utils/MongooseQueryHandler'),
     utils = require('../utils/writer.js');
+
+var validationError = function (res, err) {
+    return res.json(422, err);
+};
+
 
 /**
  * Create or update a profile
  * 
- *
  * body object  (optional)
  * no response value expected for this operation
- *
-exports.operation8 = function (body) {
-    return new Promise(function (resolve, reject) {
-        resolve();
-    });
-}
 */
 module.exports.upsertProfileById = function (req, res, next) {
-    res.status(HttpCodes.NotImplemented).send('Endpoint is not yet implemented');
+    console.log("-------------- Upsert profile --------------");
+    console.log(req.body);
+
+    var profile = Object.assign({}, req.body);
+
+    Profile.findOneAndUpdate(
+        { id: req.params.id },
+        profile,
+        { new: true, upsert: true, runValidators: true }
+        ).then((result) => {
+            console.log("Result: ", result);
+            result = result.toJSON();
+            return res.status(HttpCodes.OK).send("");
+        })
+        .catch((reason) => MongoErrorHandler(reason, res, next));
 };
+
 
 /**
  * Retrieve a profile
- * 
  *
  * returns Profile
- *
-exports.operation9 = function () {
-    return new Promise(function (resolve, reject) {
-        var examples = {};
-        examples['application/json'] = {
-            "auth": {
-                "groups": [
-                  "string"
-                ]
-            },
-            "transformation": {
-                "abortOnInvalidRecords": true,
-                "module": "string",
-                "parameters": {}
-            },
-            "import": {
-                "module": "string",
-                "parameters": {}
-            }
-        };
-        if (Object.keys(examples).length > 0) {
-            resolve(examples[Object.keys(examples)[0]]);
-        } else {
-            resolve();
-        }
-    });
-}
 */
 module.exports.getProfileById = function (req, res, next) {
-    res.status(HttpCodes.NotImplemented).send('Endpoint is not yet implemented');
+    console.log("-------------- Get profile --------------");
+    console.log(req.params.id);
+
+    Profile
+        .where('id', req.params.id)
+        .exec()
+        .then((documents) => queryHandler.findOne(documents, res))
+        .catch((reason) => MongoErrorHandler(reason, res, next));
 };
-
-
-
-
-
-/*
-module.exports.operation8 = function operation8 (req, res, next) {
-  var body = req.swagger.params['body'].value;
-  profilesApi.operation8(body)
-    .then(function (response) {
-      utils.writeJson(res, response);
-    })
-    .catch(function (response) {
-      utils.writeJson(res, response);
-    });
-};
-
-module.exports.operation9 = function operation9 (req, res, next) {
-  profilesApi.operation9()
-    .then(function (response) {
-      utils.writeJson(res, response);
-    })
-    .catch(function (response) {
-      utils.writeJson(res, response);
-    });
-};
-*/

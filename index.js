@@ -68,8 +68,8 @@ if (!isProduction) {
 if (isProduction) {
     mongoose.connect(app.config.mongodb);
 } else {
-    //mongoose.connect('mongodb://localhost/conduit');
-    //mongoose.set('debug', true);
+    mongoose.connect('mongodb://generalAdmin:ToDoChangeAdmin@127.0.0.1:27017/melinda-record-import-api');
+    mongoose.set('debug', true);
 }
 
 //require('./config/passport');

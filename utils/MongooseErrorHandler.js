@@ -27,27 +27,22 @@
 */
 
 /* eslint-disable no-unused-vars */
-'use strict';
 
-var mongoose = require('mongoose');
-var Schema = mongoose.Schema;
+const HttpCodes = require('./HttpCodes');
 
-var Profile = new Schema({
-    id: { type: Number, required: true },
-    auth:{
-        groups: [{
-            type: String
-        }]
-    },
-    transformation: {
-        abortOnInvalidRecords: { type: Boolean, required: true },
-        module: { type: String, required: true },
-        parameters: { type: Object, required: true }
-    },
-    auth: {
-        module: { type: String, required: true },
-        parameters: { type: Object, required: true }
+module.exports = function (reason, res) {
+    if (reason.name) {
+        if (reason.name === 'MongoError') {
+            if (reason.code && reason.code === 11000) {
+                res.status(HttpCodes.Conflict).send()
+                return;
+            }
+        } else if (reason.name === 'ValidationError') {
+            res.status(HttpCodes.BadRequest).json(reason);
+            return;
+        }
     }
-});
 
-module.exports = mongoose.model('Profile', Profile);
+    console.error(reason);
+    next(reason);
+};
