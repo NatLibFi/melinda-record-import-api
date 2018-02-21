@@ -38,3 +38,4 @@ exports.mongodb = {
     uri: process.env.MONGODB_URI || process.env.MONGOLAB_URI || process.env.MONGOHQ_URL || 'mongodb://generalAdmin:ToDoChangeAdmin@127.0.0.1:27017/melinda-record-import-api'
 };
 exports.seedDB = true;
+exports.emptyDB = false;

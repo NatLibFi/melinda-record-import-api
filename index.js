@@ -72,10 +72,6 @@ if (isProduction) {
     mongoose.set('debug', true);
 }
 
-if (app.config.seedDB) {
-    require('./seed');
-}
-
 //require('./config/passport');
 
 require('./routes')(app, passport);
@@ -118,10 +114,18 @@ app.use(function (err, req, res, next) {
     });
 });
 
+
+if (app.config.seedDB) {
+    require('./utils/database/seedDB');
+}
+if (app.config.emptyDB) {
+    require('./utils/database/emptyDB');
+}
+
 // finally, let's start our server...
 var server = app.listen(app.config.port, function () {
-    console.log('Listening on port ' + server.address().port + ", is in production: " + isProduction);
-    //console.log("Env:", process.env);
+    console.log('Listening on port ' + server.address().port + ', is in production: ' + isProduction);
+    //console.log('Env:', process.env);
 });
 
 

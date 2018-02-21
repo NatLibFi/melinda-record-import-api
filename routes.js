@@ -44,7 +44,7 @@ var swagger = function(req, res, next){
 
 var ensureAuthenticated = function (req, res, next) {
     if (req.environment === enums.environment.production) {
-        console.log("Should check if authenticated in production");  //req.isAuthenticated()
+        console.log('Should check if authenticated in production');  //req.isAuthenticated()
         res.status(HttpCodes.Unauthorized).send('User not authorized');
     }
     return next();

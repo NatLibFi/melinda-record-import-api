@@ -48,11 +48,11 @@ var validationError = function (res, err) {
  * no response value expected for this operation
 */
 module.exports.upsertProfileById = function (req, res, next) {
-    console.log("-------------- Upsert profile --------------");
+    console.log('-------------- Upsert profile --------------');
     console.log(req.body);
     
     if( req.body.id !== req.params.id){
-        return res.status(HttpCodes.BadRequest).send("Requests id's do not match")
+        return res.status(HttpCodes.BadRequest).send('Requests ids do not match')
     }
 
     var profile = Object.assign({}, req.body);
@@ -62,9 +62,9 @@ module.exports.upsertProfileById = function (req, res, next) {
         profile,
         { new: true, upsert: true, runValidators: true }
         ).then((result) => {
-            console.log("Result: ", result);
+            console.log('Result: ', result);
             result = result.toJSON();
-            return res.status(HttpCodes.OK).send("");
+            return res.status(HttpCodes.OK).send('');
         })
         .catch((reason) => MongoErrorHandler(reason, res, next));
 };
@@ -76,11 +76,10 @@ module.exports.upsertProfileById = function (req, res, next) {
  * returns Profile
 */
 module.exports.getProfileById = function (req, res, next) {
-    console.log("-------------- Get profile --------------");
+    console.log('-------------- Get profile --------------');
     console.log(req.params.id);
 
-    Profile
-        .where('id', req.params.id)
+    Profile.where('id', req.params.id)
         .exec()
         .then((documents) => queryHandler.findOne(documents, res))
         .catch((reason) => MongoErrorHandler(reason, res, next));

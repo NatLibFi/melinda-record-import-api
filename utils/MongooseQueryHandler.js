@@ -28,43 +28,56 @@
 
 /* eslint-disable no-unused-vars */
 
-const HttpCodes = require('./HttpCodes');
+var HttpCodes = require('./HttpCodes'),
+    _ = require('lodash');
+
 
 module.exports = {
-    findOne: function (findResults, res) {
+    findOne: function (findResults, res, notFound) {
         switch (findResults.length) {
             case 0:
-                return res.status(HttpCodes.NotFound).json({
-                    message: 'Could not find any documents matching the query.'
-                });
+                return res.status(HttpCodes.NotFound).send(notFound || 'Could not find any documents matching the query.');
             case 1: {
                 var result = findResults[0].toJSON();
-                console.log("Result: ", result);
+                console.log('Result: ', result);
                 delete result._id;
                 delete result.__v;
-                return res.status(HttpCodes.OK).json(result);
+                delete result.UUID;
+                delete result.MetaDataID;
+                return res.status(HttpCodes.OK).send(result);
             }
             default:
-                return res.status(HttpCodes.Conflict).json({
-                    message: 'Found multiple documents when expected to find only one.'
-                })
+                return res.status(HttpCodes.Conflict).send('Found multiple documents when expected to find only one.');
         }
     },
     findMany: function (findResults, res) {
-        res.json(HttpCodes.OK, findResults);
+        _.forEach(findResults, function (value) {
+            delete value.UUID;
+        }); _
+        res.status(HttpCodes.OK).send(findResults);
     },
-    remove: function (obj, res) {
-        switch (obj.result.n) {
-            case 1:
-                return res.status(HttpCodes.OK).send();
-            case 0:
-                return res.status(HttpCodes.NotFound).json({
-                    message: 'Could not find any documents matching the query.'
-                });
-            default:
-                return res.status(HttpCodes.Conflict).json({
-                    message: 'Found several documents matching the query when expecting only one. Documents deleted.'
-                });
+    updateOne: function(result, res, notFound){
+        if (result) {
+            console.log('Result: ', result);
+            result = result.toJSON();
+            return res.status(HttpCodes.OK).send('');
+        } else {
+            return res.status(HttpCodes.NotFound).send(notFound);
+        }
+    },
+    returnUUID: function (findResults, res) {
+        console.log('FR: ', findResults);
+        var results = [];
+        _.forEach(findResults, function (value) {
+            results.push('https://record-import.api.melinda.kansalliskirjasto.fi/v1/blob/' + value.UUID)
+        });
+        res.status(HttpCodes.OK).send(results);
+    },
+    removeOne: function (obj, res) {
+        if (obj) {
+            return res.status(HttpCodes.OK).send('The blob was removed');
+        } else {
+            return res.status(HttpCodes.NotFound).send('Content not found');
         }
     }
 };

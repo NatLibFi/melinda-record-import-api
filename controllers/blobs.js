@@ -31,16 +31,18 @@
 'use strict';
 
 var mongoose = require('mongoose'),
-    Blob = require('../models/m.blobs'),
+    Blobs = require('../models/m.blobs'),
     HttpCodes = require('../utils/HttpCodes'),
     enums = require('../utils/enums'),
     MongoErrorHandler = require('../utils/MongooseErrorHandler'),
     queryHandler = require('../utils/MongooseQueryHandler'),
-    moment = require('moment');
+    moment = require('moment'),
+    uuid = require('uuid');
 
 var validationError = function (res, err) {
     return res.json(HttpCodes.ValidationError, err);
 };
+
 
 /**
  * Create a new blob
@@ -49,25 +51,45 @@ var validationError = function (res, err) {
  * no response value expected for this operation
 */
 module.exports.postBlob = function (req, res, next) {
-    console.log("-------------- Post blob --------------");
+    console.log('-------------- Post blob --------------');
     console.log(req.body);
     console.log(req.query);
 
     if (!req.query['Import-Profile']) {
-        return res.status(HttpCodes.BadRequest).send("The profile does not exist or the user is not authorized to it")
+        return res.status(HttpCodes.BadRequest).send('The profile does not exist or the user is not authorized to it')
     }
 
-    req.body.creationTime = moment(); //Use this if you want datetime to be formated etc, otherwise mongoose appends creation and modificationTime
-    req.body.state = enums.blobStates.pending;
+    var newBlobMetadata = new mongoose.models.BlobMetadata({});
+    newBlobMetadata.UUID = uuid.v4()
+    newBlobMetadata.profile = req.query['Import-Profile'];
+    newBlobMetadata.contentType = 'undefined';
+    newBlobMetadata.state = enums.blobStates.pending;
+    newBlobMetadata.creationTime = moment(); //Use this if you want datetime to be formated etc, otherwise mongoose appends creation and modificationTime
 
-    var newBlob = new Blob(req.body);
-    newBlob.save(function (err, result) {
+    var newBlob = new mongoose.models.BlobContent();
+    newBlob.data = req.body;
+    newBlob.UUID = uuid.v4()
+    newBlob.MetaDataID = newBlobMetadata.UUID;
+
+    newBlobMetadata.save(function (err, result) {
         if (err) {
             return validationError(res, err);
         }
-        return res.status(HttpCodes.OK).send("The blob was succesfully created.")
+        
+        newBlob.MetaDataID = result.UUID
+        newBlob.data = req.body;
+        newBlob.save(function (err, result) {
+            if (err) {
+                return validationError(res, err);
+            }
+            return res.status(HttpCodes.OK).send('The blob was succesfully created.')
+        });
+
     });
+
+
 };
+
 
 /**
  * Query for blobs
@@ -80,7 +102,7 @@ module.exports.postBlob = function (req, res, next) {
  * returns array
 */
 module.exports.getBlob = function (req, res, next) {
-    console.log("-------------- Query blob --------------");
+    console.log('-------------- Query blob --------------');
     var query = req.query;
 
     if (query.creationTime){
@@ -107,98 +129,94 @@ module.exports.getBlob = function (req, res, next) {
 
     console.log(query);
 
-    Blob.find(query)
+    mongoose.models.BlobMetadata.find(query)
         .exec()
-        .then((documents) => queryHandler.findMany(documents, res))
+        .then((documents) => queryHandler.returnUUID(documents, res))
         .catch((reason) => MongoErrorHandler(reason, res, next));
 };
 
 
 /**
- * Retrieve blob metadata
+ * Retrieve blob metadata by id
  * 
- *
  * returns BlobMetadata
- *
-exports.operation3 = function () {
-    return new Promise(function (resolve, reject) {
-        var examples = {};
-        examples['application/json'] = {
-            "id": 123456,
-            "profile": "foobar",
-            "contentType": "application/json",
-            "state": "PENDING_TRANSFORMATION",
-            "creationTime": "2018-01-01T00:00:00Z",
-            "modificationTime": "2018-01-01T00:01:00Z",
-            "processingInfo": {
-                "numberOfRecords": 1000,
-                "importResults": [
-                  {
-                      "id": 6000,
-                      "state": "CREATED"
-                  }
-                ]
-            }
-        };
-        if (Object.keys(examples).length > 0) {
-            resolve(examples[Object.keys(examples)[0]]);
-        } else {
-            resolve();
-        }
-    });
-}
 */
 module.exports.getBlobById = function (req, res, next) {
-    res.status(HttpCodes.NotImplemented).send('Endpoint is not yet implemented');
+    console.log('-------------- Get blob by id --------------');
+    console.log(req.params.id);
+
+    mongoose.models.BlobMetadata.where('UUID', req.params.id)
+        .exec()
+        .then((documents) => queryHandler.findOne(documents, res, 'The blob does not exist'))
+        .catch((reason) => MongoErrorHandler(reason, res, next));
 };
+
 
 /**
  * Update blob metadata
  * 
- *
  * body object  (optional)
  * no response value expected for this operation
- *
-exports.operation4 = function (body) {
-    return new Promise(function (resolve, reject) {
-        resolve();
-    });
-}
 */
 module.exports.postBlobById = function (req, res, next) {
-    res.status(HttpCodes.NotImplemented).send('Endpoint is not yet implemented');
+    console.log('-------------- Update  blob by id --------------');
+    console.log(req.body);
+    console.log(req.params.id);
+
+    if (req.body.id && req.body.id !== req.params.id) {
+        return res.status(HttpCodes.BadRequest).send('Requests ids do not match')
+    }
+
+    var blob = Object.assign({}, req.body);
+
+    mongoose.models.BlobMetadata.findOneAndUpdate(
+        { UUID: req.params.id },
+        blob,
+        { new: true, upsert: false, runValidators: true }
+        ).then((result) => queryHandler.updateOne(result, res, 'The blob does not exist'))
+        .catch((reason) => MongoErrorHandler(reason, res, next));
 };
 
 /**
  * Delete a blob
- * The blob is completely removed including all related records in the queue
+ * The blob is completely removed including _all related records in the queue_
  *
  * no response value expected for this operation
- *
-exports.operation5 = function () {
-    return new Promise(function (resolve, reject) {
-        resolve();
-    });
-}
 */
 module.exports.deleteBlobById = function (req, res, next) {
-    res.status(HttpCodes.NotImplemented).send('Endpoint is not yet implemented');
+    console.log('-------------- Remove blob by id --------------');
+    console.log(req.params.id);
+
+    //Remove content and then metadata, since content can be removed separately
+    mongoose.models.BlobContent.findOneAndRemove()
+        .where('MetaDataID', req.params.id)
+        .exec() 
+        .then((documents) => {
+            if (!documents) console.log('BlobContent not found, removed earlier?');
+            mongoose.models.BlobMetadata.findOneAndRemove()
+            .where('UUID', req.params.id)
+            .exec()
+            .then((documents) => queryHandler.removeOne(documents, res))
+            .catch((reason) => MongoErrorHandler(reason, res, next));
+        })
+        .catch((reason) => MongoErrorHandler(reason, res, next));
+
+
 };
 
 /**
  * Retrieve blob content
- * 
  *
  * no response value expected for this operation
- *
-exports.operation6 = function () {
-    return new Promise(function (resolve, reject) {
-        resolve();
-    });
-}
 */
 module.exports.getBlobByIdContent = function (req, res, next) {
-    res.status(HttpCodes.NotImplemented).send('Endpoint is not yet implemented');
+    console.log('-------------- Get blob content by id --------------');
+    console.log(req.params.id);
+
+    mongoose.models.BlobContent.where('MetaDataID', req.params.id)
+        .exec()
+        .then((documents) => queryHandler.findOne(documents, res, 'Content not found'))
+        .catch((reason) => MongoErrorHandler(reason, res, next));
 };
 
 /**
@@ -206,98 +224,14 @@ module.exports.getBlobByIdContent = function (req, res, next) {
  * The blob content is removed. If blob state is PENDING_TRANSFORMATION it is set to ABORTED
  *
  * no response value expected for this operation
- *
-exports.operation7 = function () {
-    return new Promise(function (resolve, reject) {
-        resolve();
-    });
-}
 */
 module.exports.deleteBlobByIdContent = function (req, res, next) {
-    res.status(HttpCodes.NotImplemented).send('Endpoint is not yet implemented');
+    console.log('-------------- Remove blob content by id --------------');
+    console.log(req.params.id);
+
+    mongoose.models.BlobContent.findOneAndRemove()
+        .where('MetaDataID', req.params.id)
+        .exec()
+        .then((documents) => queryHandler.removeOne(documents, res))
+        .catch((reason) => MongoErrorHandler(reason, res, next));
 };
-
-
-
-
-
-
-
-/*
-module.exports.operation1 = function operation1 (req, res, next) {
-  var ImportProfile = req.swagger.params['Import-Profile'].value;
-  blobsApi.operation1(ImportProfile)
-    .then(function (response) {
-      utils.writeJson(res, response);
-    })
-    .catch(function (response) {
-      utils.writeJson(res, response);
-    });
-};
-
-module.exports.operation2 = function operation2 (req, res, next) {
-  var profile = req.swagger.params['profile'].value;
-  var contentType = req.swagger.params['contentType'].value;
-  var state = req.swagger.params['state'].value;
-  var creationTime = req.swagger.params['creationTime'].value;
-  var modificationTime = req.swagger.params['modificationTime'].value;
-  blobsApi.operation2(profile,contentType,state,creationTime,modificationTime)
-    .then(function (response) {
-      utils.writeJson(res, response);
-    })
-    .catch(function (response) {
-      utils.writeJson(res, response);
-    });
-};
-
-module.exports.operation3 = function operation3 (req, res, next) {
-  blobsApi.operation3()
-    .then(function (response) {
-      utils.writeJson(res, response);
-    })
-    .catch(function (response) {
-      utils.writeJson(res, response);
-    });
-};
-
-module.exports.operation4 = function operation4 (req, res, next) {
-  var body = req.swagger.params['body'].value;
-  blobsApi.operation4(body)
-    .then(function (response) {
-      utils.writeJson(res, response);
-    })
-    .catch(function (response) {
-      utils.writeJson(res, response);
-    });
-};
-
-module.exports.operation5 = function operation5 (req, res, next) {
-  blobsApi.operation5()
-    .then(function (response) {
-      utils.writeJson(res, response);
-    })
-    .catch(function (response) {
-      utils.writeJson(res, response);
-    });
-};
-
-module.exports.operation6 = function operation6 (req, res, next) {
-  blobsApi.operation6()
-    .then(function (response) {
-      utils.writeJson(res, response);
-    })
-    .catch(function (response) {
-      utils.writeJson(res, response);
-    });
-};
-
-module.exports.operation7 = function operation7 (req, res, next) {
-  blobsApi.operation7()
-    .then(function (response) {
-      utils.writeJson(res, response);
-    })
-    .catch(function (response) {
-      utils.writeJson(res, response);
-    });
-};
-*/

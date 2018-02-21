@@ -36,7 +36,7 @@ var mongoose = require('mongoose'),
     _ = require('lodash');
 
 var BlobMetadata = new Schema({
-    id: { type: Number, required: true },
+    UUID: { type: String, required: true, unique: true },
     profile: { type: String, required: true },
     contentType: { type: String, required: true },
     state: {
@@ -68,5 +68,12 @@ var RecordImportResult = new Schema({
     metadata: { type: Object}
 });
 
+var BlobContent = new Schema({
+    UUID: { type: String, required: true, unique: true },
+    MetaDataID: { type: String, required: true },
+    data: { type: Object, required: true }
+});
+
 module.exports = mongoose.model('BlobMetadata', BlobMetadata);
-//module.exports = mongoose.model('RecordImportResult', RecordImportResult);
+module.exports = mongoose.model('RecordImportResult', RecordImportResult);
+module.exports = mongoose.model('BlobContent', BlobContent);

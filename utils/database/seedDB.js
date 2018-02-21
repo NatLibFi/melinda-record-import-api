@@ -29,27 +29,60 @@
 /* eslint-disable no-unused-vars */
 
 'use strict';
+var mongoose = require('mongoose');
 
-var Blobs = require('./models/m.blobs');
-
-Blobs.find({}).remove(function () {
-    Blobs.create({
-        id:1112,
+mongoose.models.BlobMetadata.remove(function () {
+    mongoose.models.BlobMetadata.create({
+        UUID: '1112',
         profile: 'standard',
         contentType: 'standard'
     }, {
-        id: 1113,
-        profile: 'standard',
+        UUID: '1113',
+        profile: 'standards',
         contentType: 'stylized'
     }, {
-        id: 1114,
+        UUID: '1114',
         profile: 'adminstrator',
         contentType: 'stylized'
     }, {
-        id: 1115,
+        UUID: '1115',
         profile: 'guest',
         contentType: 'standard'
-    }, function () {
-        console.log('Finished populating testing blobs');
+    }, function (err) {
+        console.log('Finished populating testing blobs, errors: ', err);
+    });
+});
+
+mongoose.models.BlobContent.remove(function () {
+    mongoose.models.BlobContent.create({
+        UUID: '0002',
+        MetaDataID: '1112',
+        data: {
+            datafield1: 'data 1',
+            datafield2: 'data 2'
+        }
+    }, {
+        UUID: '0003',
+        MetaDataID: '1113',
+        data: {
+            datafield1: 'data 1',
+            datafield2: 'data 2'
+        }
+    }, {
+        UUID: '0004',
+        MetaDataID: '1114',
+        data: {
+            datafield1: 'data 1',
+            datafield2: 'data 2'
+        }
+    }, {
+        UUID: '0005',
+        MetaDataID: '1115',
+        data: {
+            datafield1: 'data 1',
+            datafield2: 'data 2'
+        }
+    }, function (err) {
+        console.log('Finished populating testing blobs, errors: ', err);
     });
 });
