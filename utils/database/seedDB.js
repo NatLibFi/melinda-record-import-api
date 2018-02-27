@@ -29,10 +29,17 @@
 /* eslint-disable no-unused-vars */
 
 'use strict';
-var mongoose = require('mongoose');
+var mongoose = require('mongoose'),
+    config = require('../../config');
+
+var logs = config.logs;
 
 mongoose.models.BlobMetadata.remove(function () {
     mongoose.models.BlobMetadata.create({
+        UUID: '1111',
+        profile: 'single_test_metadata',
+        contentType: 'standard'
+    }, {
         UUID: '1112',
         profile: 'standard',
         contentType: 'standard'
@@ -49,12 +56,19 @@ mongoose.models.BlobMetadata.remove(function () {
         profile: 'guest',
         contentType: 'standard'
     }, function (err) {
-        console.log('Finished populating testing blobs, errors: ', err);
+        if (logs) console.log('Finished populating testing blobs, errors: ', err);
     });
 });
 
 mongoose.models.BlobContent.remove(function () {
     mongoose.models.BlobContent.create({
+        UUID: '0001',
+        MetaDataID: '1111',
+        data: {
+            datafield1: 'single data',
+            datafield2: 'single data 1'
+        }
+    }, {
         UUID: '0002',
         MetaDataID: '1112',
         data: {
@@ -83,6 +97,6 @@ mongoose.models.BlobContent.remove(function () {
             datafield2: 'data 2'
         }
     }, function (err) {
-        console.log('Finished populating testing blobs, errors: ', err);
+        if (logs) console.log('Finished populating testing blobs, errors: ', err);
     });
 });

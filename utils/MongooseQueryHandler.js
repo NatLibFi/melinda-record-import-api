@@ -66,7 +66,6 @@ module.exports = {
         }
     },
     returnUUID: function (findResults, res) {
-        console.log('FR: ', findResults);
         var results = [];
         _.forEach(findResults, function (value) {
             results.push('https://record-import.api.melinda.kansalliskirjasto.fi/v1/blob/' + value.UUID)

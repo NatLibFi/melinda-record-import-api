@@ -30,7 +30,300 @@
 
 'use strict';
 
-import {expect} from 'chai';
-import * as testContext from '../src/index';
+const chai = require('chai')
+const should = chai.should();
+const app = require('../index');
+const httpMocks = require('node-mocks-http');
+const mongoose = require('mongoose'),    
+      config = require('../config');
 
-describe.skip('index');
+const blobs = require('../controllers/blobs');
+const profiles = require('../controllers/profiles');
+
+///////////////////////////////////////////////////
+//    These test should be run for all paths     //
+///////////////////////////////////////////////////
+describe('All paths', function () {
+    describe('Authentication', function () {
+        it('should respond with 401 - Authentication failed (Test TODO)', function (done) {
+            var req = httpMocks.createRequest({
+                method: 'POST',
+                url: '/blobs',
+                query: { 'Import-Profile': 'testing' },
+                body: {
+                    data: 'test data',
+                    data2: 'more data'
+                }
+            });
+
+            var res = httpMocks.createResponse({
+                eventEmitter: require('events').EventEmitter
+            });
+
+            blobs.postBlob(req, res);
+
+            res.on('end', function () {
+                var data = res._getData();
+
+                res.statusCode.should.equal(401);
+                data.should.be.an('string');
+                data.should.equal('Authentication failed');
+
+                done();
+            });
+        });
+
+
+        it('should respond with 403 - Not authorized (Test TODO)', function (done) {
+            var req = httpMocks.createRequest({
+                method: 'POST',
+                url: '/blobs',
+                query: { 'Import-Profile': 'testing' },
+                body: {
+                    data: 'test data',
+                    data2: 'more data'
+                }
+            });
+
+            var res = httpMocks.createResponse({
+                eventEmitter: require('events').EventEmitter
+            });
+
+            blobs.postBlob(req, res);
+
+            res.on('end', function () {
+                var data = res._getData();
+
+                res.statusCode.should.equal(403);
+                data.should.be.an('string');
+                data.should.equal('Not authorized');
+
+                done();
+            });
+        });
+    });
+});
+
+
+/////////////////////////////////////////////////////
+// Tests for blob services, meaning /blobs/* paths //
+/////////////////////////////////////////////////////
+describe('Blob services', function () {
+    ////////////////////////////
+    // Start: POST /blobs     //
+    describe('#POST /blobs', function () {
+        it('should respond with 201 - The blob was succesfully created...', function (done) {
+            var req = httpMocks.createRequest({
+                method: 'POST',
+                url: '/blobs',
+                query: { 'Import-Profile': 'testing_single' },
+                body: {
+                    data: 'test data',
+                    data2: 'more data'
+                }
+            });
+
+            var res = httpMocks.createResponse({
+                eventEmitter: require('events').EventEmitter
+            });
+
+
+            blobs.postBlob(req, res);
+
+            res.on('end', function () {
+                var data = res._getData();
+                res.statusCode.should.equal(200);
+                data.should.be.an('string');
+                data.should.equal('The blob was succesfully created. State is set to PENDING_TRANSFORMATION');
+
+                done();
+            });
+        });
+
+
+        it('should respond with 400 - The profile does not exist...', function (done) {
+            var req = httpMocks.createRequest({
+                method: 'POST',
+                url: '/blobs',
+                query: { 'Import-Profile': 'testing_invalid_profile' },
+                body: {
+                    data: 'test data',
+                    data2: 'more data'
+                }
+            });
+
+            var res = httpMocks.createResponse({
+                eventEmitter: require('events').EventEmitter
+            });
+
+            blobs.postBlob(req, res);
+
+            res.on('end', function () {
+                var data = res._getData();
+
+                res.statusCode.should.equal(400);
+                data.should.be.an('string');
+                data.should.equal('The profile does not exist or the user is not authorized to it');
+
+                done();
+            });
+        });
+
+        it('should respond with 413 - Request body is too large (Test TODO)', function (done) {
+            var req = httpMocks.createRequest({
+                method: 'POST',
+                url: '/blobs',
+                query: { 'Import-Profile': 'testing' },
+                body: {
+                    data: 'test data',
+                    data2: 'more data'
+                }
+            });
+
+            var res = httpMocks.createResponse({
+                eventEmitter: require('events').EventEmitter
+            });
+
+            blobs.postBlob(req, res);
+
+            res.on('end', function () {
+                var data = res._getData();
+
+                res.statusCode.should.equal(413);
+                data.should.be.an('string');
+                data.should.equal('Request body is too large');
+
+                done();
+            });
+        });
+
+
+        it('should respond with 415 - Content type was not specified (Test TODO)', function (done) {
+            var req = httpMocks.createRequest({
+                method: 'POST',
+                url: '/blobs',
+                query: { 'Import-Profile': 'testing' },
+                body: {
+                    data: 'test data',
+                    data2: 'more data'
+                }
+            });
+
+            var res = httpMocks.createResponse({
+                eventEmitter: require('events').EventEmitter
+            });
+
+            blobs.postBlob(req, res);
+
+            res.on('end', function () {
+                var data = res._getData();
+
+                res.statusCode.should.equal(413);
+                data.should.be.an('string');
+                data.should.equal('Content type was not specified');
+
+                done();
+            });
+        });
+    });
+    // End: POST /blobs       //
+    ////////////////////////////
+
+
+    ////////////////////////////
+    // Start: GET /blobs      //
+    describe('#GET /blobs', function () {
+
+        it('should respond with 200 and list of URLs', function (done) {
+            var req = httpMocks.createRequest({
+                method: 'GET',
+                url: '/blobs',
+                query: {},
+            });
+
+            var res = httpMocks.createResponse({
+                eventEmitter: require('events').EventEmitter
+            });
+
+
+            blobs.getBlob(req, res);
+
+            res.on('end', function () {
+                try {
+                    var data = res._getData();
+                    res.statusCode.should.equal(200);
+                    data.should.be.an('array');
+                    if (config.seedDB && !config.emptyDB) {
+                        data.length.should.be.gte(1);
+                    }
+                    done();
+
+                } catch (e) {
+                    done(e);
+                }
+            });
+        });
+
+        if (config.seedDB && !config.emptyDB) {
+            it('should respond with 200 and single URL (from seed)', function (done) {
+                var req = httpMocks.createRequest({
+                    method: 'GET',
+                    url: '/blobs',
+                    query: { 'profile': 'single_test_metadata' },
+                });
+
+                var res = httpMocks.createResponse({
+                    eventEmitter: require('events').EventEmitter
+                });
+
+
+                blobs.getBlob(req, res);
+
+                res.on('end', function () {
+                    try {
+                        var data = res._getData();
+                        res.statusCode.should.equal(200);
+                        data.should.be.an('array');
+                        data.should.have.lengthOf(1);
+                        done();
+
+                    } catch (e) {
+                        done(e);
+                    }
+                });
+            });
+        }
+
+        it('should respond with 200 and single URL (from #POST test)', function (done) {
+            var req = httpMocks.createRequest({
+                method: 'GET',
+                url: '/blobs',
+                query: { 'profile': 'testing_single' },
+            });
+
+            var res = httpMocks.createResponse({
+                eventEmitter: require('events').EventEmitter
+            });
+
+
+            blobs.getBlob(req, res);
+
+            res.on('end', function () {
+                try {
+                    var data = res._getData();
+                    res.statusCode.should.equal(200);
+                    data.should.be.an('array');
+                    data.should.have.lengthOf(1);
+                    done();
+
+                } catch (e) {
+                    done(e);
+                }
+            });
+        });
+
+    });
+    // End: GET /blobs        //
+    ////////////////////////////
+});
+

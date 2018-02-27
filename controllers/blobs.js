@@ -31,18 +31,20 @@
 'use strict';
 
 var mongoose = require('mongoose'),
+    config = require('../config'),
     Blobs = require('../models/m.blobs'),
     HttpCodes = require('../utils/HttpCodes'),
     enums = require('../utils/enums'),
     MongoErrorHandler = require('../utils/MongooseErrorHandler'),
     queryHandler = require('../utils/MongooseQueryHandler'),
     moment = require('moment'),
-    uuid = require('uuid');
+    uuid = require('uuid'),
+    logs = config.logs;
 
 var validationError = function (res, err) {
     return res.json(HttpCodes.ValidationError, err);
 };
-
+ 
 
 /**
  * Create a new blob
@@ -51,9 +53,9 @@ var validationError = function (res, err) {
  * no response value expected for this operation
 */
 module.exports.postBlob = function (req, res, next) {
-    console.log('-------------- Post blob --------------');
-    console.log(req.body);
-    console.log(req.query);
+    if (logs) console.log('-------------- Post blob --------------');
+    if (logs) console.log(req.body);
+    if (logs) console.log(req.query);
 
     if (!req.query['Import-Profile']) {
         return res.status(HttpCodes.BadRequest).send('The profile does not exist or the user is not authorized to it')
@@ -82,7 +84,7 @@ module.exports.postBlob = function (req, res, next) {
             if (err) {
                 return validationError(res, err);
             }
-            return res.status(HttpCodes.OK).send('The blob was succesfully created.')
+            return res.status(HttpCodes.OK).send('The blob was succesfully created. State is set to ' + newBlobMetadata.state)
         });
 
     });
@@ -102,7 +104,7 @@ module.exports.postBlob = function (req, res, next) {
  * returns array
 */
 module.exports.getBlob = function (req, res, next) {
-    console.log('-------------- Query blob --------------');
+    if (logs) console.log('-------------- Query blob --------------');
     var query = req.query;
 
     if (query.creationTime){
@@ -127,8 +129,6 @@ module.exports.getBlob = function (req, res, next) {
         }
     }
 
-    console.log(query);
-
     mongoose.models.BlobMetadata.find(query)
         .exec()
         .then((documents) => queryHandler.returnUUID(documents, res))
@@ -142,8 +142,8 @@ module.exports.getBlob = function (req, res, next) {
  * returns BlobMetadata
 */
 module.exports.getBlobById = function (req, res, next) {
-    console.log('-------------- Get blob by id --------------');
-    console.log(req.params.id);
+    if (logs) console.log('-------------- Get blob by id --------------');
+    if (logs) console.log(req.params.id);
 
     mongoose.models.BlobMetadata.where('UUID', req.params.id)
         .exec()
@@ -159,9 +159,9 @@ module.exports.getBlobById = function (req, res, next) {
  * no response value expected for this operation
 */
 module.exports.postBlobById = function (req, res, next) {
-    console.log('-------------- Update  blob by id --------------');
-    console.log(req.body);
-    console.log(req.params.id);
+    if (logs) console.log('-------------- Update  blob by id --------------');
+    if (logs) console.log(req.body);
+    if (logs) console.log(req.params.id);
 
     if (req.body.id && req.body.id !== req.params.id) {
         return res.status(HttpCodes.BadRequest).send('Requests ids do not match')
@@ -184,8 +184,8 @@ module.exports.postBlobById = function (req, res, next) {
  * no response value expected for this operation
 */
 module.exports.deleteBlobById = function (req, res, next) {
-    console.log('-------------- Remove blob by id --------------');
-    console.log(req.params.id);
+    if (logs) console.log('-------------- Remove blob by id --------------');
+    if (logs) console.log(req.params.id);
 
     //Remove content and then metadata, since content can be removed separately
     mongoose.models.BlobContent.findOneAndRemove()
@@ -210,8 +210,8 @@ module.exports.deleteBlobById = function (req, res, next) {
  * no response value expected for this operation
 */
 module.exports.getBlobByIdContent = function (req, res, next) {
-    console.log('-------------- Get blob content by id --------------');
-    console.log(req.params.id);
+    if (logs) console.log('-------------- Get blob content by id --------------');
+    if (logs) console.log(req.params.id);
 
     mongoose.models.BlobContent.where('MetaDataID', req.params.id)
         .exec()
@@ -226,8 +226,8 @@ module.exports.getBlobByIdContent = function (req, res, next) {
  * no response value expected for this operation
 */
 module.exports.deleteBlobByIdContent = function (req, res, next) {
-    console.log('-------------- Remove blob content by id --------------');
-    console.log(req.params.id);
+    if (logs) console.log('-------------- Remove blob content by id --------------');
+    if (logs) console.log(req.params.id);
 
     mongoose.models.BlobContent.findOneAndRemove()
         .where('MetaDataID', req.params.id)
