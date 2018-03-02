@@ -54,7 +54,7 @@ module.exports = {
         _.forEach(findResults, function (value) {
             delete value.UUID;
         }); _
-        res.status(HttpCodes.OK).send(findResults);
+        return res.status(HttpCodes.OK).send(findResults);
     },
     updateOne: function(result, res, notFound){
         if (result) {
@@ -70,7 +70,7 @@ module.exports = {
         _.forEach(findResults, function (value) {
             results.push('https://record-import.api.melinda.kansalliskirjasto.fi/v1/blob/' + value.UUID)
         });
-        res.status(HttpCodes.OK).send(results);
+        return res.status(HttpCodes.OK).send(results);
     },
     removeOne: function (obj, res) {
         if (obj) {
@@ -78,5 +78,8 @@ module.exports = {
         } else {
             return res.status(HttpCodes.NotFound).send('Content not found');
         }
+    },
+    invalidQuery: function (res) {
+        return res.status(HttpCodes.BadRequest).send('Invalid query');
     }
 };

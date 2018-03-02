@@ -39,12 +39,15 @@ var mongoose = require('mongoose'),
     queryHandler = require('../utils/MongooseQueryHandler'),
     moment = require('moment'),
     uuid = require('uuid'),
-    logs = config.logs;
+    logs = config.logs,
+    _ = require('lodash');
+    
 
 var validationError = function (res, err) {
     return res.json(HttpCodes.ValidationError, err);
 };
  
+const allowedQueryFields = ['profile', 'contentType', 'state', 'creationTime', 'modificationTime']
 
 /**
  * Create a new blob
@@ -106,26 +109,57 @@ module.exports.postBlob = function (req, res, next) {
 module.exports.getBlob = function (req, res, next) {
     if (logs) console.log('-------------- Query blob --------------');
     var query = req.query;
+   
+    try {
+        //Validate query fields:
+        //Allowed field
+        //No duplicates
+        console.log("Query: ", query);
+        _.forEach(query, function (value, key, index) {
+            console.log("Value: ", value);
+            console.log("Value.isarray: ", Array.isArray(value));
+            console.log("Key: ", key);
+            console.log("&&:", !(key === 'creationTime' || key === 'modificationTime'));
 
-    if (query.creationTime){
-        if(query.creationTime.length === 2) {
+            if (!allowedQueryFields.includes(key) ||
+                Array.isArray(value) && !(key === 'creationTime' || key === 'modificationTime' )) {
+                console.log("Invalid");
+                throw 'Invalid query field';
+            }
+        });
+    } catch (e) {
+        console.log("Catch: ", e);
+        if (e === 'Invalid query field') {
+            console.log("If");
+            return queryHandler.invalidQuery(res);
+        }
+    }
+
+
+    if (query.creationTime) {
+        if (query.creationTime.length === 2 &&
+            moment(query.creationTime[0], moment.ISO_8601).isValid() &&
+            moment(query.creationTime[1], moment.ISO_8601).isValid()) {
+
             query.creationTime = {
                 $gte: query.creationTime[0],
                 $lte: query.creationTime[1]
             }
-        }else{
-            delete query.creationTime;
+        } else {    
+            return queryHandler.invalidQuery(res);
         }
     }
 
     if (query.modificationTime){
-        if(query.modificationTime.length === 2) {
+        if (query.modificationTime.length === 2 &&
+            moment(query.modificationTime[0], moment.ISO_8601).isValid() &&
+            moment(query.modificationTime[1], moment.ISO_8601).isValid()) {
             query.modificationTime = {
                 $gte: query.modificationTime[0],
                 $lte: query.modificationTime[1]
             }
         } else {
-            delete query.modificationTime;
+            return queryHandler.invalidQuery(res);
         }
     }
 

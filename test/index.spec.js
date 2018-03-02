@@ -43,6 +43,7 @@ const profiles = require('../controllers/profiles');
 ///////////////////////////////////////////////////
 //    These test should be run for all paths     //
 ///////////////////////////////////////////////////
+/*
 describe('All paths', function () {
     describe('Authentication', function () {
         it('should respond with 401 - Authentication failed (Test TODO)', function (done) {
@@ -103,6 +104,7 @@ describe('All paths', function () {
         });
     });
 });
+*/
 
 
 /////////////////////////////////////////////////////
@@ -169,6 +171,7 @@ describe('Blob services', function () {
             });
         });
 
+
         it('should respond with 413 - Request body is too large (Test TODO)', function (done) {
             var req = httpMocks.createRequest({
                 method: 'POST',
@@ -233,43 +236,189 @@ describe('Blob services', function () {
     ////////////////////////////
     // Start: GET /blobs      //
     describe('#GET /blobs', function () {
-
-        it('should respond with 200 and list of URLs', function (done) {
-            var req = httpMocks.createRequest({
-                method: 'GET',
-                url: '/blobs',
-                query: {},
-            });
-
-            var res = httpMocks.createResponse({
-                eventEmitter: require('events').EventEmitter
-            });
-
-
-            blobs.getBlob(req, res);
-
-            res.on('end', function () {
-                try {
-                    var data = res._getData();
-                    res.statusCode.should.equal(200);
-                    data.should.be.an('array');
-                    if (config.seedDB && !config.emptyDB) {
-                        data.length.should.be.gte(1);
-                    }
-                    done();
-
-                } catch (e) {
-                    done(e);
-                }
-            });
-        });
-
-        if (config.seedDB && !config.emptyDB) {
-            it('should respond with 200 and single URL (from seed)', function (done) {
+        describe('-valid queries (200)', function () {
+            it('should respond with 200 and list of URLs', function (done) {
                 var req = httpMocks.createRequest({
                     method: 'GET',
                     url: '/blobs',
-                    query: { 'profile': 'single_test_metadata' },
+                    query: {},
+                });
+
+                var res = httpMocks.createResponse({
+                    eventEmitter: require('events').EventEmitter
+                });
+
+
+                blobs.getBlob(req, res);
+
+                res.on('end', function () {
+                    try {
+                        var data = res._getData();
+                        res.statusCode.should.equal(200);
+                        data.should.be.an('array');
+                        if (config.seedDB && !config.emptyDB) {
+                            data.length.should.be.gte(1);
+                        }
+                        done();
+
+                    } catch (e) {
+                        done(e);
+                    }
+                });
+            });
+
+
+            it('should respond with 200 and array (parameter profile)', function (done) {
+                var req = httpMocks.createRequest({
+                    method: 'GET',
+                    url: '/blobs',
+                    query: { 'profile': 'standard' },
+                });
+
+                var res = httpMocks.createResponse({
+                    eventEmitter: require('events').EventEmitter
+                });
+
+
+                blobs.getBlob(req, res);
+
+                res.on('end', function () {
+                    try {
+                        var data = res._getData();
+                        res.statusCode.should.equal(200);
+                        data.should.be.an('array');
+                        done();
+                    } catch (e) {
+                        done(e);
+                    }
+                });
+            });
+
+
+            it('should respond with 200 and array (parameter contentType)', function (done) {
+                var req = httpMocks.createRequest({
+                    method: 'GET',
+                    url: '/blobs',
+                    query: { 'contentType': 'standard' },
+                });
+
+                var res = httpMocks.createResponse({
+                    eventEmitter: require('events').EventEmitter
+                });
+
+
+                blobs.getBlob(req, res);
+
+                res.on('end', function () {
+                    try {
+                        var data = res._getData();
+                        res.statusCode.should.equal(200);
+                        data.should.be.an('array');
+                        done();
+                    } catch (e) {
+                        done(e);
+                    }
+                });
+            });
+
+
+            it('should respond with 200 and array of URLs (parameter creationTime 2000-2100)', function (done) {
+                var req = httpMocks.createRequest({
+                    method: 'GET',
+                    url: '/blobs',
+                    query: {
+                        'creationTime': ['2000-01-01T00:00Z', '2100-01-01T00:00Z']
+                        //This is identical to:
+                        //?creationTime=2000-01-01T00:00Z&creationTime=2100-01-01T00:00Z
+                    },
+                });
+                
+                var res = httpMocks.createResponse({
+                    eventEmitter: require('events').EventEmitter
+                });
+
+
+                blobs.getBlob(req, res);
+
+                res.on('end', function () {
+                    try {
+                        var data = res._getData();
+                        res.statusCode.should.equal(200);
+                        data.should.be.an('array');
+                        data.length.should.be.gte(1);
+                        done();
+                    } catch (e) {
+                        done(e);
+                    }
+                });
+            });
+
+
+            it('should respond with 200 and array of URLs (parameter modificationTime 2000-2100)', function (done) {
+                var req = httpMocks.createRequest({
+                    method: 'GET',
+                    url: '/blobs',
+                    query: {
+                        'modificationTime': ['2000-01-01T00:00Z', '2100-01-01T00:00Z']
+                    },
+                });
+
+                var res = httpMocks.createResponse({
+                    eventEmitter: require('events').EventEmitter
+                });
+
+
+                blobs.getBlob(req, res);
+
+                res.on('end', function () {
+                    try {
+                        var data = res._getData();
+                        res.statusCode.should.equal(200);
+                        data.should.be.an('array');
+                        data.length.should.be.gte(1);
+                        done();
+                    } catch (e) {
+                        done(e);
+                    }
+                });
+            });
+
+
+            if (config.seedDB && !config.emptyDB) {
+                it('should respond with 200 and single URL (from seed)', function (done) {
+                    var req = httpMocks.createRequest({
+                        method: 'GET',
+                        url: '/blobs',
+                        query: { 'profile': 'single_test_metadata' },
+                    });
+
+                    var res = httpMocks.createResponse({
+                        eventEmitter: require('events').EventEmitter
+                    });
+
+
+                    blobs.getBlob(req, res);
+
+                    res.on('end', function () {
+                        try {
+                            var data = res._getData();
+                            res.statusCode.should.equal(200);
+                            data.should.be.an('array');
+                            data.should.have.lengthOf(1);
+                            done();
+
+                        } catch (e) {
+                            done(e);
+                        }
+                    });
+                });
+            }
+
+            it('should respond with 200 and single URL (from #POST test)', function (done) {
+                var req = httpMocks.createRequest({
+                    method: 'GET',
+                    url: '/blobs',
+                    query: { 'profile': 'testing_single' },
                 });
 
                 var res = httpMocks.createResponse({
@@ -292,36 +441,229 @@ describe('Blob services', function () {
                     }
                 });
             });
-        }
-
-        it('should respond with 200 and single URL (from #POST test)', function (done) {
-            var req = httpMocks.createRequest({
-                method: 'GET',
-                url: '/blobs',
-                query: { 'profile': 'testing_single' },
-            });
-
-            var res = httpMocks.createResponse({
-                eventEmitter: require('events').EventEmitter
-            });
 
 
-            blobs.getBlob(req, res);
+            it('should respond with 200 and empty array', function (done) {
+                var req = httpMocks.createRequest({
+                    method: 'GET',
+                    url: '/blobs',
+                    query: { 'profile': 'nonexistent' },
+                });
 
-            res.on('end', function () {
-                try {
-                    var data = res._getData();
-                    res.statusCode.should.equal(200);
-                    data.should.be.an('array');
-                    data.should.have.lengthOf(1);
-                    done();
+                var res = httpMocks.createResponse({
+                    eventEmitter: require('events').EventEmitter
+                });
 
-                } catch (e) {
-                    done(e);
-                }
+
+                blobs.getBlob(req, res);
+
+                res.on('end', function () {
+                    try {
+                        var data = res._getData();
+                        res.statusCode.should.equal(200);
+                        data.should.be.an('array');
+                        data.should.have.lengthOf(0);
+                        done();
+                    } catch (e) {
+                        done(e);
+                    }
+                });
             });
         });
 
+
+        describe('-invalid queries (400)', function () {
+            it('should respond with 400 - Invalid query (date format)', function (done) {
+                var req = httpMocks.createRequest({
+                    method: 'GET',
+                    url: '/blobs',
+                    query: {
+                        'creationTime': ['20000-01-01T00:00Z', '2100-01-01T00:00Z']
+                    },
+                });
+
+                var res = httpMocks.createResponse({
+                    eventEmitter: require('events').EventEmitter
+                });
+
+
+                blobs.getBlob(req, res);
+
+                var data = res._getData();
+                res.statusCode.should.equal(400);
+                data.should.be.an('string');
+                data.should.equal('Invalid query');
+                done();
+            });
+
+
+            it('should respond with 400 - Invalid query (single date)', function (done) {
+                var req = httpMocks.createRequest({
+                    method: 'GET',
+                    url: '/blobs',
+                    query: {
+                        'creationTime': '2000-01-01T00:00Z',
+                    },
+                });
+
+                var res = httpMocks.createResponse({
+                    eventEmitter: require('events').EventEmitter
+                });
+
+
+                blobs.getBlob(req, res);
+
+                var data = res._getData();
+                res.statusCode.should.equal(400);
+                data.should.be.an('string');
+                data.should.equal('Invalid query');
+                done();
+            });
+
+
+            it('should respond with 400 - Invalid query (too many values in creationTime)', function (done) {
+                var req = httpMocks.createRequest({
+                    method: 'GET',
+                    url: '/blobs',
+                    query: {
+                        'creationTime': ['2000-01-01T00:00Z', '2100-01-01T00:00Z', '2000-01-01T00:00Z'],
+                    },
+                });
+
+                var res = httpMocks.createResponse({
+                    eventEmitter: require('events').EventEmitter
+                });
+
+
+                blobs.getBlob(req, res);
+
+                var data = res._getData();
+                res.statusCode.should.equal(400);
+                data.should.be.an('string');
+                data.should.equal('Invalid query');
+                done();
+            });
+
+
+            it('should respond with 400 - Invalid query (wrong parameter name #1)', function (done) {
+                var req = httpMocks.createRequest({
+                    method: 'GET',
+                    url: '/blobs',
+                    query: {
+                        'creationTime': ['2000-01-01T00:00Z', '2100-01-01T00:00Z'],
+                        'creationsTime': ['2000-01-01T00:00Z', '2100-01-01T00:00Z']
+                    },
+                });
+
+                var res = httpMocks.createResponse({
+                    eventEmitter: require('events').EventEmitter
+                });
+
+
+                blobs.getBlob(req, res);
+
+                var data = res._getData();
+                res.statusCode.should.equal(400);
+                data.should.be.an('string');
+                data.should.equal('Invalid query');
+                done();
+            });
+
+
+            it('should respond with 400 - Invalid query (wrong parameter name #2)', function (done) {
+                var req = httpMocks.createRequest({
+                    method: 'GET',
+                    url: '/blobs',
+                    query: {
+                        'profiles': 'wrong',
+                    },
+                });
+
+                var res = httpMocks.createResponse({
+                    eventEmitter: require('events').EventEmitter
+                });
+
+
+                blobs.getBlob(req, res);
+                var data = res._getData();
+                res.statusCode.should.equal(400);
+                data.should.be.an('string');
+                data.should.equal('Invalid query');
+                done();
+
+            });
+
+
+            it('should respond with 400 - Invalid query (double parameter #1)', function (done) {
+                var req = httpMocks.createRequest({
+                    method: 'GET',
+                    url: '/blobs',
+                    query: {
+                        'profile': ['wrong', 'weird']
+                    },
+                });
+
+                var res = httpMocks.createResponse({
+                    eventEmitter: require('events').EventEmitter
+                });
+
+
+                blobs.getBlob(req, res);
+                var data = res._getData();
+                res.statusCode.should.equal(400);
+                data.should.be.an('string');
+                data.should.equal('Invalid query');
+                done();
+            });
+
+
+            it('should respond with 400 - Invalid query (triple parameter)', function (done) {
+                var req = httpMocks.createRequest({
+                    method: 'GET',
+                    url: '/blobs',
+                    query: {
+                        'profiles': 'wrong',
+                        'profiles': 'really',
+                        'profile': 'weird'
+                    },
+                });
+
+                var res = httpMocks.createResponse({
+                    eventEmitter: require('events').EventEmitter
+                });
+
+
+                blobs.getBlob(req, res);
+                var data = res._getData();
+                res.statusCode.should.equal(400);
+                data.should.be.an('string');
+                data.should.equal('Invalid query');
+                done();
+            });
+
+
+            it('should respond with 400 - Invalid query (double parameter #2)', function (done) {
+                var req = httpMocks.createRequest({
+                    method: 'GET',
+                    url: '/blobs',
+                    query: {
+                        'contentType': ['wrong','really']
+                    },
+                });
+
+                var res = httpMocks.createResponse({
+                    eventEmitter: require('events').EventEmitter
+                });
+
+
+                blobs.getBlob(req, res);
+                var data = res._getData();
+                res.statusCode.should.equal(400);
+                data.should.be.an('string');
+                data.should.equal('Invalid query');
+                done();
+            });
+        });
     });
     // End: GET /blobs        //
     ////////////////////////////
