@@ -114,23 +114,14 @@ module.exports.getBlob = function (req, res, next) {
         //Validate query fields:
         //Allowed field
         //No duplicates
-        console.log("Query: ", query);
         _.forEach(query, function (value, key, index) {
-            console.log("Value: ", value);
-            console.log("Value.isarray: ", Array.isArray(value));
-            console.log("Key: ", key);
-            console.log("&&:", !(key === 'creationTime' || key === 'modificationTime'));
-
             if (!allowedQueryFields.includes(key) ||
                 Array.isArray(value) && !(key === 'creationTime' || key === 'modificationTime' )) {
-                console.log("Invalid");
                 throw 'Invalid query field';
             }
         });
     } catch (e) {
-        console.log("Catch: ", e);
         if (e === 'Invalid query field') {
-            console.log("If");
             return queryHandler.invalidQuery(res);
         }
     }
@@ -226,11 +217,11 @@ module.exports.deleteBlobById = function (req, res, next) {
         .where('MetaDataID', req.params.id)
         .exec() 
         .then((documents) => {
-            if (!documents) console.log('BlobContent not found, removed earlier?');
+            if (!documents && logs) console.log('BlobContent not found, removed earlier?');
             mongoose.models.BlobMetadata.findOneAndRemove()
             .where('UUID', req.params.id)
             .exec()
-            .then((documents) => queryHandler.removeOne(documents, res))
+            .then((documents) => queryHandler.removeOne(documents, res, 'The blob was removed'))
             .catch((reason) => MongoErrorHandler(reason, res, next));
         })
         .catch((reason) => MongoErrorHandler(reason, res, next));
@@ -266,6 +257,6 @@ module.exports.deleteBlobByIdContent = function (req, res, next) {
     mongoose.models.BlobContent.findOneAndRemove()
         .where('MetaDataID', req.params.id)
         .exec()
-        .then((documents) => queryHandler.removeOne(documents, res))
+        .then((documents) => queryHandler.removeOne(documents, res, 'The content was removed'))
         .catch((reason) => MongoErrorHandler(reason, res, next));
 };

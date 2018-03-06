@@ -39,7 +39,6 @@ module.exports = {
                 return res.status(HttpCodes.NotFound).send(notFound || 'Could not find any documents matching the query.');
             case 1: {
                 var result = findResults[0].toJSON();
-                console.log('Result: ', result);
                 delete result._id;
                 delete result.__v;
                 delete result.UUID;
@@ -56,11 +55,9 @@ module.exports = {
         }); _
         return res.status(HttpCodes.OK).send(findResults);
     },
-    updateOne: function(result, res, notFound){
+    updateOne: function (result, res, notFound) {
         if (result) {
-            console.log('Result: ', result);
-            result = result.toJSON();
-            return res.status(HttpCodes.OK).send('');
+            return res.status(HttpCodes.NoContent).send('The metadata was updated');
         } else {
             return res.status(HttpCodes.NotFound).send(notFound);
         }
@@ -72,9 +69,9 @@ module.exports = {
         });
         return res.status(HttpCodes.OK).send(results);
     },
-    removeOne: function (obj, res) {
+    removeOne: function (obj, res, whatWasRemoved) {
         if (obj) {
-            return res.status(HttpCodes.OK).send('The blob was removed');
+            return res.status(HttpCodes.NoContent).send(whatWasRemoved);
         } else {
             return res.status(HttpCodes.NotFound).send('Content not found');
         }

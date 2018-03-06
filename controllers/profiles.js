@@ -62,7 +62,6 @@ module.exports.upsertProfileById = function (req, res, next) {
         profile,
         { new: true, upsert: true, runValidators: true }
         ).then((result) => {
-            console.log('Result: ', result);
             result = result.toJSON();
             return res.status(HttpCodes.OK).send('');
         })
