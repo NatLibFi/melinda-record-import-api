@@ -41,6 +41,8 @@ const mongoose = require('mongoose'),
 const blobs = require('../controllers/blobs');
 const profiles = require('../controllers/profiles');
 
+///////////////////////////////////////////
+// Start: Generate testing objects to DB //
 mongoose.models.BlobMetadata.remove(function () {
     mongoose.models.BlobMetadata.create({
         UUID: '2001',
@@ -75,6 +77,19 @@ mongoose.models.BlobContent.remove(function () {
         if (logs) console.log('Finished populating testing blobs, errors: ', err);
     });
 });
+
+mongoose.models.Profile.remove(function () {
+    mongoose.models.Profile.create({
+        UUID: '2201',
+        asd: 'asd',
+    }, {
+        UUID: '2201',
+    }, function (err) {
+        if (logs) console.log('Finished populating testing blobs, errors: ', err);
+    });
+});
+// End: Generate testing objects to DB //
+/////////////////////////////////////////
 
 ///////////////////////////////////////////////////
 //    These test should be run for all paths     //
@@ -975,3 +990,112 @@ describe('Blob services', function () {
     /////////////////////////////////////
 });
 
+////////////////////////////////////////////////////////
+// Tests for profile services, meaning /blobs/* paths //
+////////////////////////////////////////////////////////
+describe('Profile services', function () {
+
+    ///////////////////////////////
+    // Start: PUT /profiles/{id} //
+    describe('#PUT /profiles/{id}', function () {
+
+        var testsValid = [
+           {
+               'description': 'Insert profile',
+               'params': {
+                   'id': 2002
+               }
+           }, {
+               'description': 'Update profile',
+               'params': {
+                   'id': 2002
+               }
+           }, {
+               'description': 'Placeholder',
+               'params': {
+                   'id': 2002
+               }
+           }
+        ];
+
+        describe('-valid queries (should respond with 204)', function () {
+            _.forEach(testsValid, function (value) {
+                it(value.description, function (done) {
+                    var req = httpMocks.createRequest({
+                        method: 'PUT',
+                        url: '/profiles/' + value.params.id,
+                        params: value.params,
+                    });
+
+                    var res = httpMocks.createResponse({
+                        eventEmitter: require('events').EventEmitter
+                    });
+
+                    profiles.upsertProfileById(req, res);
+
+                    res.on('end', function () {
+                        try {
+                            var data = res._getData();
+                            res.statusCode.should.equal(204);
+                            data.should.be.an('string');
+                            data.should.equal('The content was removed');
+                            done();
+                        } catch (e) {
+                            done(e);
+                        }
+                    });
+
+                });
+            });
+        });
+
+
+        var testsInvalid = [
+            {
+                'description': 'Earlier removed blob',
+                'params': {
+                    'id': 2002
+                }
+            }, {
+                'description': 'Not existing',
+                'params': {
+                    'id': 2000
+                }
+            }
+        ];
+
+        describe('-invalid queries', function () {
+            _.forEach(testsInvalid, function (value) {
+                it(value.description, function (done) {
+                    var req = httpMocks.createRequest({
+                        method: 'PUT',
+                        url: '/blobs/' + value.params.id,
+                        params: value.params,
+                    });
+
+                    var res = httpMocks.createResponse({
+                        eventEmitter: require('events').EventEmitter
+                    });
+
+                    profiles.upsertProfileById(req, res);
+
+                    res.on('end', function () {
+                        try {
+                            var data = res._getData();
+
+                            res.statusCode.should.equal(404);
+                            data.should.be.an('string');
+                            data.should.equal('Content not found');
+
+                            done();
+                        } catch (e) {
+                            done(e);
+                        }
+                    });
+                });
+            });
+        });
+    });
+    // End: PUT /profiles/{id} //
+    /////////////////////////////
+});

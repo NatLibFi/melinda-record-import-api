@@ -56,7 +56,7 @@ mongoose.models.BlobMetadata.remove(function () {
         profile: 'guest',
         contentType: 'standard'
     }, function (err) {
-        if (logs) console.log('Finished populating testing blobs, errors: ', err);
+        if (logs) console.log('Finished populating development blobs, errors: ', err);
     });
 });
 
@@ -97,6 +97,6 @@ mongoose.models.BlobContent.remove(function () {
             datafield2: 'data 2'
         }
     }, function (err) {
-        if (logs) console.log('Finished populating testing blobs, errors: ', err);
+        if (logs) console.log('Finished populating development blobs, errors: ', err);
     });
 });

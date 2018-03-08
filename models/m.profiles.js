@@ -33,7 +33,7 @@ var mongoose = require('mongoose');
 var Schema = mongoose.Schema;
 
 var Profile = new Schema({
-    id: { type: String, required: true, unique: true },
+    UUID: { type: String, required: true, unique: true },
     auth:{
         groups: [{
             type: String
