@@ -41,6 +41,41 @@ const mongoose = require('mongoose'),
 const blobs = require('../controllers/blobs');
 const profiles = require('../controllers/profiles');
 
+mongoose.models.BlobMetadata.remove(function () {
+    mongoose.models.BlobMetadata.create({
+        UUID: '2001',
+        profile: 'single_test_metadata',
+        contentType: 'standard'
+    }, {
+        UUID: '2002',
+        profile: 'standard',
+        contentType: 'standard'
+    }, function (err) {
+        if (logs) console.log('Finished populating testing blobs, errors: ', err);
+    });
+});
+
+
+mongoose.models.BlobContent.remove(function () {
+    mongoose.models.BlobContent.create({
+        UUID: '2101',
+        MetaDataID: '2001',
+        data: {
+            datafield1: 'single data',
+            datafield2: 'single data 1'
+        }
+    }, {
+        UUID: '2102',
+        MetaDataID: '2002',
+        data: {
+            datafield1: 'data 1',
+            datafield2: 'data 2'
+        }
+    }, function (err) {
+        if (logs) console.log('Finished populating testing blobs, errors: ', err);
+    });
+});
+
 ///////////////////////////////////////////////////
 //    These test should be run for all paths     //
 ///////////////////////////////////////////////////
@@ -408,16 +443,16 @@ describe('Blob services', function () {
            {
                'description': 'Basic test',
                'params': {
-                   id: 1112
+                   id: 2001
                },
                'basic': true
            }, {
                'description': 'Structure test',
                 'params': {
-                    id: 1112
+                    id: 2001
                 },
                 'basic': false
-    }
+            }
         ];
 
         describe('-valid queries (should respond with 200)', function () {
@@ -438,6 +473,7 @@ describe('Blob services', function () {
                     res.on('end', function () {
                         try {
                             var data = res._getData();
+
                             res.statusCode.should.equal(200);
                             data.should.be.an('object');
 
@@ -460,8 +496,6 @@ describe('Blob services', function () {
                                 data.processingInfo.numberOfRecords.should.be.an('number');
                                 should.exist(data.processingInfo.importResults);
                                 data.processingInfo.importResults.should.be.an('array');
-
-
                             }
 
                             done();
@@ -481,13 +515,13 @@ describe('Blob services', function () {
            }, {
                'description': 'With invalid param',
                'params': {
-                   'ids': '1112'
+                   'ids': 2001
                }
            }, {
                'description': 'With multiple params',
                'params': {
-                   'id': '1112',
-                   'ids': '1112'
+                   'id': 2001,
+                   'ids': 2001
                },
                'res_code': 200,
                'res_object' : true
@@ -541,7 +575,7 @@ describe('Blob services', function () {
            {
                'description': 'Basic test',
                'params': {
-                   'id': 1112
+                   'id': 2001
                },
                'body':{
                    'profile': 'Updated'
@@ -585,7 +619,7 @@ describe('Blob services', function () {
             {
                 'description': 'Malformed',
                 'params': {
-                    'id': 1112
+                    'id': 2001
                 },
                 'body': {
                     'profile': 'Malformed'
@@ -594,7 +628,7 @@ describe('Blob services', function () {
             }, {
                 'description': 'Not existing',
                 'params': {
-                    'id': 1000
+                    'id': 2000
                 },
                 'body': {
                     'profile': 'Updated'
@@ -603,7 +637,7 @@ describe('Blob services', function () {
             }, {
                 'description': 'Invalid syntax',
                 'params': {
-                    'id': 1112
+                    'id': 2001
                 },
                 'body': {
                     'profile_invalid': 'Invalid syntax'
@@ -665,7 +699,7 @@ describe('Blob services', function () {
            {
                'description': 'Basic test',
                'params': {
-                   'id': 1112
+                   'id': 2001
                }
            }
         ];
@@ -706,12 +740,12 @@ describe('Blob services', function () {
             {
                 'description': 'Earlier removed blob',
                 'params': {
-                    'id': 1112
+                    'id': 2001
                 }
             }, {
                 'description': 'Not existing',
                 'params': {
-                    'id': 1000
+                    'id': 2000
                 }
             }
         ];
@@ -752,15 +786,15 @@ describe('Blob services', function () {
     //////////////////////////////
 
 
-    ////////////////////////////
-    // Start: GET /blobs/{id} //
+    ////////////////////////////////////
+    // Start: GET /blobs/{id}/content //
     describe('#GET /blobs/{id}/content', function () {
 
         var testsValid = [
            {
                'description': 'Basic test',
                'params': {
-                   'id': 1113
+                   'id': 2002
                }
            }
         ];
@@ -800,7 +834,12 @@ describe('Blob services', function () {
             {
                 'description': 'Earlier removed blob',
                 'params': {
-                    'id': 1112
+                    'id': 2001
+                }
+            }, {
+                'description': 'Not existing',
+                'params': {
+                    'id': 2000
                 }
             }
         ];
@@ -837,11 +876,11 @@ describe('Blob services', function () {
             });
         });
     });
-    // End: GET /blobs/{id}  //
-    ///////////////////////////
+    // End: GET /blobs/{id}/content  //
+    ///////////////////////////////////
 
-    ///////////////////////////////
-    // Start: DELETE /blobs/{id} //
+    ///////////////////////////////////////
+    // Start: DELETE /blobs/{id}/content //
     //The blob content is removed. If blob state is PENDING_TRANSFORMATION it is set to ABORTED
     describe('#DELETE /blobs/{id}/content', function () {
 
@@ -849,7 +888,7 @@ describe('Blob services', function () {
            {
                'description': 'Basic test',
                'params': {
-                   'id': 1113
+                   'id': 2002
                }
            }
         ];
@@ -890,12 +929,12 @@ describe('Blob services', function () {
             {
                 'description': 'Earlier removed blob',
                 'params': {
-                    'id': 1113
+                    'id': 2002
                 }
             }, {
                 'description': 'Not existing',
                 'params': {
-                    'id': 1000
+                    'id': 2000
                 }
             }
         ];
@@ -932,7 +971,7 @@ describe('Blob services', function () {
             });
         });
     });
-    // End: DELETE /blobs/{id}  //
-    //////////////////////////////
+    // End: DELETE /blobs/{id}/content //
+    /////////////////////////////////////
 });
 

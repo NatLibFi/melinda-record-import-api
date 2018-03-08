@@ -36,23 +36,23 @@ var logs = config.logs;
 
 mongoose.models.BlobMetadata.remove(function () {
     mongoose.models.BlobMetadata.create({
-        UUID: '1111',
-        profile: 'single_test_metadata',
-        contentType: 'standard'
-    }, {
-        UUID: '1112',
+        UUID: '1001',
         profile: 'standard',
         contentType: 'standard'
     }, {
-        UUID: '1113',
+        UUID: '1002',
+        profile: 'standard',
+        contentType: 'standard'
+    }, {
+        UUID: '1003',
         profile: 'standards',
         contentType: 'stylized'
     }, {
-        UUID: '1114',
+        UUID: '1004',
         profile: 'adminstrator',
         contentType: 'stylized'
     }, {
-        UUID: '1115',
+        UUID: '1005',
         profile: 'guest',
         contentType: 'standard'
     }, function (err) {
@@ -62,36 +62,36 @@ mongoose.models.BlobMetadata.remove(function () {
 
 mongoose.models.BlobContent.remove(function () {
     mongoose.models.BlobContent.create({
-        UUID: '0001',
-        MetaDataID: '1111',
+        UUID: '1101',
+        MetaDataID: '1001',
         data: {
             datafield1: 'single data',
             datafield2: 'single data 1'
         }
     }, {
-        UUID: '0002',
-        MetaDataID: '1112',
+        UUID: '1102',
+        MetaDataID: '1002',
         data: {
             datafield1: 'data 1',
             datafield2: 'data 2'
         }
     }, {
-        UUID: '0003',
-        MetaDataID: '1113',
+        UUID: '1103',
+        MetaDataID: '1003',
         data: {
             datafield1: 'data 1',
             datafield2: 'data 2'
         }
     }, {
-        UUID: '0004',
-        MetaDataID: '1114',
+        UUID: '1104',
+        MetaDataID: '1004',
         data: {
             datafield1: 'data 1',
             datafield2: 'data 2'
         }
     }, {
-        UUID: '0005',
-        MetaDataID: '1115',
+        UUID: '1105',
+        MetaDataID: '1005',
         data: {
             datafield1: 'data 1',
             datafield2: 'data 2'
