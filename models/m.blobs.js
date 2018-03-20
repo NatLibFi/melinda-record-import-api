@@ -53,6 +53,8 @@ var BlobMetadata = new Schema({
             type: String //Array of RecordImportResults UUID's
         }]
     }
+}, {
+    strict: 'throw'
 });
 
 var RecordImportResult = new Schema({
@@ -72,6 +74,8 @@ var BlobContent = new Schema({
     UUID: { type: String, required: true, unique: true },
     MetaDataID: { type: String, required: true },
     data: { type: Object, required: true }
+}, {
+    strict: 'throw'
 });
 
 module.exports = mongoose.model('BlobMetadata', BlobMetadata);

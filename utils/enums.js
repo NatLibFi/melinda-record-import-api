@@ -52,3 +52,9 @@ exports.recodImportStatuses = {
     multiple: 'MULTIPLE_MATCHES', 
     error: 'ERROR'
 }
+
+exports.errorTypes = {
+    parseFailed: 'entity.parse.failed',
+    notObject: 'entity.not.object',
+    invalidSyntax: 'request.mismatch.id'
+}

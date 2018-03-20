@@ -27,29 +27,14 @@
 */
 
 /* eslint-disable no-unused-vars */
-'use strict';
 
-var mongoose = require('mongoose');
-var Schema = mongoose.Schema;
+var serverErrors = require('../utils/ServerErrors'),
+    uuid = require('uuid');
 
-var Profile = new Schema({
-    id: { type: String, required: true, unique: true },
-    auth:{
-        groups: [{
-            type: String
-        }]
-    },
-    transformation: {
-        abortOnInvalidRecords: { type: Boolean, required: true },
-        module: { type: String, required: true },
-        parameters: { type: Object, required: true }
-    },
-    'import': {
-        module: { type: String, required: true },
-        parameters: { type: Object, required: true }
+module.exports.ensureMatchingIDs = function (req, res, next) {
+    if (req.body.id && req.body.id !== req.params.id) {
+        throw serverErrors.getInvalidError();
+    } else if (!req.body.id) {
+        req.body.id = uuid.v4();
     }
-}, {
-    strict: 'throw'
-});
-
-module.exports = mongoose.model('Profile', Profile);
+}

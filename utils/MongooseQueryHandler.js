@@ -78,5 +78,12 @@ module.exports = {
     },
     invalidQuery: function (res) {
         return res.status(HttpCodes.BadRequest).send('Invalid query');
+    },
+    upsertObject: function (updated, res) {
+        if (updated) {
+            return res.status(HttpCodes.NoContent).send('The profile was updated');
+        } else {
+            return res.status(HttpCodes.Created).send('The profile was created');
+        }
     }
 };

@@ -100,3 +100,30 @@ mongoose.models.BlobContent.remove(function () {
         if (logs) console.log('Finished populating development blobs, errors: ', err);
     });
 });
+
+//These do not match profiles schema and because of that mongoose doesn't add these
+mongoose.models.Profile.remove(function () {
+    mongoose.models.Profile.create({
+        id: '1201',
+        auth: {
+            groups: ['admin', 'user']
+        },
+        transformation: {
+            abortOnInvalidRecords: false,
+            module: 'standard',
+            parameters: {
+                priority: true,
+                ignoreFlags: false
+            },
+        },
+        'import': {
+            module: 'standard',
+            parameters: {
+                priority: true,
+                ignoreFlags: false
+            }
+        }
+    }, function (err) {
+        console.log('Finished populating testing profiles, errors: ', err);
+    });
+});

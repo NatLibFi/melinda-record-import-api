@@ -31,14 +31,15 @@
 'use strict';
 
 var config = require('./config'),
+    logs = config.logs,
     enums = require('./utils/enums'),
     http = require('http'),
+    HttpCodes = require('./utils/HttpCodes'),
     express = require('express'),
     bodyParser = require('body-parser'),
     session = require('express-session'),
     cors = require('cors'),
     passport = require('passport'),
-    errorhandler = require('errorhandler'),
     mongoose = require('mongoose');
 
 
@@ -61,10 +62,6 @@ app.use(express.static(__dirname + '/public'));
 
 app.use(session({ secret: 'conduit', cookie: { maxAge: 60000 }, resave: false, saveUninitialized: false }));
 
-if (!isProduction) {
-    app.use(errorhandler());
-}
-
 if (isProduction) {
     mongoose.connect(app.config.mongodb);
 } else {
@@ -83,37 +80,42 @@ app.use(function (req, res, next) {
     next(err);
 });
 
-/// error handlers
-
-// development error handler
-// will print stacktrace
-if (!isProduction) {
-    app.use(function (err, req, res, next) {
-        console.log(err.stack);
-
-        res.status(err.status || 500);
-
-        res.json({
-            'errors': {
-                message: err.message,
-                error: err
-            }
-        });
-    });
-}
-
-// production error handler
-// no stacktraces leaked to user
+/// general error handlers
 app.use(function (err, req, res, next) {
-    res.status(err.status || 500);
-    res.json({
-        'errors': {
-            message: err.message,
-            error: {}
-        }
-    });
-});
+    if (logs) console.log('-------------- At error handling --------------');
+    if (logs) console.error(err);
 
+    switch (err.type) {
+        case enums.errorTypes.parseFailed:
+        case enums.errorTypes.notObject:
+            return res.status(HttpCodes.Malformed).send('Malformed content');
+        case enums.errorTypes.invalidSyntax:
+            return res.status(HttpCodes.ValidationError).send('Invalid syntax');
+        default: {
+            // development error handler
+            // will print stacktrace
+            if (!isProduction) {
+                res.status(err.status || 500);
+                res.json({
+                    'errors': {
+                        message: err.message,
+                        error: err
+                    }
+                });
+            // production error handler
+            // no stacktraces leaked to user
+            } else {
+                res.status(err.status || 500);
+                res.json({
+                    'errors': {
+                        message: err.message,
+                        error: {}
+                    }
+                });
+            }
+        }
+    }
+});
 
 if (app.config.seedDB) {
     require('./utils/database/seedDB');

@@ -31,15 +31,16 @@
 'use strict';
 
 var mongoose = require('mongoose'),
+    config = require('../config'),
+    logs = config.logs,
+    enums = require('../utils/enums'),
+    serverErrors = require('../utils/ServerErrors'),
+    utils = require('../utils/ServerUtils'),
     Profile = require('../models/m.profiles'),
     HttpCodes = require('../utils/HttpCodes'),
     MongoErrorHandler = require('../utils/MongooseErrorHandler'),
-    queryHandler = require('../utils/MongooseQueryHandler');
-
-var validationError = function (res, err) {
-    return res.json(422, err);
-};
-
+    queryHandler = require('../utils/MongooseQueryHandler'),
+    uuid = require('uuid');
 
 /**
  * Create or update a profile
@@ -48,23 +49,30 @@ var validationError = function (res, err) {
  * no response value expected for this operation
 */
 module.exports.upsertProfileById = function (req, res, next) {
-    console.log('-------------- Upsert profile --------------');
-    console.log(req.body);
-    
-    if( req.body.id !== req.params.id){
-        return res.status(HttpCodes.BadRequest).send('Requests ids do not match')
+    if (logs) console.log('-------------- Upsert profile --------------');
+    if (logs) console.log(req.body);
+
+    if (typeof (req.body) !== 'object') {
+        return next(serverErrors.getMalformedError());
     }
 
-    var profile = Object.assign({}, req.body);
+    try {
+        var profile = Object.assign({}, req.body);
+    } catch (e) {
+        return next(serverErrors.getMalformedError());
+    }
+
+    try{
+        utils.ensureMatchingIDs(req, res, next);
+    } catch (e) {
+        return next(e);
+    }
 
     Profile.findOneAndUpdate(
-        { id: req.params.id },
+        { id: profile.id },
         profile,
-        { new: true, upsert: true, runValidators: true }
-        ).then((result) => {
-            result = result.toJSON();
-            return res.status(HttpCodes.OK).send('');
-        })
+        { new: true, upsert: true, runValidators: true, rawResult: true }
+        ).then((result) => queryHandler.upsertObject(result.lastErrorObject.updatedExisting, res))
         .catch((reason) => MongoErrorHandler(reason, res, next));
 };
 
@@ -75,11 +83,11 @@ module.exports.upsertProfileById = function (req, res, next) {
  * returns Profile
 */
 module.exports.getProfileById = function (req, res, next) {
-    console.log('-------------- Get profile --------------');
-    console.log(req.params.id);
+    if (logs) console.log('-------------- Get profile --------------');
+    if (logs) console.log(req.params.id);
 
     Profile.where('id', req.params.id)
         .exec()
-        .then((documents) => queryHandler.findOne(documents, res))
+        .then((documents) => queryHandler.findOne(documents, res, 'The profile does not exist'))
         .catch((reason) => MongoErrorHandler(reason, res, next));
 };

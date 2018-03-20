@@ -31,6 +31,7 @@
 'use strict';
 var HttpCodes = require('./utils/HttpCodes'),
     enums = require('./utils/enums'),
+    serverErrors = require('./utils/ServerErrors'),
     router = require('express').Router();
 
 //Endpoint controllers
@@ -49,6 +50,9 @@ var ensureAuthenticated = function (req, res, next) {
     }
     return next();
 }
+
+
+
 
 /*
 //Swagger endpoints

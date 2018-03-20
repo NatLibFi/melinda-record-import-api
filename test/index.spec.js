@@ -30,12 +30,17 @@
 
 'use strict';
 
-const chai = require('chai')
+const chai = require('chai'),
+      chaiHTTP = require('chai-http');
+chai.use(chaiHTTP);
+
 const should = chai.should();
 const app = require('../index');
 const httpMocks = require('node-mocks-http');
 const mongoose = require('mongoose'),
       config = require('../config'),
+      logs = config.logs,
+      server = require('../index'),
       _ = require('lodash');
 
 const blobs = require('../controllers/blobs');
@@ -78,14 +83,50 @@ mongoose.models.BlobContent.remove(function () {
     });
 });
 
+
 mongoose.models.Profile.remove(function () {
     mongoose.models.Profile.create({
-        UUID: '2201',
-        asd: 'asd',
+        id: '2201',
+        auth: {
+            groups: ['admin', 'user']
+        },
+        transformation: {
+            abortOnInvalidRecords: false,
+            module: 'standard',
+            parameters: {
+                priority: true,
+                ignoreFlags: false
+            },
+        },
+        'import': {
+            module: 'standard',
+            parameters: {
+                priority: true,
+                ignoreFlags: false
+            }
+        }
     }, {
-        UUID: '2201',
+        id: '2202',
+        auth: {
+            groups: ['user']
+        },
+        transformation: {
+            abortOnInvalidRecords: false,
+            module: 'standard_user',
+            parameters: {
+                priority: false,
+                ignoreFlags: false
+            },
+        },
+        'import': {
+            module: 'standard_user',
+            parameters: {
+                priority: true,
+                ignoreFlags: false
+            }
+        }
     }, function (err) {
-        if (logs) console.log('Finished populating testing blobs, errors: ', err);
+        if (logs) console.log('Finished populating testing profiles, errors: ', err);
     });
 });
 // End: Generate testing objects to DB //
@@ -462,12 +503,12 @@ describe('Blob services', function () {
                },
                'basic': true
            }, {
-               'description': 'Structure test',
-                'params': {
-                    id: 2001
-                },
-                'basic': false
-            }
+               'description': 'Structure test (ToDo: number of records)',
+               'params': {
+                   id: 2001
+               },
+               'basic': false
+           }
         ];
 
         describe('-valid queries (should respond with 200)', function () {
@@ -539,7 +580,7 @@ describe('Blob services', function () {
                    'ids': 2001
                },
                'res_code': 200,
-               'res_object' : true
+               'res_object': true
            }
         ];
 
@@ -592,7 +633,7 @@ describe('Blob services', function () {
                'params': {
                    'id': 2001
                },
-               'body':{
+               'body': {
                    'profile': 'Updated'
                }
            }
@@ -613,10 +654,10 @@ describe('Blob services', function () {
                     });
 
                     blobs.postBlobById(req, res);
-                    
+
                     res.on('end', function () {
                         try {
-                            var data =  res._getData();
+                            var data = res._getData();
                             res.statusCode.should.equal(204);
                             data.should.be.an('string');
                             data.should.equal('The metadata was updated');
@@ -631,16 +672,21 @@ describe('Blob services', function () {
         });
 
         var testsInvalid = [
+            /*,
+            //This test is disabled for the moment since
+            //sending malformed JSON doesn't seem to work
+            //Test malformed JSON with Postman
             {
                 'description': 'Malformed',
                 'params': {
                     'id': 2001
                 },
                 'body': {
-                    'profile': 'Malformed'
+                    'profile': Malformed'
                 },
-                'res' : 400
-            }, {
+                'res': 400
+            },*/
+            {
                 'description': 'Not existing',
                 'params': {
                     'id': 2000
@@ -724,7 +770,7 @@ describe('Blob services', function () {
                 it(value.description, function (done) {
                     var req = httpMocks.createRequest({
                         method: 'DELETE',
-                        url: '/blobs/' +value.params.id,
+                        url: '/blobs/' + value.params.id,
                         params: value.params,
                     });
 
@@ -770,7 +816,7 @@ describe('Blob services', function () {
                 it(value.description, function (done) {
                     var req = httpMocks.createRequest({
                         method: 'DELETE',
-                        url: '/blobs/'+ value.params.id,
+                        url: '/blobs/' + value.params.id,
                         params: value.params,
                     });
 
@@ -787,7 +833,7 @@ describe('Blob services', function () {
                             res.statusCode.should.equal(404);
                             data.should.be.an('string');
                             data.should.equal('Content not found');
-                         
+
                             done();
                         } catch (e) {
                             done(e);
@@ -833,7 +879,7 @@ describe('Blob services', function () {
                         try {
                             var data = res._getData();
                             res.statusCode.should.equal(200);
-                            data.should.be.an('object');    
+                            data.should.be.an('object');
                             done();
                         } catch (e) {
                             done(e);
@@ -844,7 +890,7 @@ describe('Blob services', function () {
             });
         });
 
-        
+
         var testsInvalid = [
             {
                 'description': 'Earlier removed blob',
@@ -999,32 +1045,56 @@ describe('Profile services', function () {
     // Start: PUT /profiles/{id} //
     describe('#PUT /profiles/{id}', function () {
 
-        var testsValid = [
-           {
-               'description': 'Insert profile',
-               'params': {
-                   'id': 2002
-               }
-           }, {
-               'description': 'Update profile',
-               'params': {
-                   'id': 2002
-               }
-           }, {
-               'description': 'Placeholder',
-               'params': {
-                   'id': 2002
-               }
-           }
-        ];
+        var testsValid = [{
+            'description': 'Add profile',
+            'params': {
+                'id': ''
+            },
+            'body': {
+                'auth': {
+                    'groups': ['admin', 'user']
+                },
+                'transformation': {
+                    'abortOnInvalidRecords': false,
+                    'module': 'standard',
+                    'parameters': {
+                        'priority': true,
+                        'ignoreFlags': false
+                    }
+                },
+                'import': {
+                    'module': 'standard',
+                    'parameters': {
+                        'priority': true,
+                        'ignoreFlags': false
+                    }
+                }
+            },
+            'status': 201,
+            'response' : 'The profile was created'
+        }, {
+            'description': 'Update profile',
+            'params': {
+                'id': 2202
+            },
+            'body': {
+                'id': 2202,
+                'auth': {
+                    'groups': ['admin']
+                }
+            },
+            'status': 204,
+            'response': 'The profile was updated'
+        }];
 
-        describe('-valid queries (should respond with 204)', function () {
+        describe('-valid queries (should respond with 20*)', function () {
             _.forEach(testsValid, function (value) {
                 it(value.description, function (done) {
                     var req = httpMocks.createRequest({
                         method: 'PUT',
                         url: '/profiles/' + value.params.id,
                         params: value.params,
+                        body: value.body
                     });
 
                     var res = httpMocks.createResponse({
@@ -1036,9 +1106,9 @@ describe('Profile services', function () {
                     res.on('end', function () {
                         try {
                             var data = res._getData();
-                            res.statusCode.should.equal(204);
+                            res.statusCode.should.equal(value.status);
                             data.should.be.an('string');
-                            data.should.equal('The content was removed');
+                            data.should.equal(value.response);
                             done();
                         } catch (e) {
                             done(e);
@@ -1052,46 +1122,128 @@ describe('Profile services', function () {
 
         var testsInvalid = [
             {
-                'description': 'Earlier removed blob',
-                'params': {
-                    'id': 2002
-                }
-            }, {
-                'description': 'Not existing',
-                'params': {
-                    'id': 2000
-                }
+                'description': 'Ids not matching',
+                'body': {
+                    'id': 2203,
+                    'auth': {
+                        'groups': ['admin']
+                    }
+                },
+                'status': 422,
+                'response': 'Invalid syntax'
             }
+            /*,
+            //This test is disabled for the moment since
+            //sending malformed JSON doesn't seem to work
+            //Test malformed JSON with Postman
+            {
+                'description': 'Malformed body',
+                'body': '{ "auth" :"{"groups": ["admin"]"}',
+                'status': 400,
+                'response': 'Malformed content'
+            }
+            */
         ];
 
-        describe('-invalid queries', function () {
+        describe('-invalid queries (should respond with 4**)', function () {
             _.forEach(testsInvalid, function (value) {
                 it(value.description, function (done) {
+                    chai.request('http://localhost:' + config.port)
+                    .put('/profiles/2202')
+                    .send( value.body )
+                    .end((err, res) => {
+                        res.should.have.status(value.status);
+                        res.body.should.be.a('object');
+                        done();
+                    });
+                });
+            });
+        });
+    });
+    //  End: PUT /profiles/{id}  //
+    ///////////////////////////////
+
+    ///////////////////////////////
+    // Start: GET /profiles/{id} //
+    describe('#GET /profiles/{id}', function () {
+
+        var testsValid = [{
+            'description': 'Get profile',
+            'params': {
+                'id': '2202'
+            },
+            'status': 200,
+        }];
+
+        describe('-valid queries (should respond with 20*)', function () {
+            _.forEach(testsValid, function (value) {
+                it(value.description, function (done) {
                     var req = httpMocks.createRequest({
-                        method: 'PUT',
-                        url: '/blobs/' + value.params.id,
+                        method: 'GET',
+                        url: '/profiles/' + value.params.id,
                         params: value.params,
+                        body: value.body
                     });
 
                     var res = httpMocks.createResponse({
                         eventEmitter: require('events').EventEmitter
                     });
 
-                    profiles.upsertProfileById(req, res);
+                    profiles.getProfileById(req, res);
 
                     res.on('end', function () {
                         try {
                             var data = res._getData();
-
-                            res.statusCode.should.equal(404);
-                            data.should.be.an('string');
-                            data.should.equal('Content not found');
-
+                            res.statusCode.should.equal(value.status);
+                            data.should.be.an('object');
                             done();
                         } catch (e) {
                             done(e);
                         }
                     });
+
+                });
+            });
+        });
+
+
+        var testsInvalid = [{
+            'description': 'Not existing',
+            'params': {
+                'id': 2200,
+            },
+            'status': 404,
+            'response': 'Invalid syntax'
+        }];
+
+        describe('-invalid queries (should respond with 4**)', function () {
+            _.forEach(testsInvalid, function (value) {
+                it(value.description, function (done) {
+                    var req = httpMocks.createRequest({
+                        method: 'GET',
+                        url: '/profiles/' + value.params.id,
+                        params: value.params,
+                        body: value.body
+                    });
+
+                    var res = httpMocks.createResponse({
+                        eventEmitter: require('events').EventEmitter
+                    });
+
+                    profiles.getProfileById(req, res);
+
+                    res.on('end', function () {
+                        try {
+                            var data = res._getData();
+                            res.statusCode.should.equal(value.status);
+                            data.should.be.an('string');
+                            data.should.equal('The profile does not exist');
+                            done();
+                        } catch (e) {
+                            done(e);
+                        }
+                    });
+
                 });
             });
         });

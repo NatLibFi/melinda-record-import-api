@@ -31,14 +31,23 @@
 const HttpCodes = require('./HttpCodes');
 
 module.exports = function (reason, res) {
-    if (reason.name) {
-        if (reason.name === 'MongoError') {
+    console.log("At Mongoose Error Handler: ", reason.name);
+
+    switch (reason.name) {
+        case 'StrictModeError': {
+            res.status(HttpCodes.ValidationError).send('Invalid syntax');
+            return;
+        }
+        case 'ValidationError':
+            res.status(HttpCodes.ValidationError).json('Unknown validation error');
+        case 'MongoError': {
             if (reason.code && reason.code === 11000) {
-                res.status(HttpCodes.Conflict).send()
+                res.status(HttpCodes.Conflict).send('Unknown mongo error: ' + reason.name);
                 return;
             }
-        } else if (reason.name === 'ValidationError') {
-            res.status(HttpCodes.BadRequest).json(reason);
+        }
+        default: {
+            res.status(HttpCodes.BadRequest).send('Unknown error: ' + reason.name);
             return;
         }
     }

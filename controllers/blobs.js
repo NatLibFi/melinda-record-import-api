@@ -32,6 +32,7 @@
 
 var mongoose = require('mongoose'),
     config = require('../config'),
+    logs = config.logs,
     Blobs = require('../models/m.blobs'),
     HttpCodes = require('../utils/HttpCodes'),
     enums = require('../utils/enums'),
@@ -39,7 +40,6 @@ var mongoose = require('mongoose'),
     queryHandler = require('../utils/MongooseQueryHandler'),
     moment = require('moment'),
     uuid = require('uuid'),
-    logs = config.logs,
     _ = require('lodash');
     
 

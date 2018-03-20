@@ -27,29 +27,17 @@
 */
 
 /* eslint-disable no-unused-vars */
-'use strict';
 
-var mongoose = require('mongoose');
-var Schema = mongoose.Schema;
+var enums = require('./enums');
 
-var Profile = new Schema({
-    id: { type: String, required: true, unique: true },
-    auth:{
-        groups: [{
-            type: String
-        }]
-    },
-    transformation: {
-        abortOnInvalidRecords: { type: Boolean, required: true },
-        module: { type: String, required: true },
-        parameters: { type: Object, required: true }
-    },
-    'import': {
-        module: { type: String, required: true },
-        parameters: { type: Object, required: true }
-    }
-}, {
-    strict: 'throw'
-});
+module.exports.getMalformedError = function () {
+    var err = new Error('Malformed content');
+    err.type = enums.errorTypes.notObject;
+    return err;
+}
 
-module.exports = mongoose.model('Profile', Profile);
+module.exports.getInvalidError = function () {
+    var err = new Error('Invalid syntax');
+    err.type = enums.errorTypes.invalidSyntax;
+    return err;
+}
