@@ -33,6 +33,7 @@
 var config = require('./config'),
     logs = config.logs,
     enums = require('./utils/enums'),
+    configCrowd = require('./configCrowd'),
     http = require('http'),
     HttpCodes = require('./utils/HttpCodes'),
     express = require('express'),
@@ -40,8 +41,50 @@ var config = require('./config'),
     session = require('express-session'),
     cors = require('cors'),
     passport = require('passport'),
+    AtlassianCrowdStrategy = require('passport-atlassian-crowd2').Strategy,
     mongoose = require('mongoose');
 
+var users = [];
+
+////////////////////
+// Start Passport //
+passport.serializeUser(function (user, done) {
+    done(null, user.username);
+});
+
+passport.deserializeUser(function (username, done) {
+    var user = _.find(users, function (user) {
+        return user.username == username;
+    });
+    if (user === undefined) {
+        done(new Error("No user with username '" + username + "' found."));
+    } else {
+        done(null, user);
+    }
+});
+
+passport.use(new AtlassianCrowdStrategy({
+    crowdServer: configCrowd.server,
+    crowdApplication: configCrowd.appName,
+    crowdApplicationPassword: configCrowd.appPass,
+    retrieveGroupMemberships: true
+}, function (userprofile, done) {
+    console.log("After use");
+    // asynchronous verification, for effect...
+    process.nextTick(function () {
+
+        var exists = _.any(users, function (user) {
+            return user.id == userprofile.id;
+        });
+        if (!exists) {
+            users.push(userprofile);
+        }
+
+        return done(null, userprofile);
+    });
+}));
+//  End Passport  //
+////////////////////
 
 var app = express();
 app.config = config;
@@ -61,6 +104,10 @@ app.use(require('method-override')());
 app.use(express.static(__dirname + '/public'));
 
 app.use(session({ secret: 'conduit', cookie: { maxAge: 60000 }, resave: false, saveUninitialized: false }));
+
+//Passport startup
+app.use(passport.initialize());
+app.use(passport.session());
 
 if (isProduction) {
     mongoose.connect(app.config.mongodb);
@@ -91,6 +138,12 @@ app.use(function (err, req, res, next) {
             return res.status(HttpCodes.Malformed).send('Malformed content');
         case enums.errorTypes.invalidSyntax:
             return res.status(HttpCodes.ValidationError).send('Invalid syntax');
+        case enums.errorTypes.unauthorized:
+            return res.status(HttpCodes.Unauthorized).send('Authentication failed');
+        case enums.errorTypes.forbidden:
+            return res.status(HttpCodes.Forbidden).send('Not authorized');
+        case enums.errorTypes.unknown:
+            return res.status(HttpCodes.InternalServerError).send('Unknown error');
         default: {
             // development error handler
             // will print stacktrace
@@ -129,50 +182,3 @@ var server = app.listen(app.config.port, function () {
     console.log('Listening on port ' + server.address().port + ', is in production: ' + isProduction);
     //console.log('Env:', process.env);
 });
-
-
-/*
-// This is swagger generated code //
-var fs = require('fs'),
-    path = require('path'),
-    http = require('http');
-
-var app = require('connect')();
-var swaggerTools = require('swagger-tools');
-var jsyaml = require('js-yaml');
-var serverPort = 3000;
-
-// swaggerRouter configuration
-var options = {
-  swaggerUi: path.join(__dirname, '/openapi.json'),
-  controllers: path.join(__dirname, './controllers'),
-  useStubs: process.env.NODE_ENV === 'development' // Conditionally turn on stubs (mock mode)
-};
-
-// The Swagger document (require it, build it programmatically, fetch it from a URL, ...)
-var spec = fs.readFileSync(path.join(__dirname, 'api/openapi.yaml'), 'utf8');
-var swaggerDoc = jsyaml.safeLoad(spec);
-
-// Initialize the Swagger middleware
-swaggerTools.initializeMiddleware(swaggerDoc, function (middleware) {
-
-  // Interpret Swagger resources and attach metadata to request - must be first in swagger-tools middleware chain
-  app.use(middleware.swaggerMetadata());
-
-  // Validate Swagger requests
-  app.use(middleware.swaggerValidator());
-
-  // Route validated requests to appropriate controller
-  app.use(middleware.swaggerRouter(options));
-
-  // Serve the Swagger documents and Swagger UI
-  app.use(middleware.swaggerUi());
-
-  // Start the server
-  http.createServer(app).listen(serverPort, function () {
-    console.log('Your server is listening on port %d (http://localhost:%d)', serverPort, serverPort);
-    console.log('Swagger-ui is available on http://localhost:%d/docs', serverPort);
-  });
-
-});
-*/

@@ -56,5 +56,8 @@ exports.recodImportStatuses = {
 exports.errorTypes = {
     parseFailed: 'entity.parse.failed',
     notObject: 'entity.not.object',
-    invalidSyntax: 'request.mismatch.id'
+    invalidSyntax: 'request.mismatch.id',
+    unauthorized: 'request.authentication.unauthorized',
+    forbiden: 'request.authentication.forbiden',
+    unknown: 'unknown'
 }

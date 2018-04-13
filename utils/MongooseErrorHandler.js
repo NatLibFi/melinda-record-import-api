@@ -31,8 +31,6 @@
 const HttpCodes = require('./HttpCodes');
 
 module.exports = function (reason, res) {
-    console.log("At Mongoose Error Handler: ", reason.name);
-
     switch (reason.name) {
         case 'StrictModeError': {
             res.status(HttpCodes.ValidationError).send('Invalid syntax');

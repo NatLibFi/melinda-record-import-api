@@ -37,7 +37,7 @@ var logs = config.logs;
 mongoose.models.BlobMetadata.remove(function () {
     mongoose.models.BlobMetadata.create({
         UUID: '1001',
-        profile: 'standard',
+        profile: 'test',
         contentType: 'standard'
     }, {
         UUID: '1002',

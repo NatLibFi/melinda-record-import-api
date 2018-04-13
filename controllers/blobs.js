@@ -33,7 +33,6 @@
 var mongoose = require('mongoose'),
     config = require('../config'),
     logs = config.logs,
-    Blobs = require('../models/m.blobs'),
     HttpCodes = require('../utils/HttpCodes'),
     enums = require('../utils/enums'),
     MongoErrorHandler = require('../utils/MongooseErrorHandler'),
@@ -205,7 +204,7 @@ module.exports.postBlobById = function (req, res, next) {
 /**
  * Delete a blob
  * The blob is completely removed including _all related records in the queue_
- *
+ *a
  * no response value expected for this operation
 */
 module.exports.deleteBlobById = function (req, res, next) {

@@ -37,22 +37,16 @@ var HttpCodes = require('./utils/HttpCodes'),
 //Endpoint controllers
 var blobs = require('./controllers/blobs');
 var profiles = require('./controllers/profiles');
+var crowd = require('./utils/CrowdServices');
+
+//Mongoose models
+var Blobs = require('./models/m.blobs'),
+    Profile = require('./models/m.profiles');
 
 var swagger = function(req, res, next){
     console.log('This should return Swagger documentation!');
     res.status(HttpCodes.NotImplemented).send('Swagger documentation is not yet implemented');
 }
-
-var ensureAuthenticated = function (req, res, next) {
-    if (req.environment === enums.environment.production) {
-        console.log('Should check if authenticated in production');  //req.isAuthenticated()
-        res.status(HttpCodes.Unauthorized).send('User not authorized');
-    }
-    return next();
-}
-
-
-
 
 /*
 //Swagger endpoints
@@ -69,9 +63,14 @@ PUT /profiles/{id} - Create or update a profile
 GET /profiles/{id} - Retrieve a profile
 */
 exports = module.exports = function (app, passport) {
+    //crowd.isUserInGroup('test', 'testNest');
+    crowd.authenticateUserSSO();
+
     app.get('/', swagger);
 
-    app.all('/*', ensureAuthenticated)
+    //Authentication is done against Crowd and compared to profile that is going to be used
+    //If routes are updated detection of profile should also be updated at CrowdServives
+    app.all('/*', crowd.ensureAuthenticated) 
 
     app.post('/blobs', blobs.postBlob)
     app.get('/blobs', blobs.getBlob)

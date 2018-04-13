@@ -41,3 +41,22 @@ module.exports.getInvalidError = function () {
     err.type = enums.errorTypes.invalidSyntax;
     return err;
 }
+
+module.exports.getUnauthorizedError = function () {
+    var err = new Error('Authentication failed');
+    err.type = enums.errorTypes.unauthorized;
+    return err;
+}
+
+module.exports.getForbiddenError = function () {
+    var err = new Error('Not authorized');
+    err.type = enums.errorTypes.forbidden;
+    return err;
+}
+
+module.exports.getUnknownError = function (description, data) {
+    var err = new Error(description);
+    err.type = enums.errorTypes.unknown;
+    err.data = data;
+    return err;
+}

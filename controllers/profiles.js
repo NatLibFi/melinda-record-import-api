@@ -36,7 +36,6 @@ var mongoose = require('mongoose'),
     enums = require('../utils/enums'),
     serverErrors = require('../utils/ServerErrors'),
     utils = require('../utils/ServerUtils'),
-    Profile = require('../models/m.profiles'),
     HttpCodes = require('../utils/HttpCodes'),
     MongoErrorHandler = require('../utils/MongooseErrorHandler'),
     queryHandler = require('../utils/MongooseQueryHandler'),
@@ -68,7 +67,7 @@ module.exports.upsertProfileById = function (req, res, next) {
         return next(e);
     }
 
-    Profile.findOneAndUpdate(
+    mongoose.models.Profile.findOneAndUpdate(
         { id: profile.id },
         profile,
         { new: true, upsert: true, runValidators: true, rawResult: true }
@@ -86,7 +85,7 @@ module.exports.getProfileById = function (req, res, next) {
     if (logs) console.log('-------------- Get profile --------------');
     if (logs) console.log(req.params.id);
 
-    Profile.where('id', req.params.id)
+    mongoose.models.Profile.where('id', req.params.id)
         .exec()
         .then((documents) => queryHandler.findOne(documents, res, 'The profile does not exist'))
         .catch((reason) => MongoErrorHandler(reason, res, next));
