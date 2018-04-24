@@ -33,8 +33,9 @@ var HttpCodes = require('./HttpCodes'),
     mongoose = require('mongoose'),
     enums = require('../utils/enums'),
     MongoErrorHandler = require('../utils/MongooseErrorHandler'),
+    queryHandler = require('../utils/MongooseQueryHandler'),
     config = require('../config'),
-    logs = true, //config.logs,
+    logs = config.logs,
     authen = require('basic-auth'),
     request = require('request'),
     serverErrors = require('./ServerErrors'),
@@ -50,18 +51,20 @@ authenticateUserOptions.body = {
 };
 
 module.exports.authenticateUserSSO = function () {
-    //Accepted response is in JSON-format
-    function callback(error, response, body) {
-        if (!error && (response.statusCode == 200 || response.statusCode == 201)
-            && body && body.token) {
-            token = body.token;
-            console.log("Token: ", token);
-        } else {
-            if (logs) console.log('Error: ', error);
-        }
-    };
+    return new Promise(function (resolve, reject) {
+        //Accepted response is in JSON-format
+        function callback(error, response, body) {
+            if (!error && (response.statusCode == 200 || response.statusCode == 201)
+                && body && body.token) {
+                resolve(body.token);
+            } else {
+                if (logs) console.log('Error: ', error);
+                reject( error );
+            }
+        };
 
-    request.post(authenticateUserOptions, callback);
+        request.post(authenticateUserOptions, callback);
+    })
 }
 //  End: Authenticate user and recieve SSO token  //
 ////////////////////////////////////////////////////
@@ -107,6 +110,8 @@ module.exports.ensureAuthenticated = function (req, res, next) {
         if (!(err.type && err.type === enums.errorTypes.unauthorized || err.type === enums.errorTypes.forbidden)) {
             console.error('Unanticipated authentication error: ', err);
         }
+        //return next(serverErrors.getForbiddenError());
+
         return next(err); //Top layer, log error or pass to handler with throw
     });
 }
@@ -119,11 +124,9 @@ module.exports.ensureAuthenticated = function (req, res, next) {
 function getUsernameAndAuthenticate(req, res, next) {
     return new Promise(function (resolve, reject) {
         var credentials = authen(req) //Use basic auth as standard //getUserCredentialsBasic(req); 
-
         if (credentials && credentials.name && credentials.pass) {
             var authenticateUserBasicPromise = authenticateUserBasic(req, res, next, credentials);
             authenticateUserBasicPromise.then(function (cred) {
-
                 if (cred && cred.name) {
                     resolve(cred.name);
                 } else {
@@ -217,7 +220,7 @@ function getProfilenames(req, res, next) {
         } else if (met === 'GET' && url.startsWith('/blobs?')) {
             resolve(null); //Authenticated users can make queries
             //profile = [findProfile(url)]; //Can be one of multiple parameters
-        } else if ((met === 'GET' || met == 'POST' || met === 'DELETE') && url.startsWith('/blobs/')) {
+        } else if ((met === 'GET' || met == 'POST' || met === 'DELETE') && url.startsWith('/blobs')) {
             //EP: GET&DELETE /blobs/{id}/content
             if ((met === 'GET' || met === 'DELETE') && url.endsWith('/content')) {
                 blobID = url.slice(7, url.lastIndexOf('/content'));
@@ -240,29 +243,17 @@ function getProfilenames(req, res, next) {
         }else if (profileID) {
             mongoose.models.Profile.where('id', profileID)
             .exec()
-            .then((documents) = function (documents) {
-                if (documents.length > 1) {
-                    console.warn('Should be just one search result, found multiple: ', document);
-                } else if (documents.length === 0) {
-                    resolve(null);
-                }
-                resolve(documents[0].auth.groups);
-            })
-            .catch((reason) = function (reason) {
+            .then((documents) => queryHandler.findOneLocal(documents, resolve, reject))
+            .catch((reason) => (reason) =>{
+                console.error(reason);
                 reject(reason);
             });
         } else if (blobID) {
             mongoose.models.BlobMetadata.where('UUID', blobID)
             .exec()
-            .then((documents) = function (documents) {
-                if (documents.length > 1) {
-                    console.warn('Should be just one search result, found multiple: ', document);
-                } else if (documents.length === 0) {
-                    resolve(null);
-                }
-                resolve([documents[0].profile]);
-            })
-            .catch((reason) = function (reason) {
+            .then((documents) => queryHandler.findOneLocal(documents, resolve, reject))
+            .catch((reason) => (reason) => {
+                console.error(reason);
                 reject(reason);
             });
         } else {
@@ -295,7 +286,7 @@ function getUserGroups(username) {
                 });
                 resolve(groups);
             } else if (error) {
-                if (logs) console.log('Error: ', error);
+                console.error('Error: ', error);
                 reject(serverErrors.getUnauthorizedError('Error in getting users groups', error));
             } else if (response.statusCode == 401) {
                 reject(serverErrors.getUnauthorizedError())
@@ -309,8 +300,6 @@ function getUserGroups(username) {
 }
 
 var arrayContainsArray = function (superset, subset) {
-    console.log('Superset: ', superset);
-    console.log('Subset: ', subset);
     return subset.every(function (value) {
         return (superset.indexOf(value) >= 0);
     });

@@ -62,7 +62,7 @@ module.exports.upsertProfileById = function (req, res, next) {
     }
 
     try{
-        utils.ensureMatchingIDs(req, res, next);
+        utils.ensureMatchingIDs(req, res);
     } catch (e) {
         return next(e);
     }

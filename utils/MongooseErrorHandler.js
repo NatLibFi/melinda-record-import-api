@@ -52,4 +52,5 @@ module.exports = function (reason, res) {
 
     console.error(reason);
     next(reason);
-};
+
+}

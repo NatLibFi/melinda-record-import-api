@@ -46,7 +46,27 @@ module.exports = {
                 return res.status(HttpCodes.OK).send(result);
             }
             default:
+                console.warn('Should be just one search result, found multiple: ', findResults);
                 return res.status(HttpCodes.Conflict).send('Found multiple documents when expected to find only one.');
+        }
+    },
+    findOneLocal: function (findResults, resolve, reject) {
+        switch (findResults.length) {
+            case 0: {
+                return reject(null);
+            }
+            case 1: {
+                var result = findResults[0].toJSON();
+                delete result._id;
+                delete result.__v;
+                delete result.UUID;
+                delete result.MetaDataID;
+                return resolve(null);
+            }
+            default: {
+                console.warn('Should be just one search result, found multiple: ', findResults);
+                return reject(null);
+            }
         }
     },
     findMany: function (findResults, res) {

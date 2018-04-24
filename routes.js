@@ -62,10 +62,7 @@ DELETE /blobs/{id}/content - Delete blob content
 PUT /profiles/{id} - Create or update a profile
 GET /profiles/{id} - Retrieve a profile
 */
-exports = module.exports = function (app, passport) {
-    //crowd.isUserInGroup('test', 'testNest');
-    crowd.authenticateUserSSO();
-
+exports = module.exports = function (app) {
     app.get('/', swagger);
 
     //Authentication is done against Crowd and compared to profile that is going to be used

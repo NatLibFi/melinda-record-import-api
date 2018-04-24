@@ -31,7 +31,7 @@
 var serverErrors = require('../utils/ServerErrors'),
     uuid = require('uuid');
 
-module.exports.ensureMatchingIDs = function (req, res, next) {
+module.exports.ensureMatchingIDs = function (req, res) {
     if (req.body.id && req.body.id !== req.params.id) {
         throw serverErrors.getInvalidError();
     } else if (!req.body.id) {
