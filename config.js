@@ -29,7 +29,7 @@
 /* eslint-disable no-unused-vars */
 
 'use strict';
-var enums = require('./utils/enums');
+var enums = require('../melinda-record-import-commons/utils/enums');
 
 exports.hostname = process.env.hostname || 'localhost';
 exports.environment = enums.environment.development;

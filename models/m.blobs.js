@@ -32,7 +32,7 @@
 
 var mongoose = require('mongoose'),
     Schema = mongoose.Schema,
-    enums = require('../utils/enums'),
+    enums = require('../../melinda-record-import-commons/utils/enums'),
     _ = require('lodash');
 
 var BlobMetadata = new Schema({

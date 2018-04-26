@@ -28,11 +28,9 @@
 
 /* eslint-disable no-unused-vars */
 
-var HttpCodes = require('./HttpCodes'),
-    configCrowd = require('../configCrowd'),
+var configCrowd = require('../configCrowd'),
     mongoose = require('mongoose'),
-    enums = require('../utils/enums'),
-    MongoErrorHandler = require('../utils/MongooseErrorHandler'),
+    enums = require('../../melinda-record-import-commons/utils/enums'),
     queryHandler = require('../utils/MongooseQueryHandler'),
     config = require('../config'),
     logs = config.logs,

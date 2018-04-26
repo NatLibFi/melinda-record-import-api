@@ -29,15 +29,13 @@
 /* eslint-disable no-unused-vars */
 
 'use strict';
-var HttpCodes = require('./utils/HttpCodes'),
-    enums = require('./utils/enums'),
-    serverErrors = require('./utils/ServerErrors'),
+var HttpCodes = require('../melinda-record-import-commons/utils/HttpCodes'),
     router = require('express').Router();
 
 //Endpoint controllers
-var blobs = require('./controllers/blobs');
-var profiles = require('./controllers/profiles');
-var crowd = require('./utils/CrowdServices');
+var blobs = require('./controllers/blobs'),
+    profiles = require('./controllers/profiles'),
+    crowd = require('./utils/CrowdServices');
 
 //Mongoose models
 var Blobs = require('./models/m.blobs'),

@@ -32,14 +32,11 @@
 
 var config = require('./config'),
     logs = config.logs,
-    enums = require('./utils/enums'),
-    http = require('http'),
-    HttpCodes = require('./utils/HttpCodes'),
+    enums = require('../melinda-record-import-commons/utils/enums'),
+    HttpCodes = require('../melinda-record-import-commons/utils/HttpCodes'),
     express = require('express'),
     bodyParser = require('body-parser'),
-    session = require('express-session'),
     cors = require('cors'),
-    AtlassianCrowdStrategy = require('passport-atlassian-crowd2').Strategy,
     mongoose = require('mongoose');
 
 var app = express();
@@ -58,8 +55,6 @@ app.use(bodyParser.json());
 
 app.use(require('method-override')());
 app.use(express.static(__dirname + '/public'));
-
-app.use(session({ secret: 'conduit', cookie: { maxAge: 60000 }, resave: false, saveUninitialized: false }));
 
 if (isProduction) {
     mongoose.connect(app.config.mongodb);

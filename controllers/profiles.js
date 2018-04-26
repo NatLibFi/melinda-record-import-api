@@ -33,13 +33,10 @@
 var mongoose = require('mongoose'),
     config = require('../config'),
     logs = config.logs,
-    enums = require('../utils/enums'),
     serverErrors = require('../utils/ServerErrors'),
     utils = require('../utils/ServerUtils'),
-    HttpCodes = require('../utils/HttpCodes'),
     MongoErrorHandler = require('../utils/MongooseErrorHandler'),
-    queryHandler = require('../utils/MongooseQueryHandler'),
-    uuid = require('uuid');
+    queryHandler = require('../utils/MongooseQueryHandler');
 
 /**
  * Create or update a profile

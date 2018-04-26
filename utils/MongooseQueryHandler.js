@@ -28,7 +28,7 @@
 
 /* eslint-disable no-unused-vars */
 
-var HttpCodes = require('./HttpCodes'),
+var HttpCodes = require('../../melinda-record-import-commons/utils/HttpCodes'),
     _ = require('lodash');
 
 

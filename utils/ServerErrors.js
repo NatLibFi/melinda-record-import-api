@@ -28,7 +28,7 @@
 
 /* eslint-disable no-unused-vars */
 
-var enums = require('./enums');
+var enums = require('../../melinda-record-import-commons/utils/enums');
 
 module.exports.getMalformedError = function () {
     var err = new Error('Malformed content');
