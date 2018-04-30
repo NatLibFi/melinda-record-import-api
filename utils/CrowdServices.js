@@ -28,15 +28,15 @@
 
 /* eslint-disable no-unused-vars */
 
-var configCrowd = require('../configCrowd'),
+var configCrowd = require('../../melinda-record-import-commons/configCrowd'),
     mongoose = require('mongoose'),
     enums = require('../../melinda-record-import-commons/utils/enums'),
     queryHandler = require('../utils/MongooseQueryHandler'),
-    config = require('../config'),
+    config = require('../../melinda-record-import-commons/config'),
     logs = config.logs,
     authen = require('basic-auth'),
     request = require('request'),
-    serverErrors = require('./ServerErrors'),
+    serverErrors = require('./ServerErrors'),   
     _ = require('lodash');
 
 ////////////////////////////////////////////////////
@@ -215,7 +215,7 @@ function getProfilenames(req, res, next) {
             profile = [url.slice(22)]; //Only parameter and mandatory
 
         //EP: GET /blobs
-        } else if (met === 'GET' && url.startsWith('/blobs?')) {
+        } else if (met === 'GET' && url.startsWith('/blobs')) {
             resolve(null); //Authenticated users can make queries
             //profile = [findProfile(url)]; //Can be one of multiple parameters
         } else if ((met === 'GET' || met == 'POST' || met === 'DELETE') && url.startsWith('/blobs')) {

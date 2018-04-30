@@ -30,26 +30,24 @@
 
 'use strict';
 
-const chai = require('chai'),
+const app = require('../index'),
+      chai = require('chai'),
       chaiHTTP = require('chai-http');
       chai.use(chaiHTTP);
 
 const should = chai.should();
-var expect = chai.expect();
-const app = require('../index');
 const routes = require('../routes');
 const httpMocks = require('node-mocks-http');
 const mongoose = require('mongoose'),
-      config = require('../config'),
-      configCrowd = require('../configCrowd'),
-      //logs = config.logs,
-      logs = true,
-      server = require('../index'),
+      config = require('../../melinda-record-import-commons/config'),
+      logs = config.logs,
+      configCrowd = require('../../melinda-record-import-commons/configCrowd'),
       _ = require('lodash');
 
 const blobs = require('../controllers/blobs');
 const profiles = require('../controllers/profiles');
 const crowd = require('../utils/CrowdServices');
+
 
 ///////////////////////////////////////////
 // Start: Generate testing objects to DB //
@@ -252,10 +250,7 @@ describe('All paths', function () {
         });
     });
 
-
-    var basicAuthString = configCrowd.username + ':' + configCrowd.password;
-    var encodedAuth = Buffer.from(basicAuthString).toString('base64');
-    encodedAuth = 'Basic ' + encodedAuth;
+    var encodedAuth = configCrowd.encodedAuth;
 
     _.forEach(routesObj, function (route) {
         describe('Tests for path: ' + route.url, function () {
@@ -280,6 +275,8 @@ describe('All paths', function () {
                     } else {
                         requestParams.headers['Authorization'] = encodedAuth;
                     }
+
+                    console.log("request: ", requestParams);
 
                     var req = httpMocks.createRequest(requestParams);
 

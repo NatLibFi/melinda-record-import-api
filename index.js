@@ -30,7 +30,7 @@
 
 'use strict';
 
-var config = require('./config'),
+var config = require('../melinda-record-import-commons/config'),
     logs = config.logs,
     enums = require('../melinda-record-import-commons/utils/enums'),
     HttpCodes = require('../melinda-record-import-commons/utils/HttpCodes'),
@@ -123,7 +123,7 @@ if (app.config.emptyDB) {
 }
 
 // finally, let's start our server...
-var server = app.listen(app.config.port, function () {
+var server = app.listen(app.config.portAPI, function () {
     console.log('Listening on port ' + server.address().port + ', is in production: ' + isProduction);
     //console.log('Env:', process.env);
 });

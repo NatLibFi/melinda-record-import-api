@@ -31,7 +31,7 @@
 'use strict';
 
 var mongoose = require('mongoose'),
-    config = require('../config'),
+    config = require('../../melinda-record-import-commons/config'),
     logs = config.logs,
     HttpCodes = require('../../melinda-record-import-commons/utils/HttpCodes'),
     enums = require('../../melinda-record-import-commons/utils/enums'),
