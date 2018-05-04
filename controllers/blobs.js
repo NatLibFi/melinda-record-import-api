@@ -88,10 +88,7 @@ module.exports.postBlob = function (req, res, next) {
             }
             return res.status(HttpCodes.OK).send('The blob was succesfully created. State is set to ' + newBlobMetadata.state)
         });
-
     });
-
-
 };
 
 
@@ -124,7 +121,6 @@ module.exports.getBlob = function (req, res, next) {
             return queryHandler.invalidQuery(res);
         }
     }
-
 
     if (query.creationTime) {
         if (query.creationTime.length === 2 &&
@@ -224,8 +220,6 @@ module.exports.deleteBlobById = function (req, res, next) {
             .catch((reason) => MongoErrorHandler(reason, res, next));
         })
         .catch((reason) => MongoErrorHandler(reason, res, next));
-
-
 };
 
 /**

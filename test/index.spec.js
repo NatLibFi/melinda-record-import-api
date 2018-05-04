@@ -100,7 +100,7 @@ mongoose.models.BlobContent.remove(function () {
 
 mongoose.models.Profile.remove(function () {
     mongoose.models.Profile.create({
-        id: '2200',
+        name: '2200',
         auth: {
             groups: ['user']
         },
@@ -120,7 +120,7 @@ mongoose.models.Profile.remove(function () {
             }
         }
     },{
-        id: '2201',
+        name: '2201',
         auth: {
             groups: ['admin', 'user']
         },
@@ -140,7 +140,7 @@ mongoose.models.Profile.remove(function () {
             }
         }
     }, {
-        id: '2202',
+        name: '2202',
         auth: {
             groups: ['user']
         },
@@ -275,8 +275,6 @@ describe('All paths', function () {
                     } else {
                         requestParams.headers['Authorization'] = encodedAuth;
                     }
-
-                    console.log("request: ", requestParams);
 
                     var req = httpMocks.createRequest(requestParams);
 
@@ -1137,18 +1135,18 @@ describe('Blob services', function () {
 });
 
 ////////////////////////////////////////////////////////
-// Tests for profile services, meaning /blobs/* paths //
+// Tests for profile services, meaning /profiles/* paths //
 ////////////////////////////////////////////////////////
 describe('Profile services', function () {
 
     ///////////////////////////////
-    // Start: PUT /profiles/{id} //
-    describe('#PUT /profiles/{id}', function () {
+    // Start: PUT /profiles/{name} //
+    describe('#PUT /profiles/{name}', function () {
 
         var testsValid = [{
             'description': 'Add profile',
             'params': {
-                'id': ''
+                'name': 2203
             },
             'body': {
                 'auth': {
@@ -1175,10 +1173,10 @@ describe('Profile services', function () {
         }, {
             'description': 'Update profile',
             'params': {
-                'id': 2202
+                'name': 2202
             },
             'body': {
-                'id': 2202,
+                'name': 2202,
                 'auth': {
                     'groups': ['admin']
                 }
@@ -1192,7 +1190,7 @@ describe('Profile services', function () {
                 it(value.description, function (done) {
                     var req = httpMocks.createRequest({
                         method: 'PUT',
-                        url: '/profiles/' + value.params.id,
+                        url: '/profiles/' + value.params.name,
                         params: value.params,
                         body: value.body
                     });
@@ -1201,7 +1199,7 @@ describe('Profile services', function () {
                         eventEmitter: require('events').EventEmitter
                     });
 
-                    profiles.upsertProfileById(req, res);
+                    profiles.upsertProfileByName(req, res);
 
                     res.on('end', function () {
                         try {
@@ -1222,15 +1220,15 @@ describe('Profile services', function () {
 
         var testsInvalid = [
             {
-                'description': 'Ids not matching',
+                'description': 'Names not matching',
                 'body': {
-                    'id': 2203,
+                    'name': 2203,
                     'auth': {
                         'groups': ['admin']
                     }
                 },
                 'params':{
-                    'id':2202
+                    'name':2202
                 },
                 'status': 422,
                 'response': 'Invalid syntax',
@@ -1254,7 +1252,7 @@ describe('Profile services', function () {
                 it(value.description, function (done) {
                     var req = httpMocks.createRequest({
                         method: 'PUT',
-                        url: '/profiles/' + value.params.id,
+                        url: '/profiles/' + value.params.name,
                         body: value.body,
                         params: value.params
                     });
@@ -1263,7 +1261,7 @@ describe('Profile services', function () {
                         eventEmitter: require('events').EventEmitter
                     });
 
-                    profiles.upsertProfileById(req, res, function (err) {
+                    profiles.upsertProfileByName(req, res, function (err) {
                         try {
                             err.type.should.be.equal(value.res);
                         } catch (e) {
@@ -1275,17 +1273,17 @@ describe('Profile services', function () {
             });
         });
     });
-    //  End: PUT /profiles/{id}  //
+    //  End: PUT /profiles/{name}  //
     ///////////////////////////////
 
     ///////////////////////////////
-    // Start: GET /profiles/{id} //
-    describe('#GET /profiles/{id}', function () {
+    // Start: GET /profiles/{name} //
+    describe('#GET /profiles/{name}', function () {
 
         var testsValid = [{
             'description': 'Get profile',
             'params': {
-                'id': '2202'
+                'name': '2202'
             },
             'status': 200,
         }];
@@ -1304,7 +1302,7 @@ describe('Profile services', function () {
                         eventEmitter: require('events').EventEmitter
                     });
 
-                    profiles.getProfileById(req, res);
+                    profiles.getProfileByName(req, res);
 
                     res.on('end', function () {
                         try {
@@ -1324,7 +1322,7 @@ describe('Profile services', function () {
         var testsInvalid = [{
             'description': 'Not existing',
             'params': {
-                'id': 9999,
+                'name': 9999,
             },
             'status': 404,
             'response': 'Invalid syntax'
@@ -1344,7 +1342,7 @@ describe('Profile services', function () {
                         eventEmitter: require('events').EventEmitter
                     });
 
-                    profiles.getProfileById(req, res);
+                    profiles.getProfileByName(req, res);
 
                     res.on('end', function () {
                         try {
@@ -1362,6 +1360,6 @@ describe('Profile services', function () {
             });
         });
     });
-    // End: PUT /profiles/{id} //
+    // End: PUT /profiles/{name} //
     /////////////////////////////
 });

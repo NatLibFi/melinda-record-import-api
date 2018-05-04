@@ -29,6 +29,7 @@
 /* eslint-disable no-unused-vars */
 
 var HttpCodes = require('../../melinda-record-import-commons/utils/HttpCodes'),
+    config = require('../../melinda-record-import-commons/config'),
     _ = require('lodash');
 
 
@@ -85,7 +86,7 @@ module.exports = {
     returnUUID: function (findResults, res) {
         var results = [];
         _.forEach(findResults, function (value) {
-            results.push('https://record-import.api.melinda.kansalliskirjasto.fi/v1/blob/' + value.UUID)
+            results.push(config.urlAPI + '/blobs/' + value.UUID)
         });
         return res.status(HttpCodes.OK).send(results);
     },

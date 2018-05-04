@@ -75,6 +75,6 @@ exports = module.exports = function (app) {
     app.get('/blobs/:id/content', blobs.getBlobByIdContent)
     app.delete('/blobs/:id/content', blobs.deleteBlobByIdContent)
 
-    app.put('/profiles/:id', profiles.upsertProfileById)
-    app.get('/profiles/:id', profiles.getProfileById)
+    app.put('/profiles/:name', profiles.upsertProfileByName)
+    app.get('/profiles/:name', profiles.getProfileByName)
 };

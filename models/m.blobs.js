@@ -47,6 +47,7 @@ var BlobMetadata = new Schema({
     creationTime: { type: Date, default: Date.now },
     modificationTime: { type: Date, default: Date.now },
     processingInfo: {
+        op: {type: String},
         transformationError: { type: Object },
         numberOfRecords: { type: Number },
         importResults: [{

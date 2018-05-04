@@ -104,7 +104,7 @@ mongoose.models.BlobContent.remove(function () {
 //These do not match profiles schema and because of that mongoose doesn't add these
 mongoose.models.Profile.remove(function () {
     mongoose.models.Profile.create({
-        id: '1201',
+        name: '1201',
         auth: {
             groups: ['admin', 'user']
         },

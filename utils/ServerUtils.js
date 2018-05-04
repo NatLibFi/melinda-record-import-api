@@ -31,10 +31,13 @@
 var serverErrors = require('../utils/ServerErrors'),
     uuid = require('uuid');
 
-module.exports.ensureMatchingIDs = function (req, res) {
-    if (req.body.id && req.body.id !== req.params.id) {
+module.exports.ensureMatchingNames = function (req, res) {
+    if (!req.body.name && req.params.name) {
+        req.body.name = req.params.name;
+        return;
+    }
+
+    if (req.params.name && req.body.name !== req.params.name) {
         throw serverErrors.getInvalidError();
-    } else if (!req.body.id) {
-        req.body.id = uuid.v4();
     }
 }
