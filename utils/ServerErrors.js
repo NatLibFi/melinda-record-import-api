@@ -54,6 +54,12 @@ module.exports.getForbiddenError = function () {
     return err;
 }
 
+module.exports.getMissingProfileError = function () {
+    var err = new Error('Missing profile');
+    err.type = enums.errorTypes.missing;
+    return err;
+}
+
 module.exports.getUnknownError = function (description, data) {
     var err = new Error(description);
     err.type = enums.errorTypes.unknown;

@@ -30,6 +30,7 @@
 
 var HttpCodes = require('../../melinda-record-import-commons/utils/HttpCodes'),
     config = require('../../melinda-record-import-commons/config'),
+    serverErrors = require('./ServerErrors'),
     _ = require('lodash');
 
 
@@ -54,7 +55,7 @@ module.exports = {
     findOneLocal: function (findResults, resolve, reject) {
         switch (findResults.length) {
             case 0: {
-                return reject(null);
+                return reject(serverErrors.getMissingProfileError());
             }
             case 1: {
                 var result = findResults[0].toJSON();

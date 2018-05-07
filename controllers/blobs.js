@@ -33,6 +33,7 @@
 var mongoose = require('mongoose'),
     config = require('../../melinda-record-import-commons/config'),
     logs = config.logs,
+    serverErrors = require('../utils/ServerErrors'),
     HttpCodes = require('../../melinda-record-import-commons/utils/HttpCodes'),
     enums = require('../../melinda-record-import-commons/utils/enums'),
     MongoErrorHandler = require('../utils/MongooseErrorHandler'),
@@ -60,7 +61,16 @@ module.exports.postBlob = function (req, res, next) {
     if (logs) console.log(req.query);
 
     if (!req.query['Import-Profile']) {
-        return res.status(HttpCodes.BadRequest).send('The profile does not exist or the user is not authorized to it')
+        next(serverErrors.getMissingProfileError());
+    } else {
+        mongoose.models.Profile.where('name', req.query['Import-Profile'])
+        .exec()
+        .then((documents) => {
+            if(documents.length !== 1 ){
+                next(serverErrors.getMissingProfileError());
+            }
+        })
+        .catch((reason) => MongoErrorHandler(reason, res, next));
     }
 
     var newBlobMetadata = new mongoose.models.BlobMetadata({});

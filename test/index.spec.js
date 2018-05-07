@@ -159,6 +159,26 @@ mongoose.models.Profile.remove(function () {
                 ignoreFlags: false
             }
         }
+    },{
+        name: 'single_test_metadata',
+        auth: {
+            groups: ['admin', 'user']
+        },
+        transformation: {
+            abortOnInvalidRecords: false,
+            module: 'standard',
+            parameters: {
+                priority: true,
+                ignoreFlags: false
+            },
+        },
+        'import': {
+            module: 'standard',
+            parameters: {
+                priority: true,
+                ignoreFlags: false
+            }
+        }
     }, function (err) {
         if (logs) console.log('Finished populating testing profiles, errors: ', err);
     });
@@ -174,31 +194,31 @@ describe('All paths', function () {
     var routesObj = [
         {
             'method': 'POST',
-            'url': '/blobs?Import-Profile=test',
+            'url': '/blobs?Import-Profile=2200',
         },
         {
             'method': 'GET',
-            'url': '/blobs?profile=test'
+            'url': '/blobs?profile=2200'
         },
         {
             'method': 'GET',
-            'url': '/blobs/2100'
+            'url': '/blobs/2000'
         },
         {
             'method': 'POST',
-            'url': '/blobs/2100',
+            'url': '/blobs/2000',
         },
         {
             'method': 'DELETE',
-            'url': '/blobs/2100',
+            'url': '/blobs/2000',
         },
         {
             'method': 'GET',
-            'url': '/blobs/2100/content',
+            'url': '/blobs/2000/content',
         },
         {
             'method': 'DELETE',
-            'url': '/blobs/2100/content',
+            'url': '/blobs/2000/content',
         },
         {
             'method': 'PUT',
@@ -338,7 +358,7 @@ describe('Blob services', function () {
             var req = httpMocks.createRequest({
                 method: 'POST',
                 url: '/blobs',
-                query: { 'Import-Profile': 'testing_single' },
+                query: { 'Import-Profile': '2200' },
                 body: {
                     data: 'test data',
                     data2: 'more data'
@@ -366,7 +386,7 @@ describe('Blob services', function () {
             var req = httpMocks.createRequest({
                 method: 'POST',
                 url: '/blobs',
-                query: { 'Import-Profile': 'testing' },
+                query: { 'Import-Profile': '2200' },
                 body: {
                     data: 'test data',
                     data2: 'more data'
@@ -395,7 +415,7 @@ describe('Blob services', function () {
             var req = httpMocks.createRequest({
                 method: 'POST',
                 url: '/blobs',
-                query: { 'Import-Profile': 'testing' },
+                query: { 'Import-Profile': '2200' },
                 body: {
                     data: 'test data',
                     data2: 'more data'
@@ -436,7 +456,7 @@ describe('Blob services', function () {
             }, {
                 'description': 'array (parameter profile)',
                 'query': {
-                    'profile': 'standard'
+                    'profile': '2200'
                 },
                 'gte': 0
             }, {
@@ -468,7 +488,7 @@ describe('Blob services', function () {
             }, {
                 'description': 'single URL (from #POST test)',
                 'query': {
-                    'profile': 'testing_single'
+                    'profile': 'single_test_metadata'
                 },
                 'exact': 1
             }, {
@@ -732,7 +752,7 @@ describe('Blob services', function () {
                    'id': 2001
                },
                'body': {
-                   'profile': 'Updated'
+                   'profile': '2200'
                }
            }
         ];
@@ -790,7 +810,7 @@ describe('Blob services', function () {
                     'id': 9999
                 },
                 'body': {
-                    'profile': 'Updated'
+                    'profile': '2200'
                 },
                 'res': 404
             }, {
@@ -799,7 +819,7 @@ describe('Blob services', function () {
                     'id': 2001
                 },
                 'body': {
-                    'profile_invalid': 'Invalid syntax'
+                    'profile_invalid': '2200'
                 },
                 'res': 422
             }

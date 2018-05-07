@@ -204,16 +204,14 @@ function getUserCredentialsSSO(req, res, next) {
 function getProfilenames(req, res, next) {
     var url = req.url;
     var met = req.method;
-    var profile = '';
-    var profileID = '';
+    var profileName = '';
     var blobID = '';
 
     return new Promise(function (resolve, reject) {
         //Find on what basis profile is suppose to be checked
         //EP: POST /blobs
         if (met === 'POST' && url.startsWith('/blobs?Import-Profile=')) {
-            profile = [url.slice(22)]; //Only parameter and mandatory
-
+            profileName = [url.slice(22)]; //Only parameter and mandatory
         //EP: GET /blobs
         } else if (met === 'GET' && url.startsWith('/blobs')) {
             resolve(null); //Authenticated users can make queries
@@ -232,14 +230,12 @@ function getProfilenames(req, res, next) {
             if (req.body && req.body.auth && req.body.auth.groups) {
                 resolve(req.body.auth.groups);
             }
-            profileID = url.slice(10);
+            profileName = url.slice(10);
         }
 
         //If one of the methods is set return profile name
-        if (profile) {
-            resolve(profile);
-        }else if (profileID) {
-            mongoose.models.Profile.where('id', profileID)
+        if (profileName) {
+            mongoose.models.Profile.where('name', profileName)
             .exec()
             .then((documents) => queryHandler.findOneLocal(documents, resolve, reject))
             .catch((reason) => (reason) =>{

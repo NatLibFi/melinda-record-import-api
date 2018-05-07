@@ -87,6 +87,8 @@ app.use(function (err, req, res, next) {
             return res.status(HttpCodes.Unauthorized).send('Authentication failed');
         case enums.errorTypes.forbidden:
             return res.status(HttpCodes.Forbidden).send('Not authorized');
+        case enums.errorTypes.missing:
+            return res.status(HttpCodes.BadRequest).send('The profile does not exist or the user is not authorized to it');
         case enums.errorTypes.unknown:
             return res.status(HttpCodes.InternalServerError).send('Unknown error');
         default: {
