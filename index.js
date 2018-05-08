@@ -65,6 +65,12 @@ if (isProduction) {
 
 require('./routes')(app);
 
+//Swagger UI
+const swaggerUi = require('swagger-ui-express');
+const swaggerDocument = require('./api.json');
+
+app.use('/', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
+
 /// catch 404 and forward to error handler
 app.use(function (req, res, next) {
     var err = new Error('Not Found');

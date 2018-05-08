@@ -41,11 +41,6 @@ var blobs = require('./controllers/blobs'),
 var Blobs = require('./models/m.blobs'),
     Profile = require('./models/m.profiles');
 
-var swagger = function(req, res, next){
-    console.log('This should return Swagger documentation!');
-    res.status(HttpCodes.NotImplemented).send('Swagger documentation is not yet implemented');
-}
-
 /*
 //Swagger endpoints
 //Testing postman: https://www.getpostman.com/collections/03a898a97fefc2979cfe
@@ -61,12 +56,9 @@ PUT /profiles/{id} - Create or update a profile
 GET /profiles/{id} - Retrieve a profile
 */
 exports = module.exports = function (app) {
-    app.get('/', swagger);
-
     //Authentication is done against Crowd and compared to profile that is going to be used
     //If routes are updated detection of profile should also be updated at CrowdServives
-    app.all('/*', crowd.ensureAuthenticated) 
-
+    app.all('/blobs*', crowd.ensureAuthenticated)
     app.post('/blobs', blobs.postBlob)
     app.get('/blobs', blobs.getBlob)
     app.get('/blobs/:id', blobs.getBlobById)
@@ -75,6 +67,7 @@ exports = module.exports = function (app) {
     app.get('/blobs/:id/content', blobs.getBlobByIdContent)
     app.delete('/blobs/:id/content', blobs.deleteBlobByIdContent)
 
+    app.all('/profiles*', crowd.ensureAuthenticated)
     app.put('/profiles/:name', profiles.upsertProfileByName)
     app.get('/profiles/:name', profiles.getProfileByName)
 };
