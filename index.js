@@ -124,6 +124,7 @@ app.use(function (err, req, res, next) {
 });
 
 if (app.config.seedDB) {
+    console.log("Seed DB");
     require('./utils/database/seedDB');
 }
 if (app.config.emptyDB) {

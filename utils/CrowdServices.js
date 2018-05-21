@@ -80,23 +80,35 @@ module.exports.ensureAuthenticated = function (req, res, next) {
     // 1. Get Username and authenticate user with request details
     var getUsernamePromise = getUsernameAndAuthenticate(req, res, next);
     getUsernamePromise.then(function (username) {
+        if (logs) console.log("Username: ", username);
         // 2. Check what profiles user is trying to use
-        var getProfilenamesPromise = getProfilenames(req, res, next);
-        getProfilenamesPromise.then(function (profilenames) {
-            // 3. Check if user has rights to those profiles by checking users groups in crowd
-            if (profilenames) { //User is trying to access some profiles 
-                var isUserInGroupsPromise = isUserInGroups(username, profilenames);
-                isUserInGroupsPromise.then(function (isInGroup) {
-                    if (isInGroup) {
-                        if (logs) console.log("User is in usergroup, they can continue to Endpoint");
-                        return next(); //User can continue to EP
-                    } else {
-                        if (logs) console.log("User is in not in all usergroups they are trying to use, they cannot continue to Endpoint");
-                        return next(serverErrors.getForbiddenError());
-                    }
+        var getProfilenamesPromise = getProfilename(req, res, next);
+        getProfilenamesPromise.then(function (profilename) {
+            if (logs) console.log("Trying to use profile: ", profilename);
+            // 3. Check if user has rights to that profile by checking users groups in crowd
+            if (profilename) { //User is trying to access some profile 
+                var getAuthenticationGroupsPromise = getAuthenticationGrous(profilename);
+                getAuthenticationGroupsPromise.then(function (authGroups) {
+                    if (logs) console.log("Authentication groups: ", authGroups);
+
+                    var isUserInGroupsPromise = isUserInGroups(username, authGroups);
+                    isUserInGroupsPromise.then(function (isInGroup) {
+                        if (isInGroup) {
+                            if (logs) console.log("User is in usergroup, they can continue to Endpoint");
+                            return next(); //User can continue to EP
+                        } else {
+                            if (logs) console.log("User is in not in all usergroups they are trying to use, they cannot continue to Endpoint");
+                            return next(serverErrors.getForbiddenError());
+                        }
+                    }).catch(function (err) {
+                        return next(err);
+                    });
+
                 }).catch(function (err) {
                     return next(err);
                 });
+                
+
             } else {
                 if(logs) console.log("User is not trying to use any profile, they can continue to Endpoint");
                 return next(); //User can continue to EP
@@ -201,7 +213,7 @@ function getUserCredentialsSSO(req, res, next) {
 
 ///////////////////////////////////////////////////
 // Start: Supporting functions to get groupnames //
-function getProfilenames(req, res, next) {
+function getProfilename(req, res, next) {
     var url = req.url;
     var met = req.method;
     var profileName = '';
@@ -212,8 +224,8 @@ function getProfilenames(req, res, next) {
         //EP: POST /blobs
         if (met === 'POST' && url.startsWith('/blobs?Import-Profile=')) {
             profileName = [url.slice(22)]; //Only parameter and mandatory
-        //EP: GET /blobs
-        } else if (met === 'GET' && url.startsWith('/blobs')) {
+        //EP: GET /blobs query
+        } else if (met === 'GET' && (url.startsWith('/blobs?') || url === '/blobs')) {
             resolve(null); //Authenticated users can make queries
             //profile = [findProfile(url)]; //Can be one of multiple parameters
         } else if ((met === 'GET' || met == 'POST' || met === 'DELETE') && url.startsWith('/blobs')) {
@@ -233,19 +245,15 @@ function getProfilenames(req, res, next) {
             profileName = url.slice(10);
         }
 
+        if (logs) console.log("Profilename: ", profileName, " blobID: ", blobID);
+
         //If one of the methods is set return profile name
         if (profileName) {
-            mongoose.models.Profile.where('name', profileName)
-            .exec()
-            .then((documents) => queryHandler.findOneLocal(documents, resolve, reject))
-            .catch((reason) => (reason) =>{
-                console.error(reason);
-                reject(reason);
-            });
+            resolve(profileName);
         } else if (blobID) {
             mongoose.models.BlobMetadata.where('UUID', blobID)
             .exec()
-            .then((documents) => queryHandler.findOneLocal(documents, resolve, reject))
+            .then((documents) => queryHandler.findOneProfile(documents, resolve, reject))
             .catch((reason) => (reason) => {
                 console.error(reason);
                 reject(reason);
@@ -256,11 +264,25 @@ function getProfilenames(req, res, next) {
     })
 }
 
-function isUserInGroups(username, profilenames) { //Profilenames contains names of profiles that user is trying to use
+function getAuthenticationGrous(profilename) {
+    return new Promise(function (resolve, reject) {
+
+        mongoose.models.Profile.where('name', profilename)
+        .exec()
+        .then((documents) => queryHandler.findAuthgroups(documents, resolve, reject))
+        .catch((reason) => (reason) => {
+            console.error(reason);
+            reject(reason);
+        });
+        //resolve(['admin', 'test']);
+    });
+} 
+
+function isUserInGroups(username, authGroups) { //authGroups contains authentication groups of profile that user is trying to use
     return new Promise(function (resolve, reject) {
         var getUserGroupsPromise = getUserGroups(username);
         getUserGroupsPromise.then(function (groupnames) { //Groupnames contains groups that user is part of
-            resolve(arrayContainsArray(groupnames, profilenames)); //This returns true if any of array's elements match
+            resolve(arrayContainsArray(authGroups, groupnames)); //This returns true if any of array's elements match
         }).catch(function (err) {
             reject(err); //Pass error foward
         });
@@ -294,8 +316,8 @@ function getUserGroups(username) {
 }
 
 var arrayContainsArray = function (superset, subset) {
-    return subset.every(function (value) {
-        return (superset.indexOf(value) >= 0);
+    return superset.some(function (v) {
+        return subset.indexOf(v) >= 0;
     });
 };
 //  End: Supporting functions to get groupnames  //

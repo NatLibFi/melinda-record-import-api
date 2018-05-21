@@ -52,18 +52,27 @@ module.exports = {
                 return res.status(HttpCodes.Conflict).send('Found multiple documents when expected to find only one.');
         }
     },
-    findOneLocal: function (findResults, resolve, reject) {
+    findOneProfile: function (findResults, resolve, reject) {
         switch (findResults.length) {
             case 0: {
                 return reject(serverErrors.getMissingProfileError());
             }
             case 1: {
-                var result = findResults[0].toJSON();
-                delete result._id;
-                delete result.__v;
-                delete result.UUID;
-                delete result.MetaDataID;
-                return resolve(null);
+                return resolve(findResults[0].toJSON().profile);
+            }
+            default: {
+                console.warn('Should be just one search result, found multiple: ', findResults);
+                return reject(null);
+            }
+        }
+    },
+    findAuthgroups: function (findResults, resolve, reject) {
+        switch (findResults.length) {
+            case 0: {
+                return reject(serverErrors.getMissingProfileError());
+            }
+            case 1: {
+                return resolve(findResults[0].toJSON().auth.groups);
             }
             default: {
                 console.warn('Should be just one search result, found multiple: ', findResults);
