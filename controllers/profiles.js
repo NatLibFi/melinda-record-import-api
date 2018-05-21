@@ -31,15 +31,12 @@
 'use strict';
 
 var mongoose = require('mongoose'),
-    config = require('../config'),
+    config = require('../../melinda-record-import-commons/config'),
     logs = config.logs,
-    enums = require('../utils/enums'),
     serverErrors = require('../utils/ServerErrors'),
     utils = require('../utils/ServerUtils'),
-    HttpCodes = require('../utils/HttpCodes'),
     MongoErrorHandler = require('../utils/MongooseErrorHandler'),
-    queryHandler = require('../utils/MongooseQueryHandler'),
-    uuid = require('uuid');
+    queryHandler = require('../utils/MongooseQueryHandler');
 
 /**
  * Create or update a profile
@@ -47,7 +44,7 @@ var mongoose = require('mongoose'),
  * body object  (optional)
  * no response value expected for this operation
 */
-module.exports.upsertProfileById = function (req, res, next) {
+module.exports.upsertProfileByName = function (req, res, next) {
     if (logs) console.log('-------------- Upsert profile --------------');
     if (logs) console.log(req.body);
 
@@ -56,19 +53,19 @@ module.exports.upsertProfileById = function (req, res, next) {
     }
 
     try {
+        utils.ensureMatchingNames(req, res);
+    } catch (e) {
+        return next(e);
+    }
+
+    try {
         var profile = Object.assign({}, req.body);
     } catch (e) {
         return next(serverErrors.getMalformedError());
     }
 
-    try{
-        utils.ensureMatchingIDs(req, res, next);
-    } catch (e) {
-        return next(e);
-    }
-
     mongoose.models.Profile.findOneAndUpdate(
-        { id: profile.id },
+        { name: profile.name },
         profile,
         { new: true, upsert: true, runValidators: true, rawResult: true }
         ).then((result) => queryHandler.upsertObject(result.lastErrorObject.updatedExisting, res))
@@ -81,11 +78,11 @@ module.exports.upsertProfileById = function (req, res, next) {
  *
  * returns Profile
 */
-module.exports.getProfileById = function (req, res, next) {
+module.exports.getProfileByName = function (req, res, next) {
     if (logs) console.log('-------------- Get profile --------------');
     if (logs) console.log(req.params.id);
 
-    mongoose.models.Profile.where('id', req.params.id)
+    mongoose.models.Profile.where('name', req.params.name)
         .exec()
         .then((documents) => queryHandler.findOne(documents, res, 'The profile does not exist'))
         .catch((reason) => MongoErrorHandler(reason, res, next));

@@ -28,7 +28,7 @@
 
 /* eslint-disable no-unused-vars */
 
-const HttpCodes = require('./HttpCodes');
+const HttpCodes = require('../../melinda-record-import-commons/utils/HttpCodes');
 
 module.exports = function (reason, res) {
     switch (reason.name) {

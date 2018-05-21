@@ -28,7 +28,7 @@
 
 /* eslint-disable no-unused-vars */
 
-var enums = require('./enums');
+var enums = require('../../melinda-record-import-commons/utils/enums');
 
 module.exports.getMalformedError = function () {
     var err = new Error('Malformed content');
@@ -51,6 +51,12 @@ module.exports.getUnauthorizedError = function () {
 module.exports.getForbiddenError = function () {
     var err = new Error('Not authorized');
     err.type = enums.errorTypes.forbidden;
+    return err;
+}
+
+module.exports.getMissingProfileError = function () {
+    var err = new Error('Missing profile');
+    err.type = enums.errorTypes.missing;
     return err;
 }
 

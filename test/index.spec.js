@@ -30,26 +30,33 @@
 
 'use strict';
 
-const chai = require('chai'),
+const app = require('../index'),
+      chai = require('chai'),
       chaiHTTP = require('chai-http');
-chai.use(chaiHTTP);
+      chai.use(chaiHTTP);
 
 const should = chai.should();
-const app = require('../index');
+const routes = require('../routes');
 const httpMocks = require('node-mocks-http');
 const mongoose = require('mongoose'),
-      config = require('../config'),
+      config = require('../../melinda-record-import-commons/config'),
       logs = config.logs,
-      server = require('../index'),
+      configCrowd = require('../../melinda-record-import-commons/configCrowd'),
       _ = require('lodash');
 
 const blobs = require('../controllers/blobs');
 const profiles = require('../controllers/profiles');
+const crowd = require('../utils/CrowdServices');
+
 
 ///////////////////////////////////////////
 // Start: Generate testing objects to DB //
 mongoose.models.BlobMetadata.remove(function () {
     mongoose.models.BlobMetadata.create({
+        UUID: '2000',
+        profile: 'test',
+        contentType: 'standard'
+    }, {
         UUID: '2001',
         profile: 'single_test_metadata',
         contentType: 'standard'
@@ -65,6 +72,13 @@ mongoose.models.BlobMetadata.remove(function () {
 
 mongoose.models.BlobContent.remove(function () {
     mongoose.models.BlobContent.create({
+        UUID: '2100',
+        MetaDataID: '2000',
+        data: {
+            datafield1: 'data 1',
+            datafield2: 'data 2'
+        }
+    }, {
         UUID: '2101',
         MetaDataID: '2001',
         data: {
@@ -86,7 +100,27 @@ mongoose.models.BlobContent.remove(function () {
 
 mongoose.models.Profile.remove(function () {
     mongoose.models.Profile.create({
-        id: '2201',
+        name: '2200',
+        auth: {
+            groups: ['user']
+        },
+        transformation: {
+            abortOnInvalidRecords: false,
+            module: 'standard_user',
+            parameters: {
+                priority: false,
+                ignoreFlags: false
+            },
+        },
+        'import': {
+            module: 'standard_user',
+            parameters: {
+                priority: true,
+                ignoreFlags: false
+            }
+        }
+    },{
+        name: '2201',
         auth: {
             groups: ['admin', 'user']
         },
@@ -106,7 +140,7 @@ mongoose.models.Profile.remove(function () {
             }
         }
     }, {
-        id: '2202',
+        name: '2202',
         auth: {
             groups: ['user']
         },
@@ -125,6 +159,26 @@ mongoose.models.Profile.remove(function () {
                 ignoreFlags: false
             }
         }
+    },{
+        name: 'single_test_metadata',
+        auth: {
+            groups: ['admin', 'user']
+        },
+        transformation: {
+            abortOnInvalidRecords: false,
+            module: 'standard',
+            parameters: {
+                priority: true,
+                ignoreFlags: false
+            },
+        },
+        'import': {
+            module: 'standard',
+            parameters: {
+                priority: true,
+                ignoreFlags: false
+            }
+        }
     }, function (err) {
         if (logs) console.log('Finished populating testing profiles, errors: ', err);
     });
@@ -135,68 +189,162 @@ mongoose.models.Profile.remove(function () {
 ///////////////////////////////////////////////////
 //    These test should be run for all paths     //
 ///////////////////////////////////////////////////
-/*
 describe('All paths', function () {
-    describe('Authentication', function () {
-        it('should respond with 401 - Authentication failed (Test TODO)', function (done) {
-            var req = httpMocks.createRequest({
-                method: 'POST',
-                url: '/blobs',
-                query: { 'Import-Profile': 'testing' },
-                body: {
-                    data: 'test data',
-                    data2: 'more data'
-                }
-            });
+    //List of all routes to be tested
+    var routesObj = [
+        {
+            'method': 'POST',
+            'url': '/blobs?Import-Profile=2200',
+        },
+        {
+            'method': 'GET',
+            'url': '/blobs?profile=2200'
+        },
+        {
+            'method': 'GET',
+            'url': '/blobs/2000'
+        },
+        {
+            'method': 'POST',
+            'url': '/blobs/2000',
+        },
+        {
+            'method': 'DELETE',
+            'url': '/blobs/2000',
+        },
+        {
+            'method': 'GET',
+            'url': '/blobs/2000/content',
+        },
+        {
+            'method': 'DELETE',
+            'url': '/blobs/2000/content',
+        },
+        {
+            'method': 'PUT',
+            'url': '/profiles/2200',
+        },
+        {
+            'method': 'GET',
+            'url': '/profiles/2200',
+        }
+    ];
 
-            var res = httpMocks.createResponse({
-                eventEmitter: require('events').EventEmitter
-            });
+    //Tests that should be valid for all paths
+    var testsValid = [
+    {
+        'description': 'Valid user Basic',
+    }, {
+        'description': 'Valid user SSO',
+        'sso_test': true
+    }];
 
-            blobs.postBlob(req, res);
-
-            res.on('end', function () {
-                var data = res._getData();
-
-                res.statusCode.should.equal(401);
-                data.should.be.an('string');
-                data.should.equal('Authentication failed');
-
-                done();
-            });
+    var testsInvalid = [
+    {
+        'description': 'Invalid Basic user',
+        'auth':{
+            'headerName' : 'Authorization',
+            'headerValue': 'Basic invalid_token'
+        },
+        'res': 'request.authentication.unauthorized'
+    }, {
+        'description': 'Invalid SSO-token',
+        'sso_test': true,
+        'auth':{
+            'headerName' : configCrowd.tokenName,
+            'headerValue': '000MhP8JqjjCTxAzcMIvT000'
+        },
+        'res': 'request.authentication.unauthorized'
+    }];
+    
+    var token = null;
+    it('Getting SSO token', function (done) {
+        var getToken = crowd.authenticateUserSSO();
+        getToken.then(function(providedToken){
+            providedToken.should.be.an('string');
+            token = providedToken;
+            console.log("Token: ", token);
+            done();
+        }).catch(function (err) {
+            done(err);
         });
+    });
 
+    var encodedAuth = configCrowd.encodedAuth;
 
-        it('should respond with 403 - Not authorized (Test TODO)', function (done) {
-            var req = httpMocks.createRequest({
-                method: 'POST',
-                url: '/blobs',
-                query: { 'Import-Profile': 'testing' },
-                body: {
-                    data: 'test data',
-                    data2: 'more data'
-                }
+    _.forEach(routesObj, function (route) {
+        describe('Tests for path: ' + route.url, function () {
+            _.forEach(testsValid, function (value) {
+                var requestParams = {
+                    method: route.method,
+                    url: route.url,
+                    body: {
+                        data: 'test data',
+                    },
+                    headers: {},
+                };
+
+                it(value.description, (done) => {
+                    //Add authentication methods
+                    if (value.sso_test && !token) {
+                        if (!token) {
+                            return; //Should be SSO test but no token received from earlier test
+                        } else {
+                            requestParams.headers[configCrowd.tokenName] = token;
+                        }
+                    } else {
+                        requestParams.headers['Authorization'] = encodedAuth;
+                    }
+
+                    var req = httpMocks.createRequest(requestParams);
+
+                    var res = httpMocks.createResponse({
+                        eventEmitter: require('events').EventEmitter
+                    });
+                    crowd.ensureAuthenticated(req, res, function (err) {
+                        if (err) {
+                            done(err);
+                        } else {
+                            done();
+                        }
+                    });
+                });
             });
 
-            var res = httpMocks.createResponse({
-                eventEmitter: require('events').EventEmitter
-            });
+            _.forEach(testsInvalid, function (value) {
+                var requestParams = {
+                    method: route.method,
+                    url: route.url,
+                    body: {
+                        data: 'test data',
+                    },
+                    headers: {},
+                };
 
-            blobs.postBlob(req, res);
+                it(value.description, (done) => {
+                    //Add authentication methods
+                    if (value.auth && value.auth.headerName && value.auth.headerValue){
+                        requestParams.headers[value.auth.headerName] = value.auth.headerValue;
+                    }
 
-            res.on('end', function () {
-                var data = res._getData();
+                    var req = httpMocks.createRequest(requestParams);
 
-                res.statusCode.should.equal(403);
-                data.should.be.an('string');
-                data.should.equal('Not authorized');
-
-                done();
+                    var res = httpMocks.createResponse({
+                        eventEmitter: require('events').EventEmitter
+                    });
+                    crowd.ensureAuthenticated(req, res, function (err) {
+                        try{
+                            err.type.should.be.equal(value.res);
+                        } catch (e) {
+                            return done(e);
+                        }
+                        done();
+                    });
+                });
             });
         });
     });
 });
-*/
 
 
 /////////////////////////////////////////////////////
@@ -210,7 +358,7 @@ describe('Blob services', function () {
             var req = httpMocks.createRequest({
                 method: 'POST',
                 url: '/blobs',
-                query: { 'Import-Profile': 'testing_single' },
+                query: { 'Import-Profile': '2200' },
                 body: {
                     data: 'test data',
                     data2: 'more data'
@@ -234,41 +382,11 @@ describe('Blob services', function () {
             });
         });
 
-
-        it('should respond with 400 - The profile does not exist...', function (done) {
-            var req = httpMocks.createRequest({
-                method: 'POST',
-                url: '/blobs',
-                query: { 'Import-Profile': 'testing_invalid_profile' },
-                body: {
-                    data: 'test data',
-                    data2: 'more data'
-                }
-            });
-
-            var res = httpMocks.createResponse({
-                eventEmitter: require('events').EventEmitter
-            });
-
-            blobs.postBlob(req, res);
-
-            res.on('end', function () {
-                var data = res._getData();
-
-                res.statusCode.should.equal(400);
-                data.should.be.an('string');
-                data.should.equal('The profile does not exist or the user is not authorized to it');
-
-                done();
-            });
-        });
-
-
         it('should respond with 413 - Request body is too large (Test TODO)', function (done) {
             var req = httpMocks.createRequest({
                 method: 'POST',
                 url: '/blobs',
-                query: { 'Import-Profile': 'testing' },
+                query: { 'Import-Profile': '2200' },
                 body: {
                     data: 'test data',
                     data2: 'more data'
@@ -297,7 +415,7 @@ describe('Blob services', function () {
             var req = httpMocks.createRequest({
                 method: 'POST',
                 url: '/blobs',
-                query: { 'Import-Profile': 'testing' },
+                query: { 'Import-Profile': '2200' },
                 body: {
                     data: 'test data',
                     data2: 'more data'
@@ -338,7 +456,7 @@ describe('Blob services', function () {
             }, {
                 'description': 'array (parameter profile)',
                 'query': {
-                    'profile': 'standard'
+                    'profile': '2200'
                 },
                 'gte': 0
             }, {
@@ -370,7 +488,7 @@ describe('Blob services', function () {
             }, {
                 'description': 'single URL (from #POST test)',
                 'query': {
-                    'profile': 'testing_single'
+                    'profile': 'single_test_metadata'
                 },
                 'exact': 1
             }, {
@@ -634,7 +752,7 @@ describe('Blob services', function () {
                    'id': 2001
                },
                'body': {
-                   'profile': 'Updated'
+                   'profile': '2200'
                }
            }
         ];
@@ -689,10 +807,10 @@ describe('Blob services', function () {
             {
                 'description': 'Not existing',
                 'params': {
-                    'id': 2000
+                    'id': 9999
                 },
                 'body': {
-                    'profile': 'Updated'
+                    'profile': '2200'
                 },
                 'res': 404
             }, {
@@ -701,7 +819,7 @@ describe('Blob services', function () {
                     'id': 2001
                 },
                 'body': {
-                    'profile_invalid': 'Invalid syntax'
+                    'profile_invalid': '2200'
                 },
                 'res': 422
             }
@@ -806,7 +924,7 @@ describe('Blob services', function () {
             }, {
                 'description': 'Not existing',
                 'params': {
-                    'id': 2000
+                    'id': 9999
                 }
             }
         ];
@@ -900,7 +1018,7 @@ describe('Blob services', function () {
             }, {
                 'description': 'Not existing',
                 'params': {
-                    'id': 2000
+                    'id': 9999
                 }
             }
         ];
@@ -995,7 +1113,7 @@ describe('Blob services', function () {
             }, {
                 'description': 'Not existing',
                 'params': {
-                    'id': 2000
+                    'id': 9999
                 }
             }
         ];
@@ -1037,18 +1155,18 @@ describe('Blob services', function () {
 });
 
 ////////////////////////////////////////////////////////
-// Tests for profile services, meaning /blobs/* paths //
+// Tests for profile services, meaning /profiles/* paths //
 ////////////////////////////////////////////////////////
 describe('Profile services', function () {
 
     ///////////////////////////////
-    // Start: PUT /profiles/{id} //
-    describe('#PUT /profiles/{id}', function () {
+    // Start: PUT /profiles/{name} //
+    describe('#PUT /profiles/{name}', function () {
 
         var testsValid = [{
             'description': 'Add profile',
             'params': {
-                'id': ''
+                'name': 2203
             },
             'body': {
                 'auth': {
@@ -1075,10 +1193,10 @@ describe('Profile services', function () {
         }, {
             'description': 'Update profile',
             'params': {
-                'id': 2202
+                'name': 2202
             },
             'body': {
-                'id': 2202,
+                'name': 2202,
                 'auth': {
                     'groups': ['admin']
                 }
@@ -1092,7 +1210,7 @@ describe('Profile services', function () {
                 it(value.description, function (done) {
                     var req = httpMocks.createRequest({
                         method: 'PUT',
-                        url: '/profiles/' + value.params.id,
+                        url: '/profiles/' + value.params.name,
                         params: value.params,
                         body: value.body
                     });
@@ -1101,7 +1219,7 @@ describe('Profile services', function () {
                         eventEmitter: require('events').EventEmitter
                     });
 
-                    profiles.upsertProfileById(req, res);
+                    profiles.upsertProfileByName(req, res);
 
                     res.on('end', function () {
                         try {
@@ -1122,15 +1240,19 @@ describe('Profile services', function () {
 
         var testsInvalid = [
             {
-                'description': 'Ids not matching',
+                'description': 'Names not matching',
                 'body': {
-                    'id': 2203,
+                    'name': 2203,
                     'auth': {
                         'groups': ['admin']
                     }
                 },
+                'params':{
+                    'name':2202
+                },
                 'status': 422,
-                'response': 'Invalid syntax'
+                'response': 'Invalid syntax',
+                'res': 'request.mismatch.id'
             }
             /*,
             //This test is disabled for the moment since
@@ -1148,29 +1270,40 @@ describe('Profile services', function () {
         describe('-invalid queries (should respond with 4**)', function () {
             _.forEach(testsInvalid, function (value) {
                 it(value.description, function (done) {
-                    chai.request('http://localhost:' + config.port)
-                    .put('/profiles/2202')
-                    .send( value.body )
-                    .end((err, res) => {
-                        res.should.have.status(value.status);
-                        res.body.should.be.a('object');
+                    var req = httpMocks.createRequest({
+                        method: 'PUT',
+                        url: '/profiles/' + value.params.name,
+                        body: value.body,
+                        params: value.params
+                    });
+
+                    var res = httpMocks.createResponse({
+                        eventEmitter: require('events').EventEmitter
+                    });
+
+                    profiles.upsertProfileByName(req, res, function (err) {
+                        try {
+                            err.type.should.be.equal(value.res);
+                        } catch (e) {
+                            return done(e);
+                        }
                         done();
                     });
                 });
             });
         });
     });
-    //  End: PUT /profiles/{id}  //
+    //  End: PUT /profiles/{name}  //
     ///////////////////////////////
 
     ///////////////////////////////
-    // Start: GET /profiles/{id} //
-    describe('#GET /profiles/{id}', function () {
+    // Start: GET /profiles/{name} //
+    describe('#GET /profiles/{name}', function () {
 
         var testsValid = [{
             'description': 'Get profile',
             'params': {
-                'id': '2202'
+                'name': '2202'
             },
             'status': 200,
         }];
@@ -1189,7 +1322,7 @@ describe('Profile services', function () {
                         eventEmitter: require('events').EventEmitter
                     });
 
-                    profiles.getProfileById(req, res);
+                    profiles.getProfileByName(req, res);
 
                     res.on('end', function () {
                         try {
@@ -1201,7 +1334,6 @@ describe('Profile services', function () {
                             done(e);
                         }
                     });
-
                 });
             });
         });
@@ -1210,7 +1342,7 @@ describe('Profile services', function () {
         var testsInvalid = [{
             'description': 'Not existing',
             'params': {
-                'id': 2200,
+                'name': 9999,
             },
             'status': 404,
             'response': 'Invalid syntax'
@@ -1230,7 +1362,7 @@ describe('Profile services', function () {
                         eventEmitter: require('events').EventEmitter
                     });
 
-                    profiles.getProfileById(req, res);
+                    profiles.getProfileByName(req, res);
 
                     res.on('end', function () {
                         try {
@@ -1248,6 +1380,6 @@ describe('Profile services', function () {
             });
         });
     });
-    // End: PUT /profiles/{id} //
+    // End: PUT /profiles/{name} //
     /////////////////////////////
 });

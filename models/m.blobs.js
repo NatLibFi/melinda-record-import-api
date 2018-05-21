@@ -32,7 +32,7 @@
 
 var mongoose = require('mongoose'),
     Schema = mongoose.Schema,
-    enums = require('../utils/enums'),
+    enums = require('../../melinda-record-import-commons/utils/enums'),
     _ = require('lodash');
 
 var BlobMetadata = new Schema({
@@ -47,6 +47,7 @@ var BlobMetadata = new Schema({
     creationTime: { type: Date, default: Date.now },
     modificationTime: { type: Date, default: Date.now },
     processingInfo: {
+        op: {type: String},
         transformationError: { type: Object },
         numberOfRecords: { type: Number },
         importResults: [{

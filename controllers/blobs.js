@@ -31,10 +31,11 @@
 'use strict';
 
 var mongoose = require('mongoose'),
-    config = require('../config'),
+    config = require('../../melinda-record-import-commons/config'),
     logs = config.logs,
-    HttpCodes = require('../utils/HttpCodes'),
-    enums = require('../utils/enums'),
+    serverErrors = require('../utils/ServerErrors'),
+    HttpCodes = require('../../melinda-record-import-commons/utils/HttpCodes'),
+    enums = require('../../melinda-record-import-commons/utils/enums'),
     MongoErrorHandler = require('../utils/MongooseErrorHandler'),
     queryHandler = require('../utils/MongooseQueryHandler'),
     moment = require('moment'),
@@ -60,7 +61,16 @@ module.exports.postBlob = function (req, res, next) {
     if (logs) console.log(req.query);
 
     if (!req.query['Import-Profile']) {
-        return res.status(HttpCodes.BadRequest).send('The profile does not exist or the user is not authorized to it')
+        next(serverErrors.getMissingProfileError());
+    } else {
+        mongoose.models.Profile.where('name', req.query['Import-Profile'])
+        .exec()
+        .then((documents) => {
+            if(documents.length !== 1 ){
+                next(serverErrors.getMissingProfileError());
+            }
+        })
+        .catch((reason) => MongoErrorHandler(reason, res, next));
     }
 
     var newBlobMetadata = new mongoose.models.BlobMetadata({});
@@ -88,10 +98,7 @@ module.exports.postBlob = function (req, res, next) {
             }
             return res.status(HttpCodes.OK).send('The blob was succesfully created. State is set to ' + newBlobMetadata.state)
         });
-
     });
-
-
 };
 
 
@@ -124,7 +131,6 @@ module.exports.getBlob = function (req, res, next) {
             return queryHandler.invalidQuery(res);
         }
     }
-
 
     if (query.creationTime) {
         if (query.creationTime.length === 2 &&
@@ -224,8 +230,6 @@ module.exports.deleteBlobById = function (req, res, next) {
             .catch((reason) => MongoErrorHandler(reason, res, next));
         })
         .catch((reason) => MongoErrorHandler(reason, res, next));
-
-
 };
 
 /**

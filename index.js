@@ -30,61 +30,14 @@
 
 'use strict';
 
-var config = require('./config'),
+var config = require('../melinda-record-import-commons/config'),
     logs = config.logs,
-    enums = require('./utils/enums'),
-    configCrowd = require('./configCrowd'),
-    http = require('http'),
-    HttpCodes = require('./utils/HttpCodes'),
+    enums = require('../melinda-record-import-commons/utils/enums'),
+    HttpCodes = require('../melinda-record-import-commons/utils/HttpCodes'),
     express = require('express'),
     bodyParser = require('body-parser'),
-    session = require('express-session'),
     cors = require('cors'),
-    passport = require('passport'),
-    AtlassianCrowdStrategy = require('passport-atlassian-crowd2').Strategy,
     mongoose = require('mongoose');
-
-var users = [];
-
-////////////////////
-// Start Passport //
-passport.serializeUser(function (user, done) {
-    done(null, user.username);
-});
-
-passport.deserializeUser(function (username, done) {
-    var user = _.find(users, function (user) {
-        return user.username == username;
-    });
-    if (user === undefined) {
-        done(new Error("No user with username '" + username + "' found."));
-    } else {
-        done(null, user);
-    }
-});
-
-passport.use(new AtlassianCrowdStrategy({
-    crowdServer: configCrowd.server,
-    crowdApplication: configCrowd.appName,
-    crowdApplicationPassword: configCrowd.appPass,
-    retrieveGroupMemberships: true
-}, function (userprofile, done) {
-    console.log("After use");
-    // asynchronous verification, for effect...
-    process.nextTick(function () {
-
-        var exists = _.any(users, function (user) {
-            return user.id == userprofile.id;
-        });
-        if (!exists) {
-            users.push(userprofile);
-        }
-
-        return done(null, userprofile);
-    });
-}));
-//  End Passport  //
-////////////////////
 
 var app = express();
 app.config = config;
@@ -103,12 +56,6 @@ app.use(bodyParser.json());
 app.use(require('method-override')());
 app.use(express.static(__dirname + '/public'));
 
-app.use(session({ secret: 'conduit', cookie: { maxAge: 60000 }, resave: false, saveUninitialized: false }));
-
-//Passport startup
-app.use(passport.initialize());
-app.use(passport.session());
-
 if (isProduction) {
     mongoose.connect(app.config.mongodb);
 } else {
@@ -116,9 +63,13 @@ if (isProduction) {
     mongoose.set('debug', config.mongoDebug);
 }
 
-//require('./config/passport');
+require('./routes')(app);
 
-require('./routes')(app, passport);
+//Swagger UI
+const swaggerUi = require('swagger-ui-express');
+const swaggerDocument = require('./api.json');
+
+app.use('/', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 
 /// catch 404 and forward to error handler
 app.use(function (req, res, next) {
@@ -142,6 +93,8 @@ app.use(function (err, req, res, next) {
             return res.status(HttpCodes.Unauthorized).send('Authentication failed');
         case enums.errorTypes.forbidden:
             return res.status(HttpCodes.Forbidden).send('Not authorized');
+        case enums.errorTypes.missing:
+            return res.status(HttpCodes.BadRequest).send('The profile does not exist or the user is not authorized to it');
         case enums.errorTypes.unknown:
             return res.status(HttpCodes.InternalServerError).send('Unknown error');
         default: {
@@ -171,6 +124,7 @@ app.use(function (err, req, res, next) {
 });
 
 if (app.config.seedDB) {
+    console.log("Seed DB");
     require('./utils/database/seedDB');
 }
 if (app.config.emptyDB) {
@@ -178,7 +132,7 @@ if (app.config.emptyDB) {
 }
 
 // finally, let's start our server...
-var server = app.listen(app.config.port, function () {
+var server = app.listen(app.config.portAPI, function () {
     console.log('Listening on port ' + server.address().port + ', is in production: ' + isProduction);
     //console.log('Env:', process.env);
 });

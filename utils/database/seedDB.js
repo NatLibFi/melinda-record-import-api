@@ -30,14 +30,14 @@
 
 'use strict';
 var mongoose = require('mongoose'),
-    config = require('../../config');
+    config = require('../../../melinda-record-import-commons/config');
 
 var logs = config.logs;
 
 mongoose.models.BlobMetadata.remove(function () {
     mongoose.models.BlobMetadata.create({
         UUID: '1001',
-        profile: 'test',
+        profile: '1201',
         contentType: 'standard'
     }, {
         UUID: '1002',
@@ -45,15 +45,15 @@ mongoose.models.BlobMetadata.remove(function () {
         contentType: 'standard'
     }, {
         UUID: '1003',
-        profile: 'standards',
+        profile: 'standard',
         contentType: 'stylized'
     }, {
         UUID: '1004',
-        profile: 'adminstrator',
+        profile: '1201',
         contentType: 'stylized'
     }, {
         UUID: '1005',
-        profile: 'guest',
+        profile: '1201',
         contentType: 'standard'
     }, function (err) {
         if (logs) console.log('Finished populating development blobs, errors: ', err);
@@ -104,9 +104,29 @@ mongoose.models.BlobContent.remove(function () {
 //These do not match profiles schema and because of that mongoose doesn't add these
 mongoose.models.Profile.remove(function () {
     mongoose.models.Profile.create({
-        id: '1201',
+        name: '1201',
         auth: {
-            groups: ['admin', 'user']
+            groups: ['admin', 'test']
+        },
+        transformation: {
+            abortOnInvalidRecords: false,
+            module: 'standard',
+            parameters: {
+                priority: true,
+                ignoreFlags: false
+            },
+        },
+        'import': {
+            module: 'standard',
+            parameters: {
+                priority: true,
+                ignoreFlags: false
+            }
+        }
+    }, {
+        name: 'standard',
+        auth: {
+            groups: ['subTest']
         },
         transformation: {
             abortOnInvalidRecords: false,
@@ -124,6 +144,6 @@ mongoose.models.Profile.remove(function () {
             }
         }
     }, function (err) {
-        console.log('Finished populating testing profiles, errors: ', err);
+        if (logs) console.log('Finished populating testing profiles, errors: ', err);
     });
 });

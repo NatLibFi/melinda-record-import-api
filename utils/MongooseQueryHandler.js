@@ -28,7 +28,9 @@
 
 /* eslint-disable no-unused-vars */
 
-var HttpCodes = require('./HttpCodes'),
+var HttpCodes = require('../../melinda-record-import-commons/utils/HttpCodes'),
+    config = require('../../melinda-record-import-commons/config'),
+    serverErrors = require('./ServerErrors'),
     _ = require('lodash');
 
 
@@ -46,7 +48,36 @@ module.exports = {
                 return res.status(HttpCodes.OK).send(result);
             }
             default:
+                console.warn('Should be just one search result, found multiple: ', findResults);
                 return res.status(HttpCodes.Conflict).send('Found multiple documents when expected to find only one.');
+        }
+    },
+    findOneProfile: function (findResults, resolve, reject) {
+        switch (findResults.length) {
+            case 0: {
+                return reject(serverErrors.getMissingProfileError());
+            }
+            case 1: {
+                return resolve(findResults[0].toJSON().profile);
+            }
+            default: {
+                console.warn('Should be just one search result, found multiple: ', findResults);
+                return reject(null);
+            }
+        }
+    },
+    findAuthgroups: function (findResults, resolve, reject) {
+        switch (findResults.length) {
+            case 0: {
+                return reject(serverErrors.getMissingProfileError());
+            }
+            case 1: {
+                return resolve(findResults[0].toJSON().auth.groups);
+            }
+            default: {
+                console.warn('Should be just one search result, found multiple: ', findResults);
+                return reject(null);
+            }
         }
     },
     findMany: function (findResults, res) {
@@ -65,7 +96,7 @@ module.exports = {
     returnUUID: function (findResults, res) {
         var results = [];
         _.forEach(findResults, function (value) {
-            results.push('https://record-import.api.melinda.kansalliskirjasto.fi/v1/blob/' + value.UUID)
+            results.push(config.urlAPI + '/blobs/' + value.UUID)
         });
         return res.status(HttpCodes.OK).send(results);
     },

@@ -55,6 +55,7 @@
     "passport-local": "^1.0.0",
     "request": "^2.85.0",
     "swagger-tools": "0.10.1",
+    "swagger-ui-express": "^3.0.8",
     "uuid": "^3.2.1"
   },
   "devDependencies": {

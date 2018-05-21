@@ -28,16 +28,15 @@
 
 /* eslint-disable no-unused-vars */
 
-var HttpCodes = require('./HttpCodes'),
-    configCrowd = require('../configCrowd'),
+var configCrowd = require('../../melinda-record-import-commons/configCrowd'),
     mongoose = require('mongoose'),
-    enums = require('../utils/enums'),
-    MongoErrorHandler = require('../utils/MongooseErrorHandler'),
-    config = require('../config'),
-    logs = true, //config.logs,
+    enums = require('../../melinda-record-import-commons/utils/enums'),
+    queryHandler = require('../utils/MongooseQueryHandler'),
+    config = require('../../melinda-record-import-commons/config'),
+    logs = config.logs,
     authen = require('basic-auth'),
     request = require('request'),
-    serverErrors = require('./ServerErrors'),
+    serverErrors = require('./ServerErrors'),   
     _ = require('lodash');
 
 ////////////////////////////////////////////////////
@@ -50,18 +49,20 @@ authenticateUserOptions.body = {
 };
 
 module.exports.authenticateUserSSO = function () {
-    //Accepted response is in JSON-format
-    function callback(error, response, body) {
-        if (!error && (response.statusCode == 200 || response.statusCode == 201)
-            && body && body.token) {
-            token = body.token;
-            console.log("Token: ", token);
-        } else {
-            if (logs) console.log('Error: ', error);
-        }
-    };
+    return new Promise(function (resolve, reject) {
+        //Accepted response is in JSON-format
+        function callback(error, response, body) {
+            if (!error && (response.statusCode == 200 || response.statusCode == 201)
+                && body && body.token) {
+                resolve(body.token);
+            } else {
+                if (logs) console.log('Error: ', error);
+                reject( error );
+            }
+        };
 
-    request.post(authenticateUserOptions, callback);
+        request.post(authenticateUserOptions, callback);
+    })
 }
 //  End: Authenticate user and recieve SSO token  //
 ////////////////////////////////////////////////////
@@ -79,23 +80,35 @@ module.exports.ensureAuthenticated = function (req, res, next) {
     // 1. Get Username and authenticate user with request details
     var getUsernamePromise = getUsernameAndAuthenticate(req, res, next);
     getUsernamePromise.then(function (username) {
+        if (logs) console.log("Username: ", username);
         // 2. Check what profiles user is trying to use
-        var getProfilenamesPromise = getProfilenames(req, res, next);
-        getProfilenamesPromise.then(function (profilenames) {
-            // 3. Check if user has rights to those profiles by checking users groups in crowd
-            if (profilenames) { //User is trying to access some profiles 
-                var isUserInGroupsPromise = isUserInGroups(username, profilenames);
-                isUserInGroupsPromise.then(function (isInGroup) {
-                    if (isInGroup) {
-                        if (logs) console.log("User is in usergroup, they can continue to Endpoint");
-                        return next(); //User can continue to EP
-                    } else {
-                        if (logs) console.log("User is in not in all usergroups they are trying to use, they cannot continue to Endpoint");
-                        return next(serverErrors.getForbiddenError());
-                    }
+        var getProfilenamesPromise = getProfilename(req, res, next);
+        getProfilenamesPromise.then(function (profilename) {
+            if (logs) console.log("Trying to use profile: ", profilename);
+            // 3. Check if user has rights to that profile by checking users groups in crowd
+            if (profilename) { //User is trying to access some profile 
+                var getAuthenticationGroupsPromise = getAuthenticationGrous(profilename);
+                getAuthenticationGroupsPromise.then(function (authGroups) {
+                    if (logs) console.log("Authentication groups: ", authGroups);
+
+                    var isUserInGroupsPromise = isUserInGroups(username, authGroups);
+                    isUserInGroupsPromise.then(function (isInGroup) {
+                        if (isInGroup) {
+                            if (logs) console.log("User is in usergroup, they can continue to Endpoint");
+                            return next(); //User can continue to EP
+                        } else {
+                            if (logs) console.log("User is in not in all usergroups they are trying to use, they cannot continue to Endpoint");
+                            return next(serverErrors.getForbiddenError());
+                        }
+                    }).catch(function (err) {
+                        return next(err);
+                    });
+
                 }).catch(function (err) {
                     return next(err);
                 });
+                
+
             } else {
                 if(logs) console.log("User is not trying to use any profile, they can continue to Endpoint");
                 return next(); //User can continue to EP
@@ -107,6 +120,8 @@ module.exports.ensureAuthenticated = function (req, res, next) {
         if (!(err.type && err.type === enums.errorTypes.unauthorized || err.type === enums.errorTypes.forbidden)) {
             console.error('Unanticipated authentication error: ', err);
         }
+        //return next(serverErrors.getForbiddenError());
+
         return next(err); //Top layer, log error or pass to handler with throw
     });
 }
@@ -119,11 +134,9 @@ module.exports.ensureAuthenticated = function (req, res, next) {
 function getUsernameAndAuthenticate(req, res, next) {
     return new Promise(function (resolve, reject) {
         var credentials = authen(req) //Use basic auth as standard //getUserCredentialsBasic(req); 
-
         if (credentials && credentials.name && credentials.pass) {
             var authenticateUserBasicPromise = authenticateUserBasic(req, res, next, credentials);
             authenticateUserBasicPromise.then(function (cred) {
-
                 if (cred && cred.name) {
                     resolve(cred.name);
                 } else {
@@ -200,24 +213,22 @@ function getUserCredentialsSSO(req, res, next) {
 
 ///////////////////////////////////////////////////
 // Start: Supporting functions to get groupnames //
-function getProfilenames(req, res, next) {
+function getProfilename(req, res, next) {
     var url = req.url;
     var met = req.method;
-    var profile = '';
-    var profileID = '';
+    var profileName = '';
     var blobID = '';
 
     return new Promise(function (resolve, reject) {
         //Find on what basis profile is suppose to be checked
         //EP: POST /blobs
         if (met === 'POST' && url.startsWith('/blobs?Import-Profile=')) {
-            profile = [url.slice(22)]; //Only parameter and mandatory
-
-        //EP: GET /blobs
-        } else if (met === 'GET' && url.startsWith('/blobs?')) {
+            profileName = [url.slice(22)]; //Only parameter and mandatory
+        //EP: GET /blobs query
+        } else if (met === 'GET' && (url.startsWith('/blobs?') || url === '/blobs')) {
             resolve(null); //Authenticated users can make queries
             //profile = [findProfile(url)]; //Can be one of multiple parameters
-        } else if ((met === 'GET' || met == 'POST' || met === 'DELETE') && url.startsWith('/blobs/')) {
+        } else if ((met === 'GET' || met == 'POST' || met === 'DELETE') && url.startsWith('/blobs')) {
             //EP: GET&DELETE /blobs/{id}/content
             if ((met === 'GET' || met === 'DELETE') && url.endsWith('/content')) {
                 blobID = url.slice(7, url.lastIndexOf('/content'));
@@ -231,38 +242,20 @@ function getProfilenames(req, res, next) {
             if (req.body && req.body.auth && req.body.auth.groups) {
                 resolve(req.body.auth.groups);
             }
-            profileID = url.slice(10);
+            profileName = url.slice(10);
         }
 
+        if (logs) console.log("Profilename: ", profileName, " blobID: ", blobID);
+
         //If one of the methods is set return profile name
-        if (profile) {
-            resolve(profile);
-        }else if (profileID) {
-            mongoose.models.Profile.where('id', profileID)
-            .exec()
-            .then((documents) = function (documents) {
-                if (documents.length > 1) {
-                    console.warn('Should be just one search result, found multiple: ', document);
-                } else if (documents.length === 0) {
-                    resolve(null);
-                }
-                resolve(documents[0].auth.groups);
-            })
-            .catch((reason) = function (reason) {
-                reject(reason);
-            });
+        if (profileName) {
+            resolve(profileName);
         } else if (blobID) {
             mongoose.models.BlobMetadata.where('UUID', blobID)
             .exec()
-            .then((documents) = function (documents) {
-                if (documents.length > 1) {
-                    console.warn('Should be just one search result, found multiple: ', document);
-                } else if (documents.length === 0) {
-                    resolve(null);
-                }
-                resolve([documents[0].profile]);
-            })
-            .catch((reason) = function (reason) {
+            .then((documents) => queryHandler.findOneProfile(documents, resolve, reject))
+            .catch((reason) => (reason) => {
+                console.error(reason);
                 reject(reason);
             });
         } else {
@@ -271,11 +264,25 @@ function getProfilenames(req, res, next) {
     })
 }
 
-function isUserInGroups(username, profilenames) { //Profilenames contains names of profiles that user is trying to use
+function getAuthenticationGrous(profilename) {
+    return new Promise(function (resolve, reject) {
+
+        mongoose.models.Profile.where('name', profilename)
+        .exec()
+        .then((documents) => queryHandler.findAuthgroups(documents, resolve, reject))
+        .catch((reason) => (reason) => {
+            console.error(reason);
+            reject(reason);
+        });
+        //resolve(['admin', 'test']);
+    });
+} 
+
+function isUserInGroups(username, authGroups) { //authGroups contains authentication groups of profile that user is trying to use
     return new Promise(function (resolve, reject) {
         var getUserGroupsPromise = getUserGroups(username);
         getUserGroupsPromise.then(function (groupnames) { //Groupnames contains groups that user is part of
-            resolve(arrayContainsArray(groupnames, profilenames)); //This returns true if any of array's elements match
+            resolve(arrayContainsArray(authGroups, groupnames)); //This returns true if any of array's elements match
         }).catch(function (err) {
             reject(err); //Pass error foward
         });
@@ -295,7 +302,7 @@ function getUserGroups(username) {
                 });
                 resolve(groups);
             } else if (error) {
-                if (logs) console.log('Error: ', error);
+                console.error('Error: ', error);
                 reject(serverErrors.getUnauthorizedError('Error in getting users groups', error));
             } else if (response.statusCode == 401) {
                 reject(serverErrors.getUnauthorizedError())
@@ -309,10 +316,8 @@ function getUserGroups(username) {
 }
 
 var arrayContainsArray = function (superset, subset) {
-    console.log('Superset: ', superset);
-    console.log('Subset: ', subset);
-    return subset.every(function (value) {
-        return (superset.indexOf(value) >= 0);
+    return superset.some(function (v) {
+        return subset.indexOf(v) >= 0;
     });
 };
 //  End: Supporting functions to get groupnames  //
