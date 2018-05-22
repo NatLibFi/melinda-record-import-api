@@ -444,13 +444,6 @@
                             "image"
                         ]
                     },
-                    "validators": {
-                        "description": "An array of validators. Validation is not done if omitted. See marc-record-validate for the format: https://github.com/NatLibFi/marc-record-validate#configuration",
-                        "type": "array",
-                        "items": {
-                            "type": "string"
-                        }
-                    },
                     "import": {
                       "type": "object",
                       "properties": {
