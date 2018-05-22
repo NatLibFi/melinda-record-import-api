@@ -1,6 +1,6 @@
 # API microservice of Melinda record batch import system [![NPM Version](https://img.shields.io/npm/v/@natlibfi/melinda-record-import-api.svg)](https://npmjs.org/package/@natlibfi/melinda-record-import-api) [![Build Status](https://travis-ci.org/NatLibFi/melinda-record-import-api.svg)](https://travis-ci.org/NatLibFi/melinda-record-import-api) [![Test Coverage](https://codeclimate.com/github/NatLibFi/melinda-record-import-api/badges/coverage.svg)](https://codeclimate.com/github/NatLibFi/melinda-record-import-api/coverage)
 
-API microservice of Melinda record batch import system
+API microservice of Melinda record batch import system. See [wiki](../../wiki) for documentation.
 
 ## License and copyright
 

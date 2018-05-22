@@ -422,19 +422,26 @@
                         "type": "object",
                         "properties": {
                             "abortOnInvalidRecords": {
-                                "type": "boolean"
+                                "type": "boolean",
+                                "default": false
                             },
-                            "module": {
-                                "description": "Name of the transformer module",
+                            "image": {
+                                "description": "Name of the transformer container image",
                                 "type": "string"
                             },
-                            "parameters": {
-                                "description": "Parameters for the transformer module",
-                                "type": "object"
+                            "env": {
+                                "description": "Environment variables for the container",
+                                "type": "object",
+                                "additionalProperties": false,
+                                "patternProperties": {
+                                  "^[A-z0-9_]+$": {
+                                    "type": "string"
+                                  }
+                                }
                             }
                         },
                         "required": [
-                            "module"
+                            "image"
                         ]
                     },
                     "validators": {
@@ -445,18 +452,26 @@
                         }
                     },
                     "import": {
-                        "type": "object",
-                        "properties": {
-                            "module": {
-                                "type": "string"
-                            },
-                            "parameters": {
-                                "type": "object"
-                            }
-                        },
-                        "required": [
-                            "module"
-                        ]
+                      "type": "object",
+                      "properties": {
+                          "image": {
+                              "description": "Name of the importer container image",
+                              "type": "string"
+                          },
+                          "env": {
+                              "description": "Environment variables for the container",
+                              "type": "object",
+                              "additionalProperties": false,
+                              "patternProperties": {
+                                "^[A-z0-9_]+$": {
+                                  "type": "string"
+                                }
+                              }
+                          }
+                      },
+                      "required": [
+                          "image"
+                      ]
                     }
                 },
                 "required": [
