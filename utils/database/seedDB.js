@@ -30,7 +30,8 @@
 
 'use strict';
 var mongoose = require('mongoose'),
-    config = require('../../../melinda-record-import-commons/config');
+    config = require('../../../melinda-record-import-commons/config'),
+    enums = require('../../../melinda-record-import-commons/utils/enums');
 
 var logs = config.logs;
 
@@ -38,23 +39,28 @@ mongoose.models.BlobMetadata.remove(function () {
     mongoose.models.BlobMetadata.create({
         UUID: '1001',
         profile: '1201',
-        contentType: 'standard'
+        contentType: 'standard',
+        state: enums.blobStates.processed
     }, {
         UUID: '1002',
         profile: 'standard',
-        contentType: 'standard'
+        contentType: 'standard',
+        state: enums.blobStates.processed
     }, {
         UUID: '1003',
         profile: 'standard',
-        contentType: 'stylized'
+        contentType: 'stylized',
+        state: enums.blobStates.aborted
     }, {
         UUID: '1004',
         profile: '1201',
-        contentType: 'stylized'
+        contentType: 'stylized',
+        state: enums.blobStates.processed
     }, {
         UUID: '1005',
         profile: '1201',
-        contentType: 'standard'
+        contentType: 'standard',
+        state: enums.blobStates.processed
     }, function (err) {
         if (logs) console.log('Finished populating development blobs, errors: ', err);
     });
@@ -110,18 +116,12 @@ mongoose.models.Profile.remove(function () {
         },
         transformation: {
             abortOnInvalidRecords: false,
-            module: 'standard',
-            parameters: {
-                priority: true,
-                ignoreFlags: false
-            },
+            image: 'melinda-transformer',
+            env: {}
         },
         'import': {
-            module: 'standard',
-            parameters: {
-                priority: true,
-                ignoreFlags: false
-            }
+            image: 'melinda-import',
+            env: {}
         }
     }, {
         name: 'standard',
@@ -130,18 +130,12 @@ mongoose.models.Profile.remove(function () {
         },
         transformation: {
             abortOnInvalidRecords: false,
-            module: 'standard',
-            parameters: {
-                priority: true,
-                ignoreFlags: false
-            },
+            image: 'melinda-transformer',
+            env: {}
         },
         'import': {
-            module: 'standard',
-            parameters: {
-                priority: true,
-                ignoreFlags: false
-            }
+            image: 'melinda-import',
+            env: {}
         }
     }, function (err) {
         if (logs) console.log('Finished populating testing profiles, errors: ', err);

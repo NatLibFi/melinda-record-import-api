@@ -80,24 +80,24 @@ module.exports.ensureAuthenticated = function (req, res, next) {
     // 1. Get Username and authenticate user with request details
     var getUsernamePromise = getUsernameAndAuthenticate(req, res, next);
     getUsernamePromise.then(function (username) {
-        if (logs) console.log("Username: ", username);
+        if (logs) console.log('Username: ', username);
         // 2. Check what profiles user is trying to use
         var getProfilenamesPromise = getProfilename(req, res, next);
         getProfilenamesPromise.then(function (profilename) {
-            if (logs) console.log("Trying to use profile: ", profilename);
+            if (logs) console.log('Trying to use profile: ', profilename);
             // 3. Check if user has rights to that profile by checking users groups in crowd
             if (profilename) { //User is trying to access some profile 
                 var getAuthenticationGroupsPromise = getAuthenticationGrous(profilename);
                 getAuthenticationGroupsPromise.then(function (authGroups) {
-                    if (logs) console.log("Authentication groups: ", authGroups);
+                    if (logs) console.log('Authentication groups: ', authGroups);
 
                     var isUserInGroupsPromise = isUserInGroups(username, authGroups);
                     isUserInGroupsPromise.then(function (isInGroup) {
                         if (isInGroup) {
-                            if (logs) console.log("User is in usergroup, they can continue to Endpoint");
+                            if (logs) console.log('User is in usergroup, they can continue to Endpoint');
                             return next(); //User can continue to EP
                         } else {
-                            if (logs) console.log("User is in not in all usergroups they are trying to use, they cannot continue to Endpoint");
+                            if (logs) console.log('User is in not in all usergroups they are trying to use, they cannot continue to Endpoint');
                             return next(serverErrors.getForbiddenError());
                         }
                     }).catch(function (err) {
@@ -110,7 +110,7 @@ module.exports.ensureAuthenticated = function (req, res, next) {
                 
 
             } else {
-                if(logs) console.log("User is not trying to use any profile, they can continue to Endpoint");
+                if(logs) console.log('User is not trying to use any profile, they can continue to Endpoint');
                 return next(); //User can continue to EP
             }
         }).catch(function (err) {
@@ -245,7 +245,7 @@ function getProfilename(req, res, next) {
             profileName = url.slice(10);
         }
 
-        if (logs) console.log("Profilename: ", profileName, " blobID: ", blobID);
+        if (logs) console.log('Profilename: ', profileName, ' blobID: ', blobID);
 
         //If one of the methods is set return profile name
         if (profileName) {

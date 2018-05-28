@@ -40,13 +40,13 @@ var Profile = new Schema({
         }]
     },
     transformation: {
-        abortOnInvalidRecords: { type: Boolean, required: true },
-        module: { type: String, required: true },
-        parameters: { type: Object, required: true }
+        abortOnInvalidRecords: { type: Boolean},
+        image: { type: String },
+        env: { type: Object}
     },
     'import': {
-        module: { type: String, required: true },
-        parameters: { type: Object, required: true }
+        image: { type: String },
+        env: { type: Object }
     }
 }, {
     strict: 'throw'

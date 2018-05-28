@@ -43,7 +43,6 @@ module.exports = {
                 var result = findResults[0].toJSON();
                 delete result._id;
                 delete result.__v;
-                delete result.UUID;
                 delete result.MetaDataID;
                 return res.status(HttpCodes.OK).send(result);
             }
@@ -88,9 +87,9 @@ module.exports = {
     },
     updateOne: function (result, res, notFound) {
         if (result) {
-            return res.status(HttpCodes.NoContent).send('The metadata was updated');
+            return res.status(HttpCodes.Updated).send('The metadata was updated');
         } else {
-            return res.status(HttpCodes.NotFound).send(notFound);
+            return res.status(HttpCodes.NotFound).send(notFound || 'Data not found');
         }
     },
     returnUUID: function (findResults, res) {

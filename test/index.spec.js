@@ -54,7 +54,7 @@ const crowd = require('../utils/CrowdServices');
 mongoose.models.BlobMetadata.remove(function () {
     mongoose.models.BlobMetadata.create({
         UUID: '2000',
-        profile: 'test',
+        profile: '2200',
         contentType: 'standard'
     }, {
         UUID: '2001',
@@ -62,7 +62,7 @@ mongoose.models.BlobMetadata.remove(function () {
         contentType: 'standard'
     }, {
         UUID: '2002',
-        profile: 'standard',
+        profile: '2200',
         contentType: 'standard'
     }, function (err) {
         if (logs) console.log('Finished populating testing blobs, errors: ', err);
@@ -102,82 +102,58 @@ mongoose.models.Profile.remove(function () {
     mongoose.models.Profile.create({
         name: '2200',
         auth: {
-            groups: ['user']
+            groups: ['test']
         },
         transformation: {
             abortOnInvalidRecords: false,
-            module: 'standard_user',
-            parameters: {
-                priority: false,
-                ignoreFlags: false
-            },
+            image: 'standard_user',
+            env: {}
         },
         'import': {
-            module: 'standard_user',
-            parameters: {
-                priority: true,
-                ignoreFlags: false
-            }
+            image: 'standard_user',
+            env: {}
         }
     },{
         name: '2201',
         auth: {
-            groups: ['admin', 'user']
+            groups: ['admin', 'test']
         },
         transformation: {
             abortOnInvalidRecords: false,
-            module: 'standard',
-            parameters: {
-                priority: true,
-                ignoreFlags: false
-            },
+            image: 'standard',
+            env: {}
         },
         'import': {
-            module: 'standard',
-            parameters: {
-                priority: true,
-                ignoreFlags: false
-            }
+            image: 'standard',
+            env: {}
         }
     }, {
         name: '2202',
         auth: {
-            groups: ['user']
+            groups: ['subTest']
         },
         transformation: {
             abortOnInvalidRecords: false,
-            module: 'standard_user',
-            parameters: {
-                priority: false,
-                ignoreFlags: false
-            },
+            image: 'standard_user',
+            env: {},
         },
         'import': {
-            module: 'standard_user',
-            parameters: {
-                priority: true,
-                ignoreFlags: false
-            }
+            image: 'standard_user',
+            env: {}
         }
     },{
         name: 'single_test_metadata',
         auth: {
-            groups: ['admin', 'user']
+            groups: ['admin', 'test']
         },
         transformation: {
             abortOnInvalidRecords: false,
-            module: 'standard',
-            parameters: {
-                priority: true,
-                ignoreFlags: false
-            },
+            image: 'standard',
+            env: {}
         },
         'import': {
-            module: 'standard',
-            parameters: {
-                priority: true,
-                ignoreFlags: false
-            }
+            image: 'standard',
+            env: {}
         }
     }, function (err) {
         if (logs) console.log('Finished populating testing profiles, errors: ', err);
@@ -1174,18 +1150,12 @@ describe('Profile services', function () {
                 },
                 'transformation': {
                     'abortOnInvalidRecords': false,
-                    'module': 'standard',
-                    'parameters': {
-                        'priority': true,
-                        'ignoreFlags': false
-                    }
+                    'image': 'standard',
+                    'env': {}
                 },
                 'import': {
-                    'module': 'standard',
-                    'parameters': {
-                        'priority': true,
-                        'ignoreFlags': false
-                    }
+                    'image': 'standard',
+                    'env': {}
                 }
             },
             'status': 201,
