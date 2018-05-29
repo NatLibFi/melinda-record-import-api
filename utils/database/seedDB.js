@@ -40,12 +40,12 @@ mongoose.models.BlobMetadata.remove(function () {
         UUID: '1001',
         profile: '1201',
         contentType: 'standard',
-        state: enums.blobStates.processed
+        state: enums.blobStates.pending
     }, {
         UUID: '1002',
         profile: 'standard',
         contentType: 'standard',
-        state: enums.blobStates.processed
+        state: enums.blobStates.transformed
     }, {
         UUID: '1003',
         profile: 'standard',
@@ -120,7 +120,7 @@ mongoose.models.Profile.remove(function () {
             env: {}
         },
         'import': {
-            image: 'melinda-import',
+            image: 'melinda-importer',
             env: {}
         }
     }, {
@@ -134,7 +134,7 @@ mongoose.models.Profile.remove(function () {
             env: {}
         },
         'import': {
-            image: 'melinda-import',
+            image: 'melinda-importer',
             env: {}
         }
     }, function (err) {
