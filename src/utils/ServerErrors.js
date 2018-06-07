@@ -27,42 +27,41 @@
 */
 
 /* eslint-disable no-unused-vars */
-
-var enums = require('../../melinda-record-import-commons/utils/enums');
+import {configurationGeneral as config} from '@natlibfi/melinda-record-import-commons';
 
 module.exports.getMalformedError = function () {
     var err = new Error('Malformed content');
-    err.type = enums.errorTypes.notObject;
+    err.type = config.enums.errorTypes.notObject;
     return err;
 }
 
 module.exports.getInvalidError = function () {
     var err = new Error('Invalid syntax');
-    err.type = enums.errorTypes.invalidSyntax;
+    err.type = config.enums.errorTypes.invalidSyntax;
     return err;
 }
 
 module.exports.getUnauthorizedError = function () {
     var err = new Error('Authentication failed');
-    err.type = enums.errorTypes.unauthorized;
+    err.type = config.enums.errorTypes.unauthorized;
     return err;
 }
 
 module.exports.getForbiddenError = function () {
     var err = new Error('Not authorized');
-    err.type = enums.errorTypes.forbidden;
+    err.type = config.enums.errorTypes.forbidden;
     return err;
 }
 
 module.exports.getMissingProfileError = function () {
     var err = new Error('Missing profile');
-    err.type = enums.errorTypes.missing;
+    err.type = config.enums.errorTypes.missing;
     return err;
 }
 
 module.exports.getUnknownError = function (description, data) {
     var err = new Error(description);
-    err.type = enums.errorTypes.unknown;
+    err.type = config.enums.errorTypes.unknown;
     err.data = data;
     return err;
 }

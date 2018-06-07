@@ -5,4 +5,4 @@ dist
 .nyc_output
 
 # ignore password file
-configCrowd.js
+config-crowd.js

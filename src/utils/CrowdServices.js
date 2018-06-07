@@ -28,11 +28,11 @@
 
 /* eslint-disable no-unused-vars */
 
-var configCrowd = require('../../melinda-record-import-commons/configCrowd'),
+import {configurationGeneral as config} from '@natlibfi/melinda-record-import-commons';
+
+var configCrowd = require('../../config-crowd'),
     mongoose = require('mongoose'),
-    enums = require('../../melinda-record-import-commons/utils/enums'),
     queryHandler = require('../utils/MongooseQueryHandler'),
-    config = require('../../melinda-record-import-commons/config'),
     logs = config.logs,
     authen = require('basic-auth'),
     request = require('request'),
@@ -117,7 +117,7 @@ module.exports.ensureAuthenticated = function (req, res, next) {
             return next(err);
         });
     }).catch(function (err) {
-        if (!(err.type && err.type === enums.errorTypes.unauthorized || err.type === enums.errorTypes.forbidden)) {
+        if (!(err.type && err.type === config.enums.errorTypes.unauthorized || err.type === config.enums.errorTypes.forbidden)) {
             console.error('Unanticipated authentication error: ', err);
         }
         //return next(serverErrors.getForbiddenError());

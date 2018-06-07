@@ -30,9 +30,10 @@
 
 'use strict';
 
+import {configurationGeneral as config} from '@natlibfi/melinda-record-import-commons';
+
 var mongoose = require('mongoose'),
     Schema = mongoose.Schema,
-    enums = require('../../melinda-record-import-commons/utils/enums'),
     _ = require('lodash');
 
 var BlobMetadata = new Schema({
@@ -41,8 +42,8 @@ var BlobMetadata = new Schema({
     contentType: { type: String, required: true },
     state: {
         type: String,
-        enum: _.values(enums.blobStates), //Defined in enums
-        default: enums.blobStates.pending
+        enum: _.values(config.enums.blobStates), //Defined in enums
+        default: config.enums.blobStates.pending
     },
     creationTime: { type: Date, default: Date.now },
     modificationTime: { type: Date, default: Date.now },
@@ -61,7 +62,7 @@ var RecordImportResult = new Schema({
     UUID: { type: String, required: true, unique: true },
     status: {
         type: String,
-        enum: _.values(enums.recodImportStatuses),
+        enum: _.values(config.enums.recodImportStatuses),
         required: true
     },
     id: [{

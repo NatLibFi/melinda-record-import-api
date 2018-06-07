@@ -28,16 +28,28 @@
 
 /* eslint-disable no-unused-vars */
 
-var serverErrors = require('../utils/ServerErrors'),
-    uuid = require('uuid');
+import {configurationGeneral as config} from '@natlibfi/melinda-record-import-commons';
 
-module.exports.ensureMatchingNames = function (req, res) {
-    if (!req.body.name && req.params.name) {
-        req.body.name = req.params.name;
-        return;
+module.exports = function (reason, res) {
+    switch (reason.name) {
+        case 'StrictModeError': {
+            res.status(config.httpCodes.ValidationError).send('Invalid syntax');
+            return;
+        }
+        case 'ValidationError':
+            res.status(config.httpCodes.ValidationError).json('Unknown validation error');
+        case 'MongoError': {
+            if (reason.code && reason.code === 11000) {
+                res.status(config.httpCodes.Conflict).send('Unknown mongo error: ' + reason.name);
+                return;
+            }
+        }
+        default: {
+            res.status(config.httpCodes.BadRequest).send('Unknown error: ' + reason.name);
+            return;
+        }
     }
 
-    if (req.params.name && req.body.name !== req.params.name) {
-        throw serverErrors.getInvalidError();
-    }
-}
+    console.error(reason);
+    next(reason);
+};

@@ -29,9 +29,10 @@
 /* eslint-disable no-unused-vars */
 
 'use strict';
-var mongoose = require('mongoose'),
-    config = require('../../../melinda-record-import-commons/config'),
-    enums = require('../../../melinda-record-import-commons/utils/enums');
+
+import {configurationGeneral as config} from '@natlibfi/melinda-record-import-commons';
+
+var mongoose = require('mongoose');
 
 var logs = config.logs;
 
@@ -40,27 +41,27 @@ mongoose.models.BlobMetadata.remove(function () {
         UUID: '1001',
         profile: '1201',
         contentType: 'standard',
-        state: enums.blobStates.pending
+        state: config.enums.blobStates.pending
     }, {
         UUID: '1002',
         profile: 'standard',
         contentType: 'standard',
-        state: enums.blobStates.transformed
+        state: config.enums.blobStates.processed
     }, {
         UUID: '1003',
         profile: 'standard',
         contentType: 'stylized',
-        state: enums.blobStates.aborted
+        state: config.enums.blobStates.processed
     }, {
         UUID: '1004',
         profile: '1201',
         contentType: 'stylized',
-        state: enums.blobStates.processed
+        state: config.enums.blobStates.processed
     }, {
         UUID: '1005',
         profile: '1201',
         contentType: 'standard',
-        state: enums.blobStates.processed
+        state: config.enums.blobStates.processed
     }, function (err) {
         if (logs) console.log('Finished populating development blobs, errors: ', err);
     });

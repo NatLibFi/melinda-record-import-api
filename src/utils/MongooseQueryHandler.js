@@ -28,9 +28,9 @@
 
 /* eslint-disable no-unused-vars */
 
-var HttpCodes = require('../../melinda-record-import-commons/utils/HttpCodes'),
-    config = require('../../melinda-record-import-commons/config'),
-    serverErrors = require('./ServerErrors'),
+import {configurationGeneral as config} from '@natlibfi/melinda-record-import-commons';
+
+var serverErrors = require('./ServerErrors'),
     _ = require('lodash');
 
 
@@ -38,17 +38,17 @@ module.exports = {
     findOne: function (findResults, res, notFound) {
         switch (findResults.length) {
             case 0:
-                return res.status(HttpCodes.NotFound).send(notFound || 'Could not find any documents matching the query.');
+                return res.status(config.httpCodes.NotFound).send(notFound || 'Could not find any documents matching the query.');
             case 1: {
                 var result = findResults[0].toJSON();
                 delete result._id;
                 delete result.__v;
                 delete result.MetaDataID;
-                return res.status(HttpCodes.OK).send(result);
+                return res.status(config.httpCodes.OK).send(result);
             }
             default:
                 console.warn('Should be just one search result, found multiple: ', findResults);
-                return res.status(HttpCodes.Conflict).send('Found multiple documents when expected to find only one.');
+                return res.status(config.httpCodes.Conflict).send('Found multiple documents when expected to find only one.');
         }
     },
     findOneProfile: function (findResults, resolve, reject) {
@@ -83,13 +83,13 @@ module.exports = {
         _.forEach(findResults, function (value) {
             delete value.UUID;
         }); _
-        return res.status(HttpCodes.OK).send(findResults);
+        return res.status(config.httpCodes.OK).send(findResults);
     },
     updateOne: function (result, res, notFound) {
         if (result) {
-            return res.status(HttpCodes.Updated).send('The metadata was updated');
+            return res.status(config.httpCodes.Updated).send('The metadata was updated');
         } else {
-            return res.status(HttpCodes.NotFound).send(notFound || 'Data not found');
+            return res.status(config.httpCodes.NotFound).send(notFound || 'Data not found');
         }
     },
     returnUUID: function (findResults, res) {
@@ -97,23 +97,23 @@ module.exports = {
         _.forEach(findResults, function (value) {
             results.push(config.urlAPI + '/blobs/' + value.UUID)
         });
-        return res.status(HttpCodes.OK).send(results);
+        return res.status(config.httpCodes.OK).send(results);
     },
     removeOne: function (obj, res, whatWasRemoved) {
         if (obj) {
-            return res.status(HttpCodes.NoContent).send(whatWasRemoved);
+            return res.status(config.httpCodes.NoContent).send(whatWasRemoved);
         } else {
-            return res.status(HttpCodes.NotFound).send('Content not found');
+            return res.status(config.httpCodes.NotFound).send('Content not found');
         }
     },
     invalidQuery: function (res) {
-        return res.status(HttpCodes.BadRequest).send('Invalid query');
+        return res.status(config.httpCodes.BadRequest).send('Invalid query');
     },
     upsertObject: function (updated, res) {
         if (updated) {
-            return res.status(HttpCodes.NoContent).send('The profile was updated');
+            return res.status(config.httpCodes.NoContent).send('The profile was updated');
         } else {
-            return res.status(HttpCodes.Created).send('The profile was created');
+            return res.status(config.httpCodes.Created).send('The profile was created');
         }
     }
 };

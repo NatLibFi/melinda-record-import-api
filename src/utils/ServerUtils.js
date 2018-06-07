@@ -28,28 +28,15 @@
 
 /* eslint-disable no-unused-vars */
 
-const HttpCodes = require('../../melinda-record-import-commons/utils/HttpCodes');
+var serverErrors = require('../utils/ServerErrors');
 
-module.exports = function (reason, res) {
-    switch (reason.name) {
-        case 'StrictModeError': {
-            res.status(HttpCodes.ValidationError).send('Invalid syntax');
-            return;
-        }
-        case 'ValidationError':
-            res.status(HttpCodes.ValidationError).json('Unknown validation error');
-        case 'MongoError': {
-            if (reason.code && reason.code === 11000) {
-                res.status(HttpCodes.Conflict).send('Unknown mongo error: ' + reason.name);
-                return;
-            }
-        }
-        default: {
-            res.status(HttpCodes.BadRequest).send('Unknown error: ' + reason.name);
-            return;
-        }
+module.exports.ensureMatchingNames = function (req, res) {
+    if (!req.body.name && req.params.name) {
+        req.body.name = req.params.name;
+        return;
     }
 
-    console.error(reason);
-    next(reason);
-};
+    if (req.params.name && req.body.name !== req.params.name) {
+        throw serverErrors.getInvalidError();
+    }
+}

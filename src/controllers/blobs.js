@@ -30,12 +30,11 @@
 
 'use strict';
 
+import {configurationGeneral as config} from '@natlibfi/melinda-record-import-commons';
+
 var mongoose = require('mongoose'),
-    config = require('../../melinda-record-import-commons/config'),
     logs = config.logs,
     serverErrors = require('../utils/ServerErrors'),
-    HttpCodes = require('../../melinda-record-import-commons/utils/HttpCodes'),
-    enums = require('../../melinda-record-import-commons/utils/enums'),
     MongoErrorHandler = require('../utils/MongooseErrorHandler'),
     queryHandler = require('../utils/MongooseQueryHandler'),
     moment = require('moment'),
@@ -44,7 +43,7 @@ var mongoose = require('mongoose'),
     
 
 var validationError = function (res, err) {
-    return res.json(HttpCodes.ValidationError, err);
+    return res.json(config.httpCodes.ValidationError, err);
 };
  
 const allowedQueryFields = ['profile', 'contentType', 'state', 'creationTime', 'modificationTime']
@@ -77,7 +76,7 @@ module.exports.postBlob = function (req, res, next) {
     newBlobMetadata.UUID = uuid.v4()
     newBlobMetadata.profile = req.query['Import-Profile'];
     newBlobMetadata.contentType = 'undefined';
-    newBlobMetadata.state = enums.blobStates.pending;
+    newBlobMetadata.state = config.enums.blobStates.pending;
     newBlobMetadata.creationTime = moment(); //Use this if you want datetime to be formated etc, otherwise mongoose appends creation and modificationTime
 
     var newBlob = new mongoose.models.BlobContent();
@@ -96,7 +95,7 @@ module.exports.postBlob = function (req, res, next) {
             if (err) {
                 return validationError(res, err);
             }
-            return res.status(HttpCodes.OK).send('The blob was succesfully created. State is set to ' + newBlobMetadata.state)
+            return res.status(config.httpCodes.OK).send('The blob was succesfully created. State is set to ' + newBlobMetadata.state)
         });
     });
 };
@@ -194,7 +193,7 @@ module.exports.postBlobById = function (req, res, next) {
     if (logs) console.log(req.params.id);
 
     if (req.body.id && req.body.id !== req.params.id) {
-        return res.status(HttpCodes.BadRequest).send('Requests ids do not match')
+        return res.status(config.httpCodes.BadRequest).send('Requests ids do not match')
     }
 
     var blob = Object.assign({}, req.body);

@@ -29,8 +29,7 @@
 /* eslint-disable no-unused-vars */
 
 'use strict';
-var HttpCodes = require('../melinda-record-import-commons/utils/HttpCodes'),
-    router = require('express').Router();
+var router = require('express').Router();
 
 //Endpoint controllers
 var blobs = require('./controllers/blobs'),
