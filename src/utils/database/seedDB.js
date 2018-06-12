@@ -38,27 +38,27 @@ var logs = config.logs;
 
 mongoose.models.BlobMetadata.remove(function () {
     mongoose.models.BlobMetadata.create({
-        UUID: '1001',
+        id: '1001',
         profile: '1201',
         contentType: 'standard',
         state: config.enums.blobStates.pending
     }, {
-        UUID: '1002',
+        id: '1002',
         profile: 'standard',
         contentType: 'standard',
         state: config.enums.blobStates.processed
     }, {
-        UUID: '1003',
+        id: '1003',
         profile: 'standard',
         contentType: 'stylized',
         state: config.enums.blobStates.processed
     }, {
-        UUID: '1004',
+        id: '1004',
         profile: '1201',
         contentType: 'stylized',
         state: config.enums.blobStates.processed
     }, {
-        UUID: '1005',
+        id: '1005',
         profile: '1201',
         contentType: 'standard',
         state: config.enums.blobStates.processed
@@ -69,35 +69,35 @@ mongoose.models.BlobMetadata.remove(function () {
 
 mongoose.models.BlobContent.remove(function () {
     mongoose.models.BlobContent.create({
-        UUID: '1101',
+        id: '1101',
         MetaDataID: '1001',
         data: {
             datafield1: 'single data',
             datafield2: 'single data 1'
         }
     }, {
-        UUID: '1102',
+        id: '1102',
         MetaDataID: '1002',
         data: {
             datafield1: 'data 1',
             datafield2: 'data 2'
         }
     }, {
-        UUID: '1103',
+        id: '1103',
         MetaDataID: '1003',
         data: {
             datafield1: 'data 1',
             datafield2: 'data 2'
         }
     }, {
-        UUID: '1104',
+        id: '1104',
         MetaDataID: '1004',
         data: {
             datafield1: 'data 1',
             datafield2: 'data 2'
         }
     }, {
-        UUID: '1105',
+        id: '1105',
         MetaDataID: '1005',
         data: {
             datafield1: 'data 1',

@@ -37,7 +37,7 @@ var mongoose = require('mongoose'),
     _ = require('lodash');
 
 var BlobMetadata = new Schema({
-    UUID: { type: String, required: true, unique: true },
+    id: { type: String, required: true, unique: true },
     profile: { type: String, required: true },
     contentType: { type: String, required: true },
     state: {
@@ -48,8 +48,8 @@ var BlobMetadata = new Schema({
     creationTime: { type: Date, default: Date.now },
     modificationTime: { type: Date, default: Date.now },
     processingInfo: {
-        transformationError: { type: Object },
-        numberOfRecords: { type: Number },
+        transformationError: { type: Object, default: null },
+        numberOfRecords: { type: Number, default: null },
         importResults: [{
             type: String //Array of RecordImportResults UUID's
         }]
@@ -59,7 +59,7 @@ var BlobMetadata = new Schema({
 });
 
 var RecordImportResult = new Schema({
-    UUID: { type: String, required: true, unique: true },
+    id: { type: String, required: true, unique: true },
     status: {
         type: String,
         enum: _.values(config.enums.recodImportStatuses),
@@ -72,7 +72,7 @@ var RecordImportResult = new Schema({
 });
 
 var BlobContent = new Schema({
-    UUID: { type: String, required: true, unique: true },
+    id: { type: String, required: true, unique: true },
     MetaDataID: { type: String, required: true },
     data: { type: Object, required: true }
 }, {

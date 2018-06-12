@@ -81,7 +81,7 @@ module.exports = {
     },
     findMany: function (findResults, res) {
         _.forEach(findResults, function (value) {
-            delete value.UUID;
+            delete value.id;
         }); _
         return res.status(config.httpCodes.OK).send(findResults);
     },
@@ -95,7 +95,7 @@ module.exports = {
     returnUUID: function (findResults, res) {
         var results = [];
         _.forEach(findResults, function (value) {
-            results.push(config.urlAPI + '/blobs/' + value.UUID)
+            results.push(config.urlAPI + '/blobs/' + value.id)
         });
         return res.status(config.httpCodes.OK).send(results);
     },

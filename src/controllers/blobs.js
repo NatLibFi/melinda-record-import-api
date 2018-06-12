@@ -77,7 +77,7 @@ module.exports.postBlob = function (req, res, next) {
     //Do actual saving
     function saveBlob(){
         var newBlobMetadata = new mongoose.models.BlobMetadata({});
-        newBlobMetadata.UUID = uuid.v4()
+        newBlobMetadata.id = uuid.v4()
         newBlobMetadata.profile = req.headers['import-profile'];
         newBlobMetadata.contentType = req.headers['content-type'];
         newBlobMetadata.state = config.enums.blobStates.pending;
@@ -85,15 +85,15 @@ module.exports.postBlob = function (req, res, next) {
     
         var newBlob = new mongoose.models.BlobContent();
         newBlob.data = req.body;
-        newBlob.UUID = uuid.v4()
-        newBlob.MetaDataID = newBlobMetadata.UUID;
+        newBlob.id = uuid.v4()
+        newBlob.MetaDataID = newBlobMetadata.id;
     
         newBlobMetadata.save(function (err, result) {
             if (err) {
                 return next(serverErrors.getValidationError());
             }
             
-            newBlob.MetaDataID = result.UUID
+            newBlob.MetaDataID = result.id
             newBlob.data = req.body;
             newBlob.save(function (errSave, result) {
                 if (errSave) {
@@ -118,6 +118,7 @@ module.exports.postBlob = function (req, res, next) {
 */
 module.exports.getBlob = function (req, res, next) {
     if (logs) console.log('-------------- Query blob --------------');
+    if (logs) console.log(req.query);
     var query = req.query;
    
     try {
@@ -179,7 +180,7 @@ module.exports.getBlobById = function (req, res, next) {
     if (logs) console.log('-------------- Get blob by id --------------');
     if (logs) console.log(req.params.id);
 
-    mongoose.models.BlobMetadata.where('UUID', req.params.id)
+    mongoose.models.BlobMetadata.where('id', req.params.id)
         .exec()
         .then((documents) => queryHandler.findOne(documents, res, 'The blob does not exist'))
         .catch((reason) => MongoErrorHandler(reason, res, next));
@@ -204,7 +205,7 @@ module.exports.postBlobById = function (req, res, next) {
     var blob = Object.assign({}, req.body);
 
     mongoose.models.BlobMetadata.findOneAndUpdate(
-        { UUID: req.params.id },
+        { id: req.params.id },
         blob,
         { new: true, upsert: false, runValidators: true }
         ).then((result) => queryHandler.updateOne(result, res, 'The blob does not exist'))
@@ -228,7 +229,7 @@ module.exports.deleteBlobById = function (req, res, next) {
         .then((documents) => {
             if (!documents && logs) console.log('BlobContent not found, removed earlier?');
             mongoose.models.BlobMetadata.findOneAndRemove()
-            .where('UUID', req.params.id)
+            .where('id', req.params.id)
             .exec()
             .then((documents) => queryHandler.removeOne(documents, res, 'The blob was removed'))
             .catch((reason) => MongoErrorHandler(reason, res, next));

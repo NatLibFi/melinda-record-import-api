@@ -268,7 +268,7 @@ function getProfilename(req, res, next) {
         if (profileName) {
             resolve(profileName);
         } else if (blobID) {
-            mongoose.models.BlobMetadata.where('UUID', blobID)
+            mongoose.models.BlobMetadata.where('id', blobID)
             .exec()
             .then((documents) => queryHandler.findOneProfile(documents, resolve, reject))
             .catch((reason) => (reason) => {

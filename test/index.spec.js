@@ -51,15 +51,15 @@ const crowd = require('../dist/utils/CrowdServices');
 // Start: Generate testing objects to DB //
 mongoose.models.BlobMetadata.remove(function () {
     mongoose.models.BlobMetadata.create({
-        UUID: '2000',
+        id: '2000',
         profile: '2200',
         contentType: 'standard'
     }, {
-        UUID: '2001',
+        id: '2001',
         profile: 'single_test_metadata',
         contentType: 'standard'
     }, {
-        UUID: '2002',
+        id: '2002',
         profile: '2200',
         contentType: 'standard'
     }, function (err) {
@@ -70,21 +70,21 @@ mongoose.models.BlobMetadata.remove(function () {
 
 mongoose.models.BlobContent.remove(function () {
     mongoose.models.BlobContent.create({
-        UUID: '2100',
+        id: '2100',
         MetaDataID: '2000',
         data: {
             datafield1: 'data 1',
             datafield2: 'data 2'
         }
     }, {
-        UUID: '2101',
+        id: '2101',
         MetaDataID: '2001',
         data: {
             datafield1: 'single data',
             datafield2: 'single data 1'
         }
     }, {
-        UUID: '2102',
+        id: '2102',
         MetaDataID: '2002',
         data: {
             datafield1: 'data 1',
@@ -237,7 +237,7 @@ describe('All paths', function () {
         getToken.then(function(providedToken){
             providedToken.should.be.an('string');
             token = providedToken;
-            console.log("Token: ", token);
+            console.log('Token: ', token);
             done();
         }).catch(function (err) {
             done(err);
@@ -631,9 +631,8 @@ describe('Blob services', function () {
                             should.exist(data.modificationTime);
                             data.modificationTime.should.be.an('Date');
                             should.exist(data.processingInfo);
-                            data.processingInfo.should.be.an('object');
-                            should.exist(data.processingInfo.numberOfRecords);
-                            data.processingInfo.numberOfRecords.should.be.an('number');
+                            should.equal(data.processingInfo.transformationError, null);
+                            should.equal(data.processingInfo.numberOfRecords, null);                           
                             should.exist(data.processingInfo.importResults);
                             data.processingInfo.importResults.should.be.an('array');
                             done();
@@ -1218,7 +1217,7 @@ describe('Profile services', function () {
             //Test malformed JSON with Postman
             {
                 'description': 'Malformed body',
-                'body': '{ "auth" :"{"groups": ["admin"]"}',
+                'body': '{ 'auth' :'{'groups': ['admin']'}',
                 'status': 400,
                 'response': 'Malformed content'
             }
