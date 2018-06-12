@@ -477,7 +477,7 @@
                 "type": "object",
                 "properties": {
                     "id": {
-                        "type": "number"
+                        "type": "string"
                     },
                     "profile": {
                         "type": "string"

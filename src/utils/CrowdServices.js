@@ -30,8 +30,7 @@
 
 import {configurationGeneral as config} from '@natlibfi/melinda-record-import-commons';
 
-var configCrowd = require('../../config-crowd'),
-    mongoose = require('mongoose'),
+var mongoose = require('mongoose'),
     queryHandler = require('../utils/MongooseQueryHandler'),
     logs = config.logs,
     authen = require('basic-auth'),
@@ -39,13 +38,29 @@ var configCrowd = require('../../config-crowd'),
     serverErrors = require('./ServerErrors'),   
     _ = require('lodash');
 
+var defaultCrowdOptions = {
+    url: process.env.CROWD_SERVER,
+    headers: {
+        'Accept': 'application/json'
+    }, auth: {
+        user: process.env.CROWD_APPNAME,
+        pass: process.env.CROWD_APPPASS
+    },
+    json: true, //This adds 'Content-Type': 'application/json',
+    body: {},
+    agentOptions: {
+        rejectUnauthorized: false
+    }
+};
+
+
 ////////////////////////////////////////////////////
 // Start: Authenticate user and recieve SSO token //
-var authenticateUserOptions = _.cloneDeep(configCrowd.defaultOptions);
+var authenticateUserOptions = _.cloneDeep(defaultCrowdOptions);
 authenticateUserOptions.url = authenticateUserOptions.url + '/usermanagement/1/session';
 authenticateUserOptions.body = {
-    'username': configCrowd.username,
-    'password': configCrowd.password
+    'username': process.env.CROWD_USERNAME,
+    'password': process.env.CROWD_PASS
 };
 
 module.exports.authenticateUserSSO = function () {
@@ -120,8 +135,6 @@ module.exports.ensureAuthenticated = function (req, res, next) {
         if (!(err.type && err.type === config.enums.errorTypes.unauthorized || err.type === config.enums.errorTypes.forbidden)) {
             console.error('Unanticipated authentication error: ', err);
         }
-        //return next(serverErrors.getForbiddenError());
-
         return next(err); //Top layer, log error or pass to handler with throw
     });
 }
@@ -163,7 +176,7 @@ function getUsernameAndAuthenticate(req, res, next) {
 }
 
 function authenticateUserBasic(req, res, next, credentials) {
-    var authenticateUserOptionsBasic = _.cloneDeep(configCrowd.defaultOptions);
+    var authenticateUserOptionsBasic = _.cloneDeep(defaultCrowdOptions);
     authenticateUserOptionsBasic.url = authenticateUserOptionsBasic.url + '/usermanagement/1/authentication?username=' + credentials.name;
     authenticateUserOptionsBasic.body = {
         'value': credentials.pass,
@@ -187,8 +200,8 @@ function authenticateUserBasic(req, res, next, credentials) {
 }
 
 function getUserCredentialsSSO(req, res, next) {
-    var reqToken = req.headers[configCrowd.tokenName];
-    var validateTokenOptions = _.cloneDeep(configCrowd.defaultOptions);
+    var reqToken = req.headers[process.env.CROWD_TOKENNAME];
+    var validateTokenOptions = _.cloneDeep(defaultCrowdOptions);
     validateTokenOptions.url = validateTokenOptions.url + '/usermanagement/1/session/' + reqToken;
 
     return new Promise(function (resolve, reject) {
@@ -222,8 +235,12 @@ function getProfilename(req, res, next) {
     return new Promise(function (resolve, reject) {
         //Find on what basis profile is suppose to be checked
         //EP: POST /blobs
-        if (met === 'POST' && url.startsWith('/blobs?Import-Profile=')) {
-            profileName = [url.slice(22)]; //Only parameter and mandatory
+        if (met === 'POST' && url.startsWith('/blobs')) {
+            if(req.headers['Import-Profile']){
+                profileName = [req.headers['Import-Profile']];
+            }else{
+                resolve(null); //No profile can continue, but EP should throw error
+            }
         //EP: GET /blobs query
         } else if (met === 'GET' && (url.startsWith('/blobs?') || url === '/blobs')) {
             resolve(null); //Authenticated users can make queries
@@ -290,7 +307,7 @@ function isUserInGroups(username, authGroups) { //authGroups contains authentica
 }
 
 function getUserGroups(username) {
-    var getUserGroupsOptions = _.cloneDeep(configCrowd.defaultOptions);
+    var getUserGroupsOptions = _.cloneDeep(defaultCrowdOptions);
     getUserGroupsOptions.url = getUserGroupsOptions.url + '/usermanagement/1/user/group/nested?username=' + username;
 
     return new Promise(function (resolve, reject) {

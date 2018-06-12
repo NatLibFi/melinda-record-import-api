@@ -41,11 +41,6 @@ var mongoose = require('mongoose'),
     uuid = require('uuid'),
     _ = require('lodash');
     
-
-var validationError = function (res, err) {
-    return res.json(config.httpCodes.ValidationError, err);
-};
- 
 const allowedQueryFields = ['profile', 'contentType', 'state', 'creationTime', 'modificationTime']
 
 /**
@@ -57,47 +52,57 @@ const allowedQueryFields = ['profile', 'contentType', 'state', 'creationTime', '
 module.exports.postBlob = function (req, res, next) {
     if (logs) console.log('-------------- Post blob --------------');
     if (logs) console.log(req.body);
-    if (logs) console.log(req.query);
+    if (logs) console.log(req.headers);
 
-    if (!req.query['Import-Profile']) {
-        next(serverErrors.getMissingProfileError());
+    //Check mandarory variables (http turns those to lowercase)
+    if(!req.headers['content-type']) {
+        return next(serverErrors.getMissingContentTypeError());
+    }
+
+    if (!req.headers['import-profile']) {
+        return next(serverErrors.getMissingProfileError());
     } else {
-        mongoose.models.Profile.where('name', req.query['Import-Profile'])
+        mongoose.models.Profile.where('name', req.headers['import-profile'])
         .exec()
         .then((documents) => {
-            if(documents.length !== 1 ){
-                next(serverErrors.getMissingProfileError());
+            if(documents.length === 1 ){
+                saveBlob(); //All is good, save.
+            }else{
+                return next(serverErrors.getMissingProfileError());
             }
         })
         .catch((reason) => MongoErrorHandler(reason, res, next));
     }
 
-    var newBlobMetadata = new mongoose.models.BlobMetadata({});
-    newBlobMetadata.UUID = uuid.v4()
-    newBlobMetadata.profile = req.query['Import-Profile'];
-    newBlobMetadata.contentType = 'undefined';
-    newBlobMetadata.state = config.enums.blobStates.pending;
-    newBlobMetadata.creationTime = moment(); //Use this if you want datetime to be formated etc, otherwise mongoose appends creation and modificationTime
-
-    var newBlob = new mongoose.models.BlobContent();
-    newBlob.data = req.body;
-    newBlob.UUID = uuid.v4()
-    newBlob.MetaDataID = newBlobMetadata.UUID;
-
-    newBlobMetadata.save(function (err, result) {
-        if (err) {
-            return validationError(res, err);
-        }
-        
-        newBlob.MetaDataID = result.UUID
+    //Do actual saving
+    function saveBlob(){
+        var newBlobMetadata = new mongoose.models.BlobMetadata({});
+        newBlobMetadata.UUID = uuid.v4()
+        newBlobMetadata.profile = req.headers['import-profile'];
+        newBlobMetadata.contentType = req.headers['content-type'];
+        newBlobMetadata.state = config.enums.blobStates.pending;
+        newBlobMetadata.creationTime = moment(); //Use this if you want datetime to be formated etc, otherwise mongoose appends creation and modificationTime
+    
+        var newBlob = new mongoose.models.BlobContent();
         newBlob.data = req.body;
-        newBlob.save(function (err, result) {
+        newBlob.UUID = uuid.v4()
+        newBlob.MetaDataID = newBlobMetadata.UUID;
+    
+        newBlobMetadata.save(function (err, result) {
             if (err) {
-                return validationError(res, err);
+                return next(serverErrors.getValidationError());
             }
-            return res.status(config.httpCodes.OK).send('The blob was succesfully created. State is set to ' + newBlobMetadata.state)
+            
+            newBlob.MetaDataID = result.UUID
+            newBlob.data = req.body;
+            newBlob.save(function (errSave, result) {
+                if (errSave) {
+                    return next(serverErrors.getValidationError());
+                }
+                return res.status(config.httpCodes.OK).send('The blob was succesfully created. State is set to ' + newBlobMetadata.state)
+            });
         });
-    });
+    }
 };
 
 

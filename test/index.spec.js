@@ -30,23 +30,21 @@
 
 'use strict';
 
-const app = require('../index'),
-      chai = require('chai'),
-      chaiHTTP = require('chai-http');
+const chai = require('chai'),
+      chaiHTTP = require('chai-http'),
+      should = chai.should(),
+      httpMocks = require('node-mocks-http'),
+      mongoose = require('mongoose'),
+      _ = require('lodash'),
+      logs = true,
+      configCrowd = require('../src/config-crowd');
       chai.use(chaiHTTP);
 
-const should = chai.should();
-const routes = require('../routes');
-const httpMocks = require('node-mocks-http');
-const mongoose = require('mongoose'),
-      config = require('../../melinda-record-import-commons/config'),
-      logs = config.logs,
-      configCrowd = require('../../melinda-record-import-commons/configCrowd'),
-      _ = require('lodash');
-
-const blobs = require('../controllers/blobs');
-const profiles = require('../controllers/profiles');
-const crowd = require('../utils/CrowdServices');
+const app = require('../dist/index');
+const routes = require('../dist/routes');
+const blobs = require('../dist/controllers/blobs');
+const profiles = require('../dist/controllers/profiles');
+const crowd = require('../dist/utils/CrowdServices');
 
 
 ///////////////////////////////////////////
@@ -334,6 +332,10 @@ describe('Blob services', function () {
             var req = httpMocks.createRequest({
                 method: 'POST',
                 url: '/blobs',
+                headers:{
+                    'Content-Type': 'JSON',
+                    'Import-Profile': 2200
+                },
                 query: { 'Import-Profile': '2200' },
                 body: {
                     data: 'test data',
@@ -344,8 +346,7 @@ describe('Blob services', function () {
             var res = httpMocks.createResponse({
                 eventEmitter: require('events').EventEmitter
             });
-
-
+            
             blobs.postBlob(req, res);
 
             res.on('end', function () {
@@ -356,6 +357,7 @@ describe('Blob services', function () {
 
                 done();
             });
+            
         });
 
         it('should respond with 413 - Request body is too large (Test TODO)', function (done) {
@@ -387,7 +389,7 @@ describe('Blob services', function () {
         });
 
 
-        it('should respond with 415 - Content type was not specified (Test TODO)', function (done) {
+        it('should respond with 415 - Content type was not specified', function (done) {
             var req = httpMocks.createRequest({
                 method: 'POST',
                 url: '/blobs',
@@ -402,15 +404,12 @@ describe('Blob services', function () {
                 eventEmitter: require('events').EventEmitter
             });
 
-            blobs.postBlob(req, res);
-
-            res.on('end', function () {
-                var data = res._getData();
-
-                res.statusCode.should.equal(413);
-                data.should.be.an('string');
-                data.should.equal('Content type was not specified');
-
+            blobs.postBlob(req, res, function (err) {
+                try{
+                    err.message.should.be.equal('Content type was not specified');
+                } catch (e) {
+                    return done(e);
+                }
                 done();
             });
         });
@@ -594,14 +593,7 @@ describe('Blob services', function () {
                'description': 'Basic test',
                'params': {
                    id: 2001
-               },
-               'basic': true
-           }, {
-               'description': 'Structure test (ToDo: number of records)',
-               'params': {
-                   id: 2001
-               },
-               'basic': false
+               }
            }
         ];
 
@@ -627,27 +619,23 @@ describe('Blob services', function () {
                             res.statusCode.should.equal(200);
                             data.should.be.an('object');
 
-                            if (!value.basic) {
-                                should.exist(data);
-                                //should.exist(data.id); //This is removed from response
-                                //data.id.should.be.an('string');
-                                //data.id.should.equal('1112')
-                                should.exist(data.contentType);
-                                data.contentType.should.be.an('string');
-                                should.exist(data.state);
-                                data.state.should.be.an('string');
-                                should.exist(data.creationTime);
-                                data.creationTime.should.be.an('Date');
-                                should.exist(data.modificationTime);
-                                data.modificationTime.should.be.an('Date');
-                                should.exist(data.processingInfo);
-                                data.processingInfo.should.be.an('object');
-                                should.exist(data.processingInfo.numberOfRecords);
-                                data.processingInfo.numberOfRecords.should.be.an('number');
-                                should.exist(data.processingInfo.importResults);
-                                data.processingInfo.importResults.should.be.an('array');
-                            }
-
+                            should.exist(data);
+                            should.exist(data.id);
+                            data.id.should.be.an('string');
+                            should.exist(data.contentType);
+                            data.contentType.should.be.an('string');
+                            should.exist(data.state);
+                            data.state.should.be.an('string');
+                            should.exist(data.creationTime);
+                            data.creationTime.should.be.an('Date');
+                            should.exist(data.modificationTime);
+                            data.modificationTime.should.be.an('Date');
+                            should.exist(data.processingInfo);
+                            data.processingInfo.should.be.an('object');
+                            should.exist(data.processingInfo.numberOfRecords);
+                            data.processingInfo.numberOfRecords.should.be.an('number');
+                            should.exist(data.processingInfo.importResults);
+                            data.processingInfo.importResults.should.be.an('array');
                             done();
                         } catch (e) {
                             done(e);

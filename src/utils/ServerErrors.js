@@ -54,8 +54,21 @@ module.exports.getForbiddenError = function () {
 }
 
 module.exports.getMissingProfileError = function () {
-    var err = new Error('Missing profile');
-    err.type = config.enums.errorTypes.missing;
+    var err = new Error('The profile does not exist or the user is not authorized to it');
+    err.type = config.enums.errorTypes.missingProfile;
+    return err;
+}
+
+module.exports.getMissingContentTypeError = function () {
+    var err = new Error('Content type was not specified');
+    err.type = config.enums.errorTypes.missingContentType;
+    return err;
+}
+
+module.exports.getValidationError = function (data) {
+    var err = new Error('Validation error');
+    err.type = config.enums.errorTypes.validation;
+    err.data = data;
     return err;
 }
 
