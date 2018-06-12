@@ -44,8 +44,6 @@ const MANDATORY_ENV_VARIABLES = [
     'URL_API',
     'MONGODB_URI',
     'MONGODB_DEBUG',
-    'LOGS',
-    'DB_SEED',
     'CROWD_TOKENNAME',
     'CROWD_USERNAME',
     'CROWD_PASS',
@@ -78,21 +76,23 @@ app.use(cors());
 
 // Normal express config defaults
 app.use(require('morgan')('dev'));
-app.use(bodyParser.urlencoded({ extended: false }));
-app.use(bodyParser.json());
-
 app.use(require('method-override')());
 app.use(express.static(__dirname + '/public'));
 
+//These were enabled during development for manual testing purposes
+//app.use(bodyParser.urlencoded({ extended: false }));
+//app.use(bodyParser.json());
+
+//Start mongo from configuration
 mongoose.connect(app.config.mongodb.uri);
 mongoose.set('debug', app.config.mongoDebug);
 
+//Setup routes
 require('./routes')(app);
 
 //Swagger UI
 const swaggerUi = require('swagger-ui-express');
 const swaggerDocument = require('../api.json');
-
 app.use('/', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 
 /// catch 404 and forward to error handler
@@ -142,6 +142,7 @@ app.use(function (err, req, res, next) {
     }
 });
 
+//Clear DB and use seed version
 if (app.config.seedDB) {
     require('./utils/database/seedDB');
 }
