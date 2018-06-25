@@ -30,135 +30,24 @@
 
 'use strict';
 
-const chai = require('chai'),
-      chaiHTTP = require('chai-http'),
-      should = chai.should(),
+const mongoose = require('mongoose'),
       httpMocks = require('node-mocks-http'),
-      mongoose = require('mongoose'),
       _ = require('lodash'),
       logs = true,
-      configCrowd = require('../src/config-crowd');
+      configCrowd = require('../src/config-crowd'),
+      chai = require('chai'),
+      chaiHTTP = require('chai-http'),
+      should = chai.should();
       chai.use(chaiHTTP);
 
+var blobs = null; //This will be loaded later when app has started since this requires gridFS component loaded at app
+var token = null;
+
 const app = require('../dist/index');
-const routes = require('../dist/routes');
-const blobs = require('../dist/controllers/blobs');
 const profiles = require('../dist/controllers/profiles');
 const crowd = require('../dist/utils/CrowdServices');
 
-
-///////////////////////////////////////////
-// Start: Generate testing objects to DB //
-mongoose.models.BlobMetadata.remove(function () {
-    mongoose.models.BlobMetadata.create({
-        id: '2000',
-        profile: '2200',
-        contentType: 'standard'
-    }, {
-        id: '2001',
-        profile: 'single_test_metadata',
-        contentType: 'standard'
-    }, {
-        id: '2002',
-        profile: '2200',
-        contentType: 'standard'
-    }, function (err) {
-        if (logs) console.log('Finished populating testing blobs, errors: ', err);
-    });
-});
-
-
-mongoose.models.BlobContent.remove(function () {
-    mongoose.models.BlobContent.create({
-        id: '2100',
-        MetaDataID: '2000',
-        data: {
-            datafield1: 'data 1',
-            datafield2: 'data 2'
-        }
-    }, {
-        id: '2101',
-        MetaDataID: '2001',
-        data: {
-            datafield1: 'single data',
-            datafield2: 'single data 1'
-        }
-    }, {
-        id: '2102',
-        MetaDataID: '2002',
-        data: {
-            datafield1: 'data 1',
-            datafield2: 'data 2'
-        }
-    }, function (err) {
-        if (logs) console.log('Finished populating testing blobs, errors: ', err);
-    });
-});
-
-
-mongoose.models.Profile.remove(function () {
-    mongoose.models.Profile.create({
-        name: '2200',
-        auth: {
-            groups: ['test']
-        },
-        transformation: {
-            abortOnInvalidRecords: false,
-            image: 'standard_user',
-            env: {}
-        },
-        'import': {
-            image: 'standard_user',
-            env: {}
-        }
-    },{
-        name: '2201',
-        auth: {
-            groups: ['admin', 'test']
-        },
-        transformation: {
-            abortOnInvalidRecords: false,
-            image: 'standard',
-            env: {}
-        },
-        'import': {
-            image: 'standard',
-            env: {}
-        }
-    }, {
-        name: '2202',
-        auth: {
-            groups: ['subTest']
-        },
-        transformation: {
-            abortOnInvalidRecords: false,
-            image: 'standard_user',
-            env: {},
-        },
-        'import': {
-            image: 'standard_user',
-            env: {}
-        }
-    },{
-        name: 'single_test_metadata',
-        auth: {
-            groups: ['admin', 'test']
-        },
-        transformation: {
-            abortOnInvalidRecords: false,
-            image: 'standard',
-            env: {}
-        },
-        'import': {
-            image: 'standard',
-            env: {}
-        }
-    }, function (err) {
-        if (logs) console.log('Finished populating testing profiles, errors: ', err);
-    });
-});
-// End: Generate testing objects to DB //
-/////////////////////////////////////////
+const request = require('supertest');
 
 ///////////////////////////////////////////////////
 //    These test should be run for all paths     //
@@ -166,38 +55,38 @@ mongoose.models.Profile.remove(function () {
 describe('All paths', function () {
     //List of all routes to be tested
     var routesObj = [
-        {
-            'method': 'POST',
-            'url': '/blobs?Import-Profile=2200',
-        },
-        {
-            'method': 'GET',
-            'url': '/blobs?profile=2200'
-        },
-        {
-            'method': 'GET',
-            'url': '/blobs/2000'
-        },
-        {
-            'method': 'POST',
-            'url': '/blobs/2000',
-        },
-        {
-            'method': 'DELETE',
-            'url': '/blobs/2000',
-        },
-        {
-            'method': 'GET',
-            'url': '/blobs/2000/content',
-        },
-        {
-            'method': 'DELETE',
-            'url': '/blobs/2000/content',
-        },
-        {
-            'method': 'PUT',
-            'url': '/profiles/2200',
-        },
+        // {
+        //     'method': 'POST',
+        //     'url': '/blobs?Import-Profile=2200',
+        // },
+        // {
+        //     'method': 'GET',
+        //     'url': '/blobs?profile=2200'
+        // },
+        // {
+        //     'method': 'GET',
+        //     'url': '/blobs/2000'
+        // },
+        // {
+        //     'method': 'POST',
+        //     'url': '/blobs/2000',
+        // },
+        // {
+        //     'method': 'DELETE',
+        //     'url': '/blobs/2000',
+        // },
+        // {
+        //     'method': 'GET',
+        //     'url': '/blobs/2000/content',
+        // },
+        // {
+        //     'method': 'DELETE',
+        //     'url': '/blobs/2000/content',
+        // },
+        // {
+        //     'method': 'PUT',
+        //     'url': '/profiles/2200',
+        // },
         {
             'method': 'GET',
             'url': '/profiles/2200',
@@ -231,18 +120,22 @@ describe('All paths', function () {
         'res': 'request.authentication.unauthorized'
     }];
     
-    var token = null;
     it('Getting SSO token', function (done) {
+        this.timeout(10000);
         var getToken = crowd.authenticateUserSSO();
         getToken.then(function(providedToken){
             providedToken.should.be.an('string');
             token = providedToken;
-            console.log('Token: ', token);
+            if (logs) console.log('Token: ', token);
             done();
         }).catch(function (err) {
             done(err);
         });
     });
+
+    // it('Waiting', function (done) {
+    //     this.timeout(30000);
+    // });
 
     var encodedAuth = configCrowd.encodedAuth;
 
@@ -325,71 +218,51 @@ describe('All paths', function () {
 // Tests for blob services, meaning /blobs/* paths //
 /////////////////////////////////////////////////////
 describe('Blob services', function () {
+
     ////////////////////////////
     // Start: POST /blobs     //
     describe('#POST /blobs', function () {
         it('should respond with 201 - The blob was succesfully created...', function (done) {
-            var req = httpMocks.createRequest({
-                method: 'POST',
-                url: '/blobs',
-                headers:{
-                    'Content-Type': 'JSON',
-                    'Import-Profile': 2200
-                },
-                query: { 'Import-Profile': '2200' },
-                body: {
-                    data: 'test data',
-                    data2: 'more data'
-                }
-            });
-
-            var res = httpMocks.createResponse({
-                eventEmitter: require('events').EventEmitter
-            });
-            
-            blobs.postBlob(req, res);
-
-            res.on('end', function () {
-                var data = res._getData();
+            request(app)
+            .post('/blobs')
+            .set('Content', 'application/json')
+            .set('Import-Profile', 2200)
+            .set(configCrowd.tokenName, token)
+            .send({
+                data: 'test data',
+                data2: 'more data'
+            })
+            .end(function(err, res) {
+                if (err) return done(err);
                 res.statusCode.should.equal(200);
-                data.should.be.an('string');
-                data.should.equal('The blob was succesfully created. State is set to PENDING_TRANSFORMATION');
-
+                res.text.should.be.an('string');
+                res.text.should.equal('The blob was succesfully created. State is set to PENDING_TRANSFORMATION');
                 done();
-            });
-            
+            });            
         });
 
         it('should respond with 413 - Request body is too large (Test TODO)', function (done) {
-            var req = httpMocks.createRequest({
-                method: 'POST',
-                url: '/blobs',
-                query: { 'Import-Profile': '2200' },
-                body: {
-                    data: 'test data',
-                    data2: 'more data'
-                }
-            });
-
-            var res = httpMocks.createResponse({
-                eventEmitter: require('events').EventEmitter
-            });
-
-            blobs.postBlob(req, res);
-
-            res.on('end', function () {
-                var data = res._getData();
-
+            request(app)
+            .post('/blobs')
+            .set('Content', 'application/json')
+            .set('Import-Profile', 2200)
+            .set(configCrowd.tokenName, token)
+            .send({
+                data: 'Default max content length should be 100',
+                data2: 'These should contain combined 101 chars'
+            })
+            .end(function(err, res) {
+                if (err) return done(err);
                 res.statusCode.should.equal(413);
-                data.should.be.an('string');
-                data.should.equal('Request body is too large');
-
+                res.text.should.be.an('string');
+                res.text.should.equal('Request body is too large');
                 done();
-            });
+            });  
         });
 
+        it('should respond with 415 - Content type was not specified', function (done) {  
+            blobs = require('../dist/controllers/blobs');
 
-        it('should respond with 415 - Content type was not specified', function (done) {
             var req = httpMocks.createRequest({
                 method: 'POST',
                 url: '/blobs',
@@ -421,60 +294,59 @@ describe('Blob services', function () {
     ////////////////////////////
     // Start: GET /blobs      //
     describe('#GET /blobs', function () {
-
-        var testsValid = [
-            {
-                'description': 'list of URLs',
-                'query': {
-                },
-                'gte': 0
-            }, {
-                'description': 'array (parameter profile)',
-                'query': {
-                    'profile': '2200'
-                },
-                'gte': 0
-            }, {
-                'description': 'array (parameter contentType)',
-                'query': {
-                    'contentType': 'standard'
-                },
-                'gte': 0
-            }, {
-                'description': 'array of URLs (parameter creationTime 2000-2100)',
-                'query': {
-                    'creationTime': ['2000-01-01T00:00Z', '2100-01-01T00:00Z']
-                    //This is identical to:
-                    //?creationTime=2000-01-01T00:00Z&creationTime=2100-01-01T00:00Z
-                },
-                'gte': 1
-            }, {
-                'description': 'array of URLs (parameter modificationTime 2000-2100)',
-                'query': {
-                    'modificationTime': ['2000-01-01T00:00Z', '2100-01-01T00:00Z']
-                },
-                'gte': 1
-            }, {
-                'description': 'single URL (from seed)',
-                'query': {
-                    'profile': 'single_test_metadata'
-                },
-                'exact': 1
-            }, {
-                'description': 'single URL (from #POST test)',
-                'query': {
-                    'profile': 'single_test_metadata'
-                },
-                'exact': 1
-            }, {
-                'description': 'empty array',
-                'query': {
-                    'profile': 'nonexistent'
-                },
-                'exact': 0
-            }];
-
         describe('-valid queries (should respond with 200)', function () {
+            var testsValid = [
+                {
+                    'description': 'list of URLs',
+                    'query': {
+                    },
+                    'gte': 0
+                }, {
+                    'description': 'array (parameter profile)',
+                    'query': {
+                        'profile': '2200'
+                    },
+                    'gte': 0
+                }, {
+                    'description': 'array (parameter contentType)',
+                    'query': {
+                        'contentType': 'standard'
+                    },
+                    'gte': 0
+                }, {
+                    'description': 'array of URLs (parameter creationTime 2000-2100)',
+                    'query': {
+                        'creationTime': ['2000-01-01T00:00Z', '2100-01-01T00:00Z']
+                        //This is identical to:
+                        //?creationTime=2000-01-01T00:00Z&creationTime=2100-01-01T00:00Z
+                    },
+                    'gte': 1
+                }, {
+                    'description': 'array of URLs (parameter modificationTime 2000-2100)',
+                    'query': {
+                        'modificationTime': ['2000-01-01T00:00Z', '2100-01-01T00:00Z']
+                    },
+                    'gte': 1
+                }, {
+                    'description': 'single URL (from seed)',
+                    'query': {
+                        'profile': 'single_test_metadata'
+                    },
+                    'exact': 1
+                }, {
+                    'description': 'single URL (from #POST test)',
+                    'query': {
+                        'profile': 'single_test_metadata'
+                    },
+                    'exact': 1
+                }, {
+                    'description': 'empty array',
+                    'query': {
+                        'profile': 'nonexistent'
+                    },
+                    'exact': 0
+                }];
+
             _.forEach(testsValid, function (value) {
                 it(value.description, function (done) {
                     var req = httpMocks.createRequest({
@@ -510,53 +382,54 @@ describe('Blob services', function () {
         });
 
 
-        var testsInvalid = [
-            {
-                'description': '(date format)',
-                'query': {
-                    'creationTime': ['20000-01-01T00:00Z', '2100-01-01T00:00Z']
-                }
-            }, {
-                'description': '(single date)',
-                'query': {
-                    'creationTime': '20000-01-01T00:00Z'
-                }
-            }, {
-                'description': '(too many values in creationTime)',
-                'query': {
-                    'creationTime': ['2000-01-01T00:00Z', '2100-01-01T00:00Z', '2000-01-01T00:00Z']
-                }
-            }, {
-                'description': '(wrong parameter name #1)',
-                'query': {
-                    'creationTime': ['2000-01-01T00:00Z', '2100-01-01T00:00Z'],
-                    'creationsTime': ['2000-01-01T00:00Z', '2100-01-01T00:00Z']
-                }
-            }, {
-                'description': '(wrong parameter name #2)',
-                'query': {
-                    'profiles': 'wrong'
-                }
-            }, {
-                'description': '(double parameter #1)',
-                'query': {
-                    'profile': ['wrong', 'weird']
-                }
-            }, {
-                'description': '(triple parameter)',
-                'query': {
-                    'profiles': 'wrong',
-                    'profiles': 'really',
-                    'profile': 'weird'
-                }
-            }, {
-                'description': '(double parameter #2)',
-                'query': {
-                    'contentType': ['wrong', 'really']
-                }
-            }
-        ];
         describe('-invalid queries (should respond with 400 - )', function () {
+            var testsInvalid = [
+                {
+                    'description': '(date format)',
+                    'query': {
+                        'creationTime': ['20000-01-01T00:00Z', '2100-01-01T00:00Z']
+                    }
+                }, {
+                    'description': '(single date)',
+                    'query': {
+                        'creationTime': '20000-01-01T00:00Z'
+                    }
+                }, {
+                    'description': '(too many values in creationTime)',
+                    'query': {
+                        'creationTime': ['2000-01-01T00:00Z', '2100-01-01T00:00Z', '2000-01-01T00:00Z']
+                    }
+                }, {
+                    'description': '(wrong parameter name #1)',
+                    'query': {
+                        'creationTime': ['2000-01-01T00:00Z', '2100-01-01T00:00Z'],
+                        'creationsTime': ['2000-01-01T00:00Z', '2100-01-01T00:00Z']
+                    }
+                }, {
+                    'description': '(wrong parameter name #2)',
+                    'query': {
+                        'profiles': 'wrong'
+                    }
+                }, {
+                    'description': '(double parameter #1)',
+                    'query': {
+                        'profile': ['wrong', 'weird']
+                    }
+                }, {
+                    'description': '(triple parameter)',
+                    'query': {
+                        'profiles': 'wrong',
+                        'profiles': 'really',
+                        'profile': 'weird'
+                    }
+                }, {
+                    'description': '(double parameter #2)',
+                    'query': {
+                        'contentType': ['wrong', 'really']
+                    }
+                }
+            ];
+
             _.forEach(testsInvalid, function (value) {
                 it(value.description, function (done) {
                     var req = httpMocks.createRequest({
@@ -589,13 +462,12 @@ describe('Blob services', function () {
     describe('#GET /blobs/{id}', function () {
 
         var testsValid = [
-           {
-               'description': 'Basic test',
-               'params': {
-                   id: 2001
-               }
-           }
-        ];
+            {
+                'description': 'Basic test',
+                'params': {
+                    id: 2001
+                }
+            }];
 
         describe('-valid queries (should respond with 200)', function () {
             _.forEach(testsValid, function (value) {
@@ -644,28 +516,56 @@ describe('Blob services', function () {
             });
         });
 
-        var testsInvalid = [
-           {
-               'description': 'Without param',
-               'params': {
-               }
-           }, {
-               'description': 'With invalid param',
-               'params': {
-                   'ids': 2001
-               }
-           }, {
-               'description': 'With multiple params',
-               'params': {
-                   'id': 2001,
-                   'ids': 2001
-               },
-               'res_code': 200,
-               'res_object': true
-           }
-        ];
-
         describe('-invalid queries (404)', function () {
+            var testsInvalid = [
+                {
+                    'description': 'Without param',
+                    'params': {
+                    },
+                    'res': 'The blob does not exist'
+                }, {
+                    'description': 'With invalid param',
+                    'params': {
+                        'ids': 2001
+                    },
+                    'res': 'The blob does not exist'
+                }];
+
+            _.forEach(testsInvalid, function (value) {
+                it(value.description, function (done) {
+                    var req = httpMocks.createRequest({
+                        method: 'GET',
+                        url: '/blobs/invalidID',
+                        params: value.params,
+                    });
+
+                    var res = httpMocks.createResponse({
+                        eventEmitter: require('events').EventEmitter
+                    });
+
+                    blobs.getBlobById(req, res, function (err) {
+                        try {
+                            err.message.should.be.equal(value.res);
+                        } catch (e) {
+                            return done(e);
+                        }
+                        done();
+                    });
+                });
+            });
+        });
+
+        describe('-questionable queries', function () {
+            var testsInvalid = [{
+                    'description': 'With multiple params (one is valid)',
+                    'params': {
+                        'id': 2001,
+                        'ids': 2001
+                    },
+                    'res_code': 200,
+                    'res_object': true
+                }];
+                
             _.forEach(testsInvalid, function (value) {
                 it(value.description, function (done) {
                     var req = httpMocks.createRequest({
@@ -683,14 +583,8 @@ describe('Blob services', function () {
                     res.on('end', function () {
                         try {
                             var data = res._getData();
-                            res.statusCode.should.equal(value.res_code || 404);
-                            if (!value.res_object) {
-                                data.should.be.an('string');
-                                data.should.equal('The blob does not exist');
-                            } else {
-                                data.should.be.an('object');
-                            }
-
+                            res.statusCode.should.equal(value.res_code);
+                            data.should.be.an('object');
                             done();
                         } catch (e) {
                             done(e);
@@ -709,15 +603,15 @@ describe('Blob services', function () {
     describe('#POST /blobs/{id}', function () {
 
         var testsValid = [
-           {
-               'description': 'Basic test',
-               'params': {
-                   'id': 2001
-               },
-               'body': {
-                   'profile': '2200'
-               }
-           }
+        {
+            'description': 'Basic test',
+            'params': {
+                'id': 2001
+            },
+            'body': {
+                'profile': '2200'
+            }
+        }
         ];
 
         describe('-valid queries (should respond with 204)', function () {
@@ -775,16 +669,16 @@ describe('Blob services', function () {
                 'body': {
                     'profile': '2200'
                 },
-                'res': 404
+                'res': 'request.content.missing'
             }, {
                 'description': 'Invalid syntax',
                 'params': {
                     'id': 2001
                 },
                 'body': {
-                    'profile_invalid': '2200'
+                    'profile_invalid': 2200
                 },
-                'res': 422
+                'res': 'request.content.validation'
             }
         ];
 
@@ -802,25 +696,9 @@ describe('Blob services', function () {
                         eventEmitter: require('events').EventEmitter
                     });
 
-                    blobs.postBlobById(req, res);
-
-                    res.on('end', function () {
+                    blobs.postBlobById(req, res, function (err) {
                         try {
-                            var data = res._getData();
-
-                            if (value.res === 400) {
-                                res.statusCode.should.equal(400);
-                                data.should.be.an('string');
-                                data.should.equal('Malformed content');
-                            } else if (value.res === 404) {
-                                res.statusCode.should.equal(404);
-                                data.should.be.an('string');
-                                data.should.equal('The blob does not exist');
-                            } else if (value.res === 422) {
-                                res.statusCode.should.equal(422);
-                                data.should.be.an('string');
-                                data.should.equal('Invalid syntax');
-                            }
+                            err.type.should.be.equal(value.res);
                             done();
                         } catch (e) {
                             done(e);
@@ -837,89 +715,56 @@ describe('Blob services', function () {
     // Start: DELETE /blobs/{id} //
     describe('#DELETE /blobs/{id}', function () {
 
-        var testsValid = [
-           {
-               'description': 'Basic test',
-               'params': {
-                   'id': 2001
-               }
-           }
+        var tests = [
+        {
+        'description': 'Basic test (valid)',
+        'params': {
+            'id': '2001'
+            },
+            'res': 204
+        }, {
+            'description': 'Earlier removed blob',
+            'params': {
+                'id': '2001'
+            },
+            'res': 'request.content.missing'
+        }, {
+            'description': 'Not existing',
+            'params': {
+                'id': '9999'
+            },
+            'res': 'request.content.missing'
+        }
         ];
 
-        describe('-valid queries (should respond with 204)', function () {
-            _.forEach(testsValid, function (value) {
-                it(value.description, function (done) {
-                    var req = httpMocks.createRequest({
-                        method: 'DELETE',
-                        url: '/blobs/' + value.params.id,
-                        params: value.params,
-                    });
-
-                    var res = httpMocks.createResponse({
-                        eventEmitter: require('events').EventEmitter
-                    });
-
-                    blobs.deleteBlobById(req, res);
-
-                    res.on('end', function () {
-                        try {
-                            var data = res._getData();
-                            res.statusCode.should.equal(204);
-                            data.should.be.an('string');
-                            data.should.equal('The blob was removed');
-                            //Should check this from DB
-                            done();
-                        } catch (e) {
-                            done(e);
-                        }
-                    });
-
+        _.forEach(tests, function (value) {
+            it(value.description, function (done) {
+                var req = httpMocks.createRequest({
+                    method: 'DELETE',
+                    url: '/blobs/',
+                    params: value.params,
                 });
-            });
-        });
 
-        var testsInvalid = [
-            {
-                'description': 'Earlier removed blob',
-                'params': {
-                    'id': 2001
-                }
-            }, {
-                'description': 'Not existing',
-                'params': {
-                    'id': 9999
-                }
-            }
-        ];
+                var res = httpMocks.createResponse({
+                    eventEmitter: require('events').EventEmitter
+                });
 
-        describe('-invalid queries', function () {
-            _.forEach(testsInvalid, function (value) {
-                it(value.description, function (done) {
-                    var req = httpMocks.createRequest({
-                        method: 'DELETE',
-                        url: '/blobs/' + value.params.id,
-                        params: value.params,
-                    });
+                blobs.deleteBlobById(req, res, function (err) {
+                    try {
+                        err.type.should.be.equal(value.res);
+                        done();
+                    } catch (e) {
+                        done(e);
+                    }
+                });
 
-                    var res = httpMocks.createResponse({
-                        eventEmitter: require('events').EventEmitter
-                    });
-
-                    blobs.deleteBlobById(req, res);
-
-                    res.on('end', function () {
-                        try {
-                            var data = res._getData();
-
-                            res.statusCode.should.equal(404);
-                            data.should.be.an('string');
-                            data.should.equal('Content not found');
-
-                            done();
-                        } catch (e) {
-                            done(e);
-                        }
-                    });
+                res.on('end', function () {
+                    try {
+                        res.statusCode.should.equal(value.res);
+                        done();
+                    } catch (e) {
+                        done(e);
+                    }
                 });
             });
         });
@@ -932,89 +777,59 @@ describe('Blob services', function () {
     // Start: GET /blobs/{id}/content //
     describe('#GET /blobs/{id}/content', function () {
 
-        var testsValid = [
-           {
-               'description': 'Basic test',
-               'params': {
-                   'id': 2002
-               }
-           }
+        var tests = [
+        {
+            'description': 'Basic test (valid)',
+            'params': {
+                'id': '2002'
+            },
+            'res': 200
+        },{
+            'description': 'Earlier removed blob',
+            'params': {
+                'id': '2001'
+            },
+            'res': 'request.content.missing'
+        }, {
+            'description': 'Not existing',
+            'params': {
+                'id': '9999'
+            },
+            'res': 'request.content.missing'
+        }
         ];
 
-        describe('-valid queries (should respond with 204)', function () {
-            _.forEach(testsValid, function (value) {
-                it(value.description, function (done) {
-                    var req = httpMocks.createRequest({
-                        method: 'GET',
-                        url: '/blobs/' + value.params.id + '/content',
-                        params: value.params,
-                    });
-
-                    var res = httpMocks.createResponse({
-                        eventEmitter: require('events').EventEmitter
-                    });
-
-                    blobs.getBlobByIdContent(req, res);
-
-                    res.on('end', function () {
-                        try {
-                            var data = res._getData();
-                            res.statusCode.should.equal(200);
-                            data.should.be.an('object');
-                            done();
-                        } catch (e) {
-                            done(e);
-                        }
-                    });
-
+        _.forEach(tests, function (value) {
+            it(value.description, function (done) {
+                var req = httpMocks.createRequest({
+                    method: 'GET',
+                    url: '/blobs/' + value.params.id + '/content',
+                    params: value.params,
                 });
-            });
-        });
 
-
-        var testsInvalid = [
-            {
-                'description': 'Earlier removed blob',
-                'params': {
-                    'id': 2001
-                }
-            }, {
-                'description': 'Not existing',
-                'params': {
-                    'id': 9999
-                }
-            }
-        ];
-
-        describe('-invalid queries', function () {
-            _.forEach(testsInvalid, function (value) {
-                it(value.description, function (done) {
-                    var req = httpMocks.createRequest({
-                        method: 'GET',
-                        url: '/blobs/' + value.params.id + '/content',
-                        params: value.params,
-                    });
-
-                    var res = httpMocks.createResponse({
-                        eventEmitter: require('events').EventEmitter
-                    });
-
-                    blobs.getBlobByIdContent(req, res);
-
-                    res.on('end', function () {
-                        try {
-                            var data = res._getData();
-
-                            res.statusCode.should.equal(404);
-                            data.should.be.an('string');
-                            data.should.equal('Content not found');
-
-                            done();
-                        } catch (e) {
-                            done(e);
-                        }
-                    });
+                var res = httpMocks.createResponse({
+                    eventEmitter: require('events').EventEmitter
                 });
+
+                blobs.getBlobByIdContent(req, res, function (err) {
+                    try {
+                        err.type.should.be.equal(value.res);
+                        done();
+                    } catch (e) {
+                        done(e);
+                    }
+                });
+
+                res.on('end', function () {
+                    try {
+                        var data = res._getData();
+                        res.statusCode.should.equal(value.res);
+                        done();
+                    } catch (e) {
+                        done(e);
+                    }
+                });
+
             });
         });
     });
@@ -1026,89 +841,59 @@ describe('Blob services', function () {
     //The blob content is removed. If blob state is PENDING_TRANSFORMATION it is set to ABORTED
     describe('#DELETE /blobs/{id}/content', function () {
 
-        var testsValid = [
-           {
-               'description': 'Basic test',
-               'params': {
-                   'id': 2002
-               }
-           }
+        var tests = [
+        {
+            'description': 'Basic test (valid)',
+            'params': {
+                'id': '2002'
+            },
+            'res' : 204
+        },{
+            'description': 'Earlier removed blob',
+            'params': {
+                'id': '2002'
+            },
+            'res' : 'request.content.missing'
+        }, {
+            'description': 'Not existing',
+            'params': {
+                'id': '9999'
+            },
+            'res' : 'request.content.missing'
+        }
         ];
 
-        describe('-valid queries (should respond with 204)', function () {
-            _.forEach(testsValid, function (value) {
-                it(value.description, function (done) {
-                    var req = httpMocks.createRequest({
-                        method: 'DELETE',
-                        url: '/blobs/' + value.params.id + '/content',
-                        params: value.params,
-                    });
-
-                    var res = httpMocks.createResponse({
-                        eventEmitter: require('events').EventEmitter
-                    });
-
-                    blobs.deleteBlobByIdContent(req, res);
-
-                    res.on('end', function () {
-                        try {
-                            var data = res._getData();
-                            res.statusCode.should.equal(204);
-                            data.should.be.an('string');
-                            data.should.equal('The content was removed');
-                            done();
-                        } catch (e) {
-                            done(e);
-                        }
-                    });
-
+        _.forEach(tests, function (value) {
+            it(value.description, function (done) {
+                var req = httpMocks.createRequest({
+                    method: 'DELETE',
+                    url: '/blobs/' + value.params.id + '/content',
+                    params: value.params,
                 });
-            });
-        });
 
+                var res = httpMocks.createResponse({
+                    eventEmitter: require('events').EventEmitter
+                });
 
-        var testsInvalid = [
-            {
-                'description': 'Earlier removed blob',
-                'params': {
-                    'id': 2002
-                }
-            }, {
-                'description': 'Not existing',
-                'params': {
-                    'id': 9999
-                }
-            }
-        ];
+                blobs.deleteBlobByIdContent(req, res, function (err) {
+                    try {
+                        err.type.should.be.equal(value.res);
+                        done();
+                    } catch (e) {
+                        done(e);
+                    }
+                });
 
-        describe('-invalid queries', function () {
-            _.forEach(testsInvalid, function (value) {
-                it(value.description, function (done) {
-                    var req = httpMocks.createRequest({
-                        method: 'GET',
-                        url: '/blobs/' + value.params.id + '/content',
-                        params: value.params,
-                    });
-
-                    var res = httpMocks.createResponse({
-                        eventEmitter: require('events').EventEmitter
-                    });
-
-                    blobs.deleteBlobByIdContent(req, res);
-
-                    res.on('end', function () {
-                        try {
-                            var data = res._getData();
-
-                            res.statusCode.should.equal(404);
-                            data.should.be.an('string');
-                            data.should.equal('Content not found');
-
-                            done();
-                        } catch (e) {
-                            done(e);
-                        }
-                    });
+                res.on('end', function () {
+                    try {
+                        var data = res._getData();
+                        res.statusCode.should.equal(204);
+                        data.should.be.an('string');
+                        data.should.equal('The content was removed');
+                        done();
+                    } catch (e) {
+                        done(e);
+                    }
                 });
             });
         });
@@ -1122,7 +907,7 @@ describe('Blob services', function () {
 ////////////////////////////////////////////////////////
 describe('Profile services', function () {
 
-    ///////////////////////////////
+    /////////////////////////////////
     // Start: PUT /profiles/{name} //
     describe('#PUT /profiles/{name}', function () {
 
@@ -1208,8 +993,7 @@ describe('Profile services', function () {
                     'name':2202
                 },
                 'status': 422,
-                'response': 'Invalid syntax',
-                'res': 'request.mismatch.id'
+                'res': 'entity.not.object'
             }
             /*,
             //This test is disabled for the moment since
@@ -1302,7 +1086,7 @@ describe('Profile services', function () {
                 'name': 9999,
             },
             'status': 404,
-            'response': 'Invalid syntax'
+            'res': 'request.content.missing'
         }];
 
         describe('-invalid queries (should respond with 4**)', function () {
@@ -1319,20 +1103,14 @@ describe('Profile services', function () {
                         eventEmitter: require('events').EventEmitter
                     });
 
-                    profiles.getProfileByName(req, res);
-
-                    res.on('end', function () {
+                    profiles.getProfileByName(req, res, function (err) {
                         try {
-                            var data = res._getData();
-                            res.statusCode.should.equal(value.status);
-                            data.should.be.an('string');
-                            data.should.equal('The profile does not exist');
+                            err.type.should.be.equal(value.res);
                             done();
                         } catch (e) {
                             done(e);
                         }
                     });
-
                 });
             });
         });

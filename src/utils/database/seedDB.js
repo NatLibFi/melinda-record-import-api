@@ -31,10 +31,10 @@
 'use strict';
 
 import {configurationGeneral as config} from '@natlibfi/melinda-record-import-commons';
+const logs = config.logs;
 
 var mongoose = require('mongoose');
-
-var logs = config.logs;
+const chunks = require('./chunks');
 
 mongoose.models.BlobMetadata.remove(function () {
     mongoose.models.BlobMetadata.create({
@@ -67,44 +67,116 @@ mongoose.models.BlobMetadata.remove(function () {
     });
 });
 
-mongoose.models.BlobContent.remove(function () {
-    mongoose.models.BlobContent.create({
-        id: '1101',
-        MetaDataID: '1001',
-        data: {
-            datafield1: 'single data',
-            datafield2: 'single data 1'
-        }
-    }, {
-        id: '1102',
-        MetaDataID: '1002',
-        data: {
-            datafield1: 'data 1',
-            datafield2: 'data 2'
-        }
-    }, {
-        id: '1103',
-        MetaDataID: '1003',
-        data: {
-            datafield1: 'data 1',
-            datafield2: 'data 2'
-        }
-    }, {
-        id: '1104',
-        MetaDataID: '1004',
-        data: {
-            datafield1: 'data 1',
-            datafield2: 'data 2'
-        }
-    }, {
-        id: '1105',
-        MetaDataID: '1005',
-        data: {
-            datafield1: 'data 1',
-            datafield2: 'data 2'
-        }
-    }, function (err) {
-        if (logs) console.log('Finished populating development blobs, errors: ', err);
+mongoose.models['BlobMetaDatas.File'].remove(function () {
+    mongoose.models['BlobMetaDatas.Chunk'].remove(function () {
+        mongoose.models['BlobMetaDatas.File'].create({
+            filename : '1001', //This is metadataID
+            contentType : 'binary/octet-stream', 
+            length : 310, 
+            chunkSize : 261120, 
+            uploadDate: chunks.chunkDefDate,
+            aliases : null, 
+            metadata : null, 
+            md5 : '5b8c890af47c4dc7df19ea512005f207'
+        }, function (err, item) {
+            console.log("ID of created: ", item._id, " Errors: ", err, );
+
+            mongoose.models['BlobMetaDatas.Chunk'].create({
+                files_id: item._id,
+                n: 0,
+                data :  new Buffer(chunks.chunkDef, 'base64')
+            }, function (err, small) {
+                console.log("Chunk created for 1001, Error: ", err);
+            });
+        });
+
+        mongoose.models['BlobMetaDatas.File'].create({
+            filename : '1002', //This is metadataID
+            contentType : 'binary/octet-stream', 
+            length : 310, 
+            chunkSize : 261120, 
+            uploadDate: new Date(),
+            aliases : null, 
+            metadata : null, 
+            md5 : '5b8c890af47c4dc7df19ea512005f207'
+        }, function (err, item) {
+            console.log("ID of created: ", item._id, " Errors: ", err, );
+
+            mongoose.models['BlobMetaDatas.Chunk'].create({
+                files_id: item._id,
+                n: 0,
+                data :  new Buffer(chunks.chunkDef, 'base64')
+            }, function (err, small) {
+                console.log("Chunk created for 1002, Error: ", err);
+            });
+        });
+        
+        mongoose.models['BlobMetaDatas.File'].create({
+            filename : '1003', //This is metadataID
+            contentType : 'binary/octet-stream', 
+            length : 354020, 
+            chunkSize : 261120, 
+            uploadDate: new Date(),
+            aliases : null, 
+            metadata : null, 
+            md5 : '531c35384c3ab6913cb2f6dbd6e98253'
+        }, function (err, item) {
+            console.log("ID of created: ", item._id, " Errors: ", err, );
+
+            mongoose.models['BlobMetaDatas.Chunk'].create({
+                files_id: item._id,
+                n: 0,
+                data :  new Buffer(chunks.chunk_0, 'base64')
+            },{
+                files_id: item._id,
+                n: 1,
+                data :  new Buffer(chunks.chunk_1, 'base64')
+            }, function (err, small) {
+                console.log("Chunk created for 1003, Error: ", err);
+            });
+        });
+
+        mongoose.models['BlobMetaDatas.File'].create({
+            filename : '1004', //This is metadataID
+            contentType : 'binary/octet-stream', 
+            length : 310, 
+            chunkSize : 261120, 
+            uploadDate: chunks.chunkDefDate,
+            aliases : null, 
+            metadata : null, 
+            md5 : '5b8c890af47c4dc7df19ea512005f207'
+        }, function (err, item) {
+            console.log("ID of created: ", item._id, " Errors: ", err, );
+
+            mongoose.models['BlobMetaDatas.Chunk'].create({
+                files_id: item._id,
+                n: 0,
+                data :  new Buffer(chunks.chunkDef, 'base64')
+            }, function (err, small) {
+                console.log("Chunk created for 1004, Error: ", err);
+            });
+        });
+
+        mongoose.models['BlobMetaDatas.File'].create({
+            filename : '1005', //This is metadataID
+            contentType : 'binary/octet-stream', 
+            length : 310, 
+            chunkSize : 261120, 
+            uploadDate: chunks.chunkDefDate,
+            aliases : null, 
+            metadata : null, 
+            md5 : '5b8c890af47c4dc7df19ea512005f207'
+        }, function (err, item) {
+            console.log("ID of created: ", item._id, " Errors: ", err, );
+
+            mongoose.models['BlobMetaDatas.Chunk'].create({
+                files_id: item._id,
+                n: 0,
+                data :  new Buffer(chunks.chunkDef, 'base64')
+            }, function (err, small) {
+                console.log("Chunks created for 1005, Error: ", err);
+            });
+        });
     });
 });
 

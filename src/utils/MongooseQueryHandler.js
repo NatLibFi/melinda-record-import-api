@@ -30,15 +30,15 @@
 
 import {configurationGeneral as config} from '@natlibfi/melinda-record-import-commons';
 
-var serverErrors = require('./ServerErrors'),
-    _ = require('lodash');
-
+const serverErrors = require('./ServerErrors'),
+      _ = require('lodash');
 
 module.exports = {
-    findOne: function (findResults, res, notFound) {
+    findOne: function (findResults, res, next, notFound) {
         switch (findResults.length) {
-            case 0:
-                return res.status(config.httpCodes.NotFound).send(notFound || 'Could not find any documents matching the query.');
+            case 0:{
+                return next(serverErrors.getMissingContentError(notFound));
+            }
             case 1: {
                 var result = findResults[0].toJSON();
                 delete result._id;
@@ -54,7 +54,7 @@ module.exports = {
     findOneProfile: function (findResults, resolve, reject) {
         switch (findResults.length) {
             case 0: {
-                return reject(serverErrors.getMissingProfileError());
+                return resolve(null); //Item not found, no profile used
             }
             case 1: {
                 return resolve(findResults[0].toJSON().profile);
@@ -85,11 +85,11 @@ module.exports = {
         }); _
         return res.status(config.httpCodes.OK).send(findResults);
     },
-    updateOne: function (result, res, notFound) {
+    updateOne: function (result, res, next, notFound) {
         if (result) {
             return res.status(config.httpCodes.Updated).send('The metadata was updated');
         } else {
-            return res.status(config.httpCodes.NotFound).send(notFound || 'Data not found');
+            return next(serverErrors.getMissingContentError(notFound || 'Data not found'));
         }
     },
     returnUUID: function (findResults, res) {
@@ -99,11 +99,11 @@ module.exports = {
         });
         return res.status(config.httpCodes.OK).send(results);
     },
-    removeOne: function (obj, res, whatWasRemoved) {
+    removeOne: function (obj, res, next, whatWasRemoved) {
         if (obj) {
             return res.status(config.httpCodes.NoContent).send(whatWasRemoved);
         } else {
-            return res.status(config.httpCodes.NotFound).send('Content not found');
+            return next(serverErrors.getMissingContentError('Content not found'));
         }
     },
     invalidQuery: function (res) {

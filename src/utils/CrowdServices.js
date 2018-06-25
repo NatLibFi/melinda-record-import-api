@@ -92,6 +92,11 @@ module.exports.authenticateUserSSO = function () {
 // 2. Check what profiles user is trying to use 
 // 3. Check if user has rights to those profiles by checking users groups in crowd
 module.exports.ensureAuthenticated = function (req, res, next) {
+    if(!config.requireAuthentication){ //Authentication can be skipped via environment variable REQ_AUTH = false
+        if (logs) console.log("REQ_AUTH set to : ", process.env.REQ_AUTH, " hence requireAuthentication : ", config.requireAuthentication, " -> Skipping authentication");
+        return next(); //User can continue to EP
+    }
+
     // 1. Get Username and authenticate user with request details
     var getUsernamePromise = getUsernameAndAuthenticate(req, res, next);
     getUsernamePromise.then(function (username) {
@@ -162,7 +167,6 @@ function getUsernameAndAuthenticate(req, res, next) {
         } else {//If not all credentials try SSO token
             var authenticateUserSSOPromise = getUserCredentialsSSO(req, res, next);
             authenticateUserSSOPromise.then(function (cred) {
-
                 if (cred && cred.name) {
                     resolve(cred.name);
                 } else {

@@ -71,14 +71,14 @@ var RecordImportResult = new Schema({
     metadata: { type: Object}
 });
 
-var BlobContent = new Schema({
-    id: { type: String, required: true, unique: true },
-    MetaDataID: { type: String, required: true },
-    data: { type: Object, required: true }
-}, {
-    strict: 'throw'
-});
+var BlobContentFilesSchema = new Schema({
+    // uploadDate: {type: Date, default: Date.now}
+}, {strict: false, versionKey: false}, 'fs.files');
+
+var BlobContentChunksSchema = new Schema({
+}, {strict: false, versionKey: false}, 'fs.chunks');
 
 module.exports = mongoose.model('BlobMetadata', BlobMetadata);
+module.exports = mongoose.model('BlobMetaDatas.File', BlobContentFilesSchema);
+module.exports = mongoose.model('BlobMetaDatas.Chunk', BlobContentChunksSchema);
 module.exports = mongoose.model('RecordImportResult', RecordImportResult);
-module.exports = mongoose.model('BlobContent', BlobContent);

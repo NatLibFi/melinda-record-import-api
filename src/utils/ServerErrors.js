@@ -29,15 +29,10 @@
 /* eslint-disable no-unused-vars */
 import {configurationGeneral as config} from '@natlibfi/melinda-record-import-commons';
 
-module.exports.getMalformedError = function () {
+module.exports.getMalformedError = function (message) {
     var err = new Error('Malformed content');
     err.type = config.enums.errorTypes.notObject;
-    return err;
-}
-
-module.exports.getInvalidError = function () {
-    var err = new Error('Invalid syntax');
-    err.type = config.enums.errorTypes.invalidSyntax;
+    err.message = message;
     return err;
 }
 
@@ -53,9 +48,23 @@ module.exports.getForbiddenError = function () {
     return err;
 }
 
+module.exports.getBadRequestError = function (message) {
+    var err = new Error('Unknown bad request');
+    err.type = config.enums.errorTypes.badRequest;
+    err.message = message;
+    return err;
+}
+
 module.exports.getMissingProfileError = function () {
     var err = new Error('The profile does not exist or the user is not authorized to it');
     err.type = config.enums.errorTypes.missingProfile;
+    return err;
+}
+
+module.exports.getMissingContentError = function (message) {
+    var err = new Error(message || 'Content not found');
+    err.type = config.enums.errorTypes.missingContent;
+    err.message = message;
     return err;
 }
 
@@ -65,10 +74,22 @@ module.exports.getMissingContentTypeError = function () {
     return err;
 }
 
-module.exports.getValidationError = function (data) {
+module.exports.getRequestBodyLargeError = function () {
+    var err = new Error('Request body is too large');
+    err.type = config.enums.errorTypes.bodyTooLarge;
+    return err;
+}
+
+module.exports.getValidationError = function (message) {
     var err = new Error('Validation error');
     err.type = config.enums.errorTypes.validation;
-    err.data = data;
+    err.message = message;
+    return err;
+}
+
+module.exports.getIDConflictError = function () {
+    var err = new Error('IDs do not match');
+    err.type = config.enums.errorTypes.idConflict;
     return err;
 }
 

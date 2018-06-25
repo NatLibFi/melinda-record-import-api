@@ -30,23 +30,22 @@
 
 import {configurationGeneral as config} from '@natlibfi/melinda-record-import-commons';
 
-module.exports = function (reason, res) {
+const serverErrors = require('./ServerErrors');
+
+module.exports = function (reason, res, next) {
     switch (reason.name) {
         case 'StrictModeError': {
-            res.status(config.httpCodes.ValidationError).send('Invalid syntax');
-            return;
+            return next(serverErrors.getValidationError());
         }
         case 'ValidationError':
-            res.status(config.httpCodes.ValidationError).json('Unknown validation error');
+            return next(serverErrors.getValidationError('Unknown validation error'));
         case 'MongoError': {
             if (reason.code && reason.code === 11000) {
-                res.status(config.httpCodes.Conflict).send('Unknown mongo error: ' + reason.name);
-                return;
+                return next(serverErrors.getUnknownError('Unknown mongo error: ' + reason.name));
             }
         }
         default: {
-            res.status(config.httpCodes.BadRequest).send('Unknown error: ' + reason.name);
-            return;
+            return next(serverErrors.getBadRequestError('Unknown error: ' + reason.name));
         }
     }
 

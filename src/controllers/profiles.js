@@ -35,7 +35,6 @@ import {configurationGeneral as config} from '@natlibfi/melinda-record-import-co
 var mongoose = require('mongoose'),
     logs = config.logs,
     serverErrors = require('../utils/ServerErrors'),
-    utils = require('../utils/ServerUtils'),
     MongoErrorHandler = require('../utils/MongooseErrorHandler'),
     queryHandler = require('../utils/MongooseQueryHandler');
 
@@ -53,10 +52,14 @@ module.exports.upsertProfileByName = function (req, res, next) {
         return next(serverErrors.getMalformedError());
     }
 
-    try {
-        utils.ensureMatchingNames(req, res);
-    } catch (e) {
-        return next(e);
+    //Ensure that name is in body if it's not there already
+    if (!req.body.name && req.params.name) {
+        req.body.name = req.params.name;
+    }
+
+    //Check that param name and body name matches
+    if (req.params.name && req.body.name !== req.params.name) {
+        return next(serverErrors.getMalformedError('Names not matching'));
     }
 
     try {
@@ -85,6 +88,6 @@ module.exports.getProfileByName = function (req, res, next) {
 
     mongoose.models.Profile.where('name', req.params.name)
         .exec()
-        .then((documents) => queryHandler.findOne(documents, res, 'The profile does not exist'))
+        .then((documents) => queryHandler.findOne(documents, res, next, 'The profile does not exist'))
         .catch((reason) => MongoErrorHandler(reason, res, next));
 };
