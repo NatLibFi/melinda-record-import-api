@@ -1,6 +1,6 @@
 /**
 *
-* @licstart  The following is the entire license notice for the JavaScript code in this file. 
+* @licstart  The following is the entire license notice for the JavaScript code in this file.
 *
 * API microservice of Melinda record batch import system
 *
@@ -26,76 +26,75 @@
 *
 */
 
-/* eslint-disable no-unused-vars */
 import {configurationGeneral as config} from '@natlibfi/melinda-record-import-commons';
 
 module.exports.getMalformedError = function (message) {
-    var err = new Error('Malformed content');
-    err.type = config.enums.errorTypes.notObject;
-    err.message = message;
-    return err;
-}
+	const err = new Error('Malformed content');
+	err.type = config.enums.errorTypes.notObject;
+	err.message = message;
+	return err;
+};
 
 module.exports.getUnauthorizedError = function () {
-    var err = new Error('Authentication failed');
-    err.type = config.enums.errorTypes.unauthorized;
-    return err;
-}
+	const err = new Error('Authentication failed');
+	err.type = config.enums.errorTypes.unauthorized;
+	return err;
+};
 
 module.exports.getForbiddenError = function () {
-    var err = new Error('Not authorized');
-    err.type = config.enums.errorTypes.forbidden;
-    return err;
-}
+	const err = new Error('Not authorized');
+	err.type = config.enums.errorTypes.forbidden;
+	return err;
+};
 
 module.exports.getBadRequestError = function (message) {
-    var err = new Error('Unknown bad request');
-    err.type = config.enums.errorTypes.badRequest;
-    err.message = message;
-    return err;
-}
+	const err = new Error('Unknown bad request');
+	err.type = config.enums.errorTypes.badRequest;
+	err.message = message;
+	return err;
+};
 
 module.exports.getMissingProfileError = function () {
-    var err = new Error('The profile does not exist or the user is not authorized to it');
-    err.type = config.enums.errorTypes.missingProfile;
-    return err;
-}
+	const err = new Error('The profile does not exist or the user is not authorized to it');
+	err.type = config.enums.errorTypes.missingProfile;
+	return err;
+};
 
 module.exports.getMissingContentError = function (message) {
-    var err = new Error(message || 'Content not found');
-    err.type = config.enums.errorTypes.missingContent;
-    err.message = message;
-    return err;
-}
+	const err = new Error(message || 'Content not found');
+	err.type = config.enums.errorTypes.missingContent;
+	err.message = message;
+	return err;
+};
 
 module.exports.getMissingContentTypeError = function () {
-    var err = new Error('Content type was not specified');
-    err.type = config.enums.errorTypes.missingContentType;
-    return err;
-}
+	const err = new Error('Content type was not specified');
+	err.type = config.enums.errorTypes.missingContentType;
+	return err;
+};
 
 module.exports.getRequestBodyLargeError = function () {
-    var err = new Error('Request body is too large');
-    err.type = config.enums.errorTypes.bodyTooLarge;
-    return err;
-}
+	const err = new Error('Request body is too large');
+	err.type = config.enums.errorTypes.bodyTooLarge;
+	return err;
+};
 
 module.exports.getValidationError = function (message) {
-    var err = new Error('Validation error');
-    err.type = config.enums.errorTypes.validation;
-    err.message = message;
-    return err;
-}
+	const err = new Error('Validation error');
+	err.type = config.enums.errorTypes.validation;
+	err.message = message;
+	return err;
+};
 
 module.exports.getIDConflictError = function () {
-    var err = new Error('IDs do not match');
-    err.type = config.enums.errorTypes.idConflict;
-    return err;
-}
+	const err = new Error('IDs do not match');
+	err.type = config.enums.errorTypes.idConflict;
+	return err;
+};
 
 module.exports.getUnknownError = function (description, data) {
-    var err = new Error(description);
-    err.type = config.enums.errorTypes.unknown;
-    err.data = data;
-    return err;
-}
+	const err = new Error(description);
+	err.type = config.enums.errorTypes.unknown;
+	err.data = data;
+	return err;
+};

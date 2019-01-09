@@ -1,6 +1,6 @@
 /**
 *
-* @licstart  The following is the entire license notice for the JavaScript code in this file. 
+* @licstart  The following is the entire license notice for the JavaScript code in this file.
 *
 * API microservice of Melinda record batch import system
 *
@@ -32,50 +32,51 @@
 
 import {configurationGeneral as config} from '@natlibfi/melinda-record-import-commons';
 
-var mongoose = require('mongoose'),
-    Schema = mongoose.Schema,
-    _ = require('lodash');
+const mongoose = require('mongoose');
 
-var BlobMetadata = new Schema({
-    id: { type: String, required: true, unique: true },
-    profile: { type: String, required: true },
-    contentType: { type: String, required: true },
-    state: {
-        type: String,
-        enum: _.values(config.enums.blobStates), //Defined in enums
-        default: config.enums.blobStates.pending
-    },
-    creationTime: { type: Date, default: Date.now },
-    modificationTime: { type: Date, default: Date.now },
-    processingInfo: {
-        transformationError: { type: Object, default: null },
-        numberOfRecords: { type: Number, default: null },
-        importResults: [{
-            type: String //Array of RecordImportResults UUID's
-        }]
-    }
+const Schema = mongoose.Schema;
+const _ = require('lodash');
+
+const BlobMetadata = new Schema({
+	id: {type: String, required: true, unique: true},
+	profile: {type: String, required: true},
+	contentType: {type: String, required: true},
+	state: {
+		type: String,
+		enum: _.values(config.enums.blobStates), // Defined in enums
+		default: config.enums.blobStates.pending
+	},
+	creationTime: {type: Date, default: Date.now},
+	modificationTime: {type: Date, default: Date.now},
+	processingInfo: {
+		transformationError: {type: Object, default: null},
+		numberOfRecords: {type: Number, default: null},
+		importResults: [{
+			type: String // Array of RecordImportResults UUID's
+		}]
+	}
 }, {
-    strict: 'throw'
+	strict: 'throw'
 });
 
-var RecordImportResult = new Schema({
-    id: { type: String, required: true, unique: true },
-    status: {
-        type: String,
-        enum: _.values(config.enums.recodImportStatuses),
-        required: true
-    },
-    id: [{
-        type: String
-    }],
-    metadata: { type: Object}
+const RecordImportResult = new Schema({
+	id: {type: String, required: true, unique: true},
+	status: {
+		type: String,
+		enum: _.values(config.enums.recodImportStatuses),
+		required: true
+	},
+	ids: [{
+		type: String
+	}],
+	metadata: {type: Object}
 });
 
-var BlobContentFilesSchema = new Schema({
-    // uploadDate: {type: Date, default: Date.now}
+const BlobContentFilesSchema = new Schema({
+    // UploadDate: {type: Date, default: Date.now}
 }, {strict: false, versionKey: false}, 'fs.files');
 
-var BlobContentChunksSchema = new Schema({
+const BlobContentChunksSchema = new Schema({
 }, {strict: false, versionKey: false}, 'fs.chunks');
 
 module.exports = mongoose.model('BlobMetadata', BlobMetadata);

@@ -1,6 +1,6 @@
 /**
 *
-* @licstart  The following is the entire license notice for the JavaScript code in this file. 
+* @licstart  The following is the entire license notice for the JavaScript code in this file.
 *
 * API microservice of Melinda record batch import system
 *
@@ -26,56 +26,58 @@
 *
 */
 
-/* eslint-disable no-unused-vars */
-
 'use strict';
 
 import {configurationGeneral as config} from '@natlibfi/melinda-record-import-commons';
 
-var mongoose = require('mongoose'),
-    logs = config.logs,
-    serverErrors = require('../utils/ServerErrors'),
-    MongoErrorHandler = require('../utils/MongooseErrorHandler'),
-    queryHandler = require('../utils/MongooseQueryHandler');
+const mongoose = require('mongoose');
+
+const serverErrors = require('../utils/server-errors');
+const mongoErrorHandler = require('../utils/mongoose-error-handler');
+const queryHandler = require('../utils/mongoose-query-handler');
+
+const logs = config.logs;
 
 /**
  * Create or update a profile
- * 
+ *
  * body object  (optional)
  * no response value expected for this operation
 */
 module.exports.upsertProfileByName = function (req, res, next) {
-    if (logs) console.log('-------------- Upsert profile --------------');
-    if (logs) console.log(req.body);
+	if (logs) {
+		console.log('-------------- Upsert profile --------------');
+		console.log(req.body);
+	}
 
-    if (typeof (req.body) !== 'object') {
-        return next(serverErrors.getMalformedError());
-    }
+	if (typeof (req.body) !== 'object') {
+		return next(serverErrors.getMalformedError());
+	}
 
-    //Ensure that name is in body if it's not there already
-    if (!req.body.name && req.params.name) {
-        req.body.name = req.params.name;
-    }
+    // Ensure that name is in body if it's not there already
+	if (!req.body.name && req.params.name) {
+		req.body.name = req.params.name;
+	}
 
-    //Check that param name and body name matches
-    if (req.params.name && req.body.name !== req.params.name) {
-        return next(serverErrors.getMalformedError('Names not matching'));
-    }
+    // Check that param name and body name matches
+	if (req.params.name && req.body.name !== req.params.name) {
+		return next(serverErrors.getMalformedError('Names not matching'));
+	}
 
-    try {
-        var profile = Object.assign({}, req.body);
-    } catch (e) {
-        return next(serverErrors.getMalformedError());
-    }
+	let profile = null;
+	try {
+		profile = Object.assign({}, req.body);
+	} catch (err) {
+		return next(serverErrors.getMalformedError());
+	}
 
-    mongoose.models.Profile.findOneAndUpdate(
-        { name: profile.name },
+	mongoose.models.Profile.findOneAndUpdate(
+        {name: profile.name},
         profile,
-        { new: true, upsert: true, runValidators: true, rawResult: true }
-        ).then((result) => queryHandler.upsertObject(result.lastErrorObject.updatedExisting, res))
-        .catch((reason) => MongoErrorHandler(reason, res, next));
+        {new: true, upsert: true, runValidators: true, rawResult: true}
+        ).then(result => queryHandler.upsertObject(result.lastErrorObject.updatedExisting, res))
+        .catch(err => mongoErrorHandler(err, res, next));
 };
-
 
 /**
  * Retrieve a profile
@@ -83,11 +85,13 @@ module.exports.upsertProfileByName = function (req, res, next) {
  * returns Profile
 */
 module.exports.getProfileByName = function (req, res, next) {
-    if (logs) console.log('-------------- Get profile --------------');
-    if (logs) console.log(req.params.id);
+	if (logs) {
+		console.log('-------------- Get profile --------------');
+		console.log(req.params.id);
+	}
 
-    mongoose.models.Profile.where('name', req.params.name)
+	mongoose.models.Profile.where('name', req.params.name)
         .exec()
-        .then((documents) => queryHandler.findOne(documents, res, next, 'The profile does not exist'))
-        .catch((reason) => MongoErrorHandler(reason, res, next));
+        .then(documents => queryHandler.findOne(documents, res, next, 'The profile does not exist'))
+        .catch(err => mongoErrorHandler(err, res, next));
 };

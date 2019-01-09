@@ -1,6 +1,6 @@
 /**
 *
-* @licstart  The following is the entire license notice for the JavaScript code in this file. 
+* @licstart  The following is the entire license notice for the JavaScript code in this file.
 *
 * API microservice of Melinda record batch import system
 *
@@ -26,93 +26,94 @@
 *
 */
 
-/* eslint-disable no-unused-vars */
-
 'use strict';
 
-import { configurationGeneral as config } from '@natlibfi/melinda-record-import-commons';
+import {configurationGeneral as config} from '@natlibfi/melinda-record-import-commons';
 
-var mongoose = require('mongoose'),
-    connection = mongoose.connection,
-    gridfs = require('gridfs-stream'),
-    gfs = gridfs(connection.db),
-    logs = config.logs,
-    serverErrors = require('../utils/ServerErrors'),
-    MongoErrorHandler = require('../utils/MongooseErrorHandler'),
-    queryHandler = require('../utils/MongooseQueryHandler'),
-    moment = require('moment'),
-    uuid = require('uuid'),
-    _ = require('lodash');
+const mongoose = require('mongoose');
+const gridfs = require('gridfs-stream');
+const moment = require('moment');
+const uuid = require('uuid');
+const _ = require('lodash');
 
-const allowedQueryFields = ['profile', 'contentType', 'state', 'creationTime', 'modificationTime']
+const serverErrors = require('../utils/server-errors');
+const mongoErrorHandler = require('../utils/mongoose-error-handler');
+const queryHandler = require('../utils/mongoose-query-handler');
+
+const gfs = gridfs(mongoose.connection.db);
+const logs = config.logs;
+const allowedQueryFields = ['profile', 'contentType', 'state', 'creationTime', 'modificationTime'];
 
 /**
  * Create a new blob
- * 
+ *
  * Import-Profile string Name of the import profile to use
  * no response value expected for this operation
 */
 module.exports.postBlob = function (req, res, next) {
-    if (logs) console.log('-------------- Post blob --------------');
-    
-    //Check mandarory variables (http turns those to lowercase)
-    if (!req.headers['content-type']) {
-        return next(serverErrors.getMissingContentTypeError());
-    }
+	if (logs) {
+		console.log('-------------- Post blob --------------');
+	}
 
-    if (!req.headers['import-profile']) {
-        return next(serverErrors.getMissingProfileError());
-    } else {
-        mongoose.models.Profile.where('name', req.headers['import-profile'])
-            .exec()
-            .then((documents) => {
-                if (documents.length === 1) {
-                    saveBlob(); //All is good, save.
-                } else {
-                    return next(serverErrors.getMissingProfileError());
-                }
-            })
-            .catch((reason) => MongoErrorHandler(reason, res, next));
-    }
+	// Check mandarory variables (http turns those to lowercase)
+	if (!req.headers['content-type']) {
+		return next(serverErrors.getMissingContentTypeError());
+	}
 
-    if(!req.headers['content-length'] || req.headers['content-length'] > config.contentMaxLength){
-        return next(serverErrors.getRequestBodyLargeError());
-    }
+	if (!req.headers['import-profile']) {
+		return next(serverErrors.getMissingProfileError());
+	}
+	mongoose.models.Profile.where('name', req.headers['import-profile'])
+		.exec()
+		.then(documents => {
+			if (documents.length === 1) {
+				saveBlob(); // All is good, save.
+			} else {
+				return next(serverErrors.getMissingProfileError());
+			}
+		}).catch(err => mongoErrorHandler(err, res, next));
 
-    //Do actual saving
-    function saveBlob() {
-        var newBlobMetadata = new mongoose.models.BlobMetadata({});
-        newBlobMetadata.id = uuid.v4()
-        newBlobMetadata.profile = req.headers['import-profile'];
-        newBlobMetadata.contentType = req.headers['content-type'];
-        newBlobMetadata.state = config.enums.blobStates.pending;
-        newBlobMetadata.creationTime = moment(); //Use this if you want datetime to be formated etc, otherwise mongoose appends creation and modificationTime
+	if ((!req.headers['content-length'] || config.contentMaxLength > 0) && req.headers['content-length'] > config.contentMaxLength) {
+		return next(serverErrors.getRequestBodyLargeError());
+	}
 
-        newBlobMetadata.save(function (err, result) {
-            if (err) {
-                return next(serverErrors.getValidationError());
-            }
+	// Do actual saving
+	function saveBlob() {
+		const newBlobMetadata = new mongoose.models.BlobMetadata({});
+		newBlobMetadata.id = uuid.v4();
+		newBlobMetadata.profile = req.headers['import-profile'];
+		newBlobMetadata.contentType = req.headers['content-type'];
+		newBlobMetadata.state = config.enums.blobStates.pending;
+		newBlobMetadata.creationTime = moment(); // Use this if you want datetime to be formated etc, otherwise mongoose appends creation and modificationTime
 
-            var options = {
-                root: 'blobmetadatas',
-                filename: result.id
-            };
-            var writestream = gfs.createWriteStream(options);
+		newBlobMetadata.save((err, result) => {
+			if (err) {
+				return next(serverErrors.getValidationError());
+			}
 
-            req.on('error', (err) => {
-                return next(serverErrors.getUnknownError(err));
-            }).on('data', (chunk) => {
-                if (logs)console.log(moment(), ' Chunk: ', chunk);
-                writestream.write(chunk);
-            }).on('end', () => {
-                writestream.end();
-                if (logs)console.log("Finished writing blob with id: ", newBlobMetadata.id);
-                return res.status(config.httpCodes.OK).send('The blob was succesfully created. State is set to ' + newBlobMetadata.state)
-            });
-        });
-    }
+			const options = {
+				root: 'blobmetadatas',
+				filename: result.id
+			};
+			const writestream = gfs.createWriteStream(options);
+
+			req.on('error', err => {
+				return next(serverErrors.getUnknownError(err));
+			}).on('data', chunk => {
+				if (logs) {
+					console.log(moment(), ' Chunk: ', chunk);
+				}
+				writestream.write(chunk);
+			}).on('end', () => {
+				writestream.end();
+				if (logs) {
+					console.log('Finished writing blob with id: ', newBlobMetadata.id);
+				}
+				return res.status(config.httpCodes.OK).send('The blob was succesfully created. State is set to ' + newBlobMetadata.state);
+			});
+		});
+	}
 };
-
 
 /**
  * Query for blobs
@@ -125,97 +126,101 @@ module.exports.postBlob = function (req, res, next) {
  * returns array
 */
 module.exports.getBlob = function (req, res, next) {
-    if (logs) console.log('-------------- Query blob --------------');
-    if (logs) console.log(req.query);
-    var query = req.query;
+	if (logs) {
+		console.log('-------------- Query blob --------------');
+		console.log(req.query);
+	}
 
-    try {
-        //Validate query fields:
-        //Allowed field
-        //No duplicates
-        _.forEach(query, function (value, key, index) {
-            if (!allowedQueryFields.includes(key) ||
-                Array.isArray(value) && !(key === 'creationTime' || key === 'modificationTime')) {
-                throw 'Invalid query field';
-            }
-        });
-    } catch (e) {
-        if (e === 'Invalid query field') {
-            return queryHandler.invalidQuery(res);
-        }
-    }
+	const query = req.query;
 
-    if (query.creationTime) {
-        if (query.creationTime.length === 2 &&
-            moment(query.creationTime[0], moment.ISO_8601).isValid() &&
-            moment(query.creationTime[1], moment.ISO_8601).isValid()) {
+	try {
+		// Validate query fields:
+		// Allowed field
+		// No duplicates
+		_.forEach(query, (value, key) => {
+			if (!allowedQueryFields.includes(key) ||
+				(Array.isArray(value) && !(key === 'creationTime' || key === 'modificationTime'))) {
+				throw new Error('Invalid query field');
+			}
+		});
+	} catch (err) {
+		if (err.message === 'Invalid query field') {
+			return queryHandler.invalidQuery(res);
+		}
+	}
 
-            query.creationTime = {
-                $gte: query.creationTime[0],
-                $lte: query.creationTime[1]
-            }
-        } else {
-            return queryHandler.invalidQuery(res);
-        }
-    }
+	if (query.creationTime) {
+		if (query.creationTime.length === 2 &&
+			moment(query.creationTime[0], moment.ISO_8601).isValid() &&
+			moment(query.creationTime[1], moment.ISO_8601).isValid()) {
+			query.creationTime = {
+				$gte: query.creationTime[0],
+				$lte: query.creationTime[1]
+			};
+		} else {
+			return queryHandler.invalidQuery(res);
+		}
+	}
 
-    if (query.modificationTime) {
-        if (query.modificationTime.length === 2 &&
-            moment(query.modificationTime[0], moment.ISO_8601).isValid() &&
-            moment(query.modificationTime[1], moment.ISO_8601).isValid()) {
-            query.modificationTime = {
-                $gte: query.modificationTime[0],
-                $lte: query.modificationTime[1]
-            }
-        } else {
-            return queryHandler.invalidQuery(res);
-        }
-    }
+	if (query.modificationTime) {
+		if (query.modificationTime.length === 2 &&
+			moment(query.modificationTime[0], moment.ISO_8601).isValid() &&
+			moment(query.modificationTime[1], moment.ISO_8601).isValid()) {
+			query.modificationTime = {
+				$gte: query.modificationTime[0],
+				$lte: query.modificationTime[1]
+			};
+		} else {
+			return queryHandler.invalidQuery(res);
+		}
+	}
 
-    mongoose.models.BlobMetadata.find(query)
-        .exec()
-        .then((documents) => queryHandler.returnUUID(documents, res))
-        .catch((reason) => MongoErrorHandler(reason, res, next));
+	mongoose.models.BlobMetadata.find(query)
+		.exec()
+		.then(documents => queryHandler.returnUUID(documents, res))
+		.catch(err => mongoErrorHandler(err, res, next));
 };
-
 
 /**
  * Retrieve blob metadata by id
- * 
+ *
  * returns BlobMetadata
 */
 module.exports.getBlobById = function (req, res, next) {
-    if (logs) console.log('-------------- Get blob by id --------------');
-    if (logs) console.log(req.params.id);
+	if (logs) {
+		console.log('-------------- Get blob by id --------------');
+		console.log(req.params.id);
+	}
 
-    mongoose.models.BlobMetadata.where('id', req.params.id)
-        .exec()
-        .then((documents) => queryHandler.findOne(documents, res, next, 'The blob does not exist'))
-        .catch((reason) => MongoErrorHandler(reason, res, next));
+	mongoose.models.BlobMetadata.where('id', req.params.id)
+		.exec()
+		.then(documents => queryHandler.findOne(documents, res, next, 'The blob does not exist'))
+		.catch(err => mongoErrorHandler(err, res, next));
 };
-
 
 /**
  * Update blob metadata
- * 
+ *
  * body object  (optional)
 */
 module.exports.postBlobById = function (req, res, next) {
-    if (logs) console.log('-------------- Update  blob by id --------------');
-    if (logs) console.log(req.params.id);
+	if (logs) {
+		console.log('-------------- Update  blob by id --------------');
+		console.log(req.params.id);
+	}
 
-    if (req.body.id && req.body.id !== req.params.id) {
-        return next(serverErrors.getIDConflictError());
-    }
+	if (req.body.id && req.body.id !== req.params.id) {
+		return next(serverErrors.getIDConflictError());
+	}
 
-    var blob = Object.assign({}, req.body);
+	const blob = Object.assign({}, req.body);
 
-    mongoose.models.BlobMetadata.findOneAndUpdate(
-        { id: req.params.id },
-        blob,
-        { new: true, upsert: false, runValidators: true }
-    ).then((result) => queryHandler.updateOne(result, res, next, 'The blob does not exist'))
-        .catch((reason) => MongoErrorHandler(reason, res, next));
+	mongoose.models.BlobMetadata.findOneAndUpdate(
+		{id: req.params.id},
+		blob,
+		{new: true, upsert: false, runValidators: true}
+	).then(result => queryHandler.updateOne(result, res, next, 'The blob does not exist'))
+		.catch(err => mongoErrorHandler(err, res, next));
 };
 
 /**
@@ -224,60 +229,62 @@ module.exports.postBlobById = function (req, res, next) {
  *
 */
 module.exports.deleteBlobById = function (req, res, next) {
-    if (logs) console.log('-------------- Remove blob by id --------------');
-    if (logs) console.log(req.params.id);
+	if (logs) {
+		console.log('-------------- Remove blob by id --------------');
+		console.log(req.params.id);
+	}
 
-    var options = {
-        root: 'blobmetadatas',
-        filename: req.params.id
-    };
+	const options = {
+		root: 'blobmetadatas',
+		filename: req.params.id
+	};
 
-    gfs.exist(options, function (err, file) {
-        if (err){
-            return next(serverErrors.getUnknownError(err));
-        }
-        else if(!file){
-            return next(serverErrors.getMissingContentError(null));
-        }else{
-            gfs.remove(options, function (errRem) {
-                if (errRem) return MongoErrorHandler(errRem, res, next);
+	gfs.exist(options, (err, file) => {
+		if (err) {
+			return next(serverErrors.getUnknownError(err));
+		} else if (!file) {
+			return next(serverErrors.getMissingContentError(null));
+		}
+		gfs.remove(options, errRem => {
+			if (errRem) {
+				return mongoErrorHandler(errRem, res, next);
+			}
 
-                //Remove metadata
-                mongoose.models.BlobMetadata.findOneAndRemove()
-                .where('id', req.params.id)
-                .exec()
-                .then((documents) => queryHandler.removeOne(documents, res, next, 'The blob was removed'))
-                .catch((reason) => MongoErrorHandler(reason, res, next));
-            });
-        }
-    });
+			// Remove metadata
+			mongoose.models.BlobMetadata.findOneAndRemove()
+				.where('id', req.params.id)
+				.exec()
+				.then(documents => queryHandler.removeOne(documents, res, next, 'The blob was removed'))
+				.catch(err => mongoErrorHandler(err, res, next));
+		});
+	});
 };
-
 
 /**
  * Retrieve blob content
  *
 */
 module.exports.getBlobByIdContent = function (req, res, next) {
-    if (logs) console.log('-------------- Get blob content by id --------------');
-    if (logs) console.log(req.params.id);
+	if (logs) {
+		console.log('-------------- Get blob content by id --------------');
+		console.log(req.params.id);
+	}
 
-    var options = {
-        root: 'blobmetadatas',
-        filename: req.params.id
-    };
+	const options = {
+		root: 'blobmetadatas',
+		filename: req.params.id
+	};
 
-    // Check file exist on MongoDB
-    gfs.exist(options, function (err, file) {
-        if (err || !file) {
-            return next(serverErrors.getMissingContentError('The blob does not exist'));
-        } else {
-            var readstream = gfs.createReadStream(options);
-            readstream.pipe(res);
-        }
-    });
+	// Check file exist on MongoDB
+	gfs.exist(options, (err, file) => {
+		if (err || !file) {
+			return next(serverErrors.getMissingContentError('The blob does not exist'));
+		}
+		const readstream = gfs.createReadStream(options);
+
+		readstream.pipe(res);
+	});
 };
-
 
 /**
  * Delete blob content
@@ -285,25 +292,27 @@ module.exports.getBlobByIdContent = function (req, res, next) {
  *
 */
 module.exports.deleteBlobByIdContent = function (req, res, next) {
-    if (logs) console.log('-------------- Remove blob content by id --------------');
-    if (logs) console.log(req.params.id);
+	if (logs) {
+		console.log('-------------- Remove blob content by id --------------');
+		console.log(req.params.id);
+	}
 
-    var options = {
-        root: 'blobmetadatas',
-        filename: req.params.id
-    };
+	const options = {
+		root: 'blobmetadatas',
+		filename: req.params.id
+	};
 
-    gfs.exist(options, function (err, file) {
-        if (err){
-            return next(serverErrors.getUnknownError(err));
-        }
-        else if(!file){
-            return next(serverErrors.getMissingContentError(null));
-        }else{
-            gfs.remove(options, function (errRem) {
-                if (errRem) return MongoErrorHandler(errRem, res, next);
-                queryHandler.removeOne(file, res, next, 'The content was removed')
-            });
-        }
-    });
+	gfs.exist(options, (err, file) => {
+		if (err) {
+			return next(serverErrors.getUnknownError(err));
+		} else if (!file) {
+			return next(serverErrors.getMissingContentError(null));
+		}
+		gfs.remove(options, errRem => {
+			if (errRem) {
+				return mongoErrorHandler(errRem, res, next);
+			}
+			queryHandler.removeOne(file, res, next, 'The content was removed');
+		});
+	});
 };

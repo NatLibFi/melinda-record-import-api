@@ -1,6 +1,6 @@
 /**
 *
-* @licstart  The following is the entire license notice for the JavaScript code in this file. 
+* @licstart  The following is the entire license notice for the JavaScript code in this file.
 *
 * API microservice of Melinda record batch import system
 *
@@ -29,16 +29,15 @@
 /* eslint-disable no-unused-vars */
 
 'use strict';
-var router = require('express').Router();
 
-//Endpoint controllers
-var blobs = require('./controllers/blobs'),
-    profiles = require('./controllers/profiles'),
-    crowd = require('./utils/CrowdServices');
+// Endpoint controllers
+const blobs = require('./controllers/blobs');
+const profiles = require('./controllers/profiles');
+const crowd = require('./utils/crowd-services');
 
-//Mongoose models
-var Blobs = require('./models/m.blobs'),
-    Profile = require('./models/m.profiles');
+// Mongoose models, required to be declared to function routes
+const Blobs = require('./models/m.blobs');
+const Profile = require('./models/m.profiles');
 
 /*
 //Swagger endpoints
@@ -54,19 +53,19 @@ DELETE /blobs/{id}/content - Delete blob content
 PUT /profiles/{id} - Create or update a profile
 GET /profiles/{id} - Retrieve a profile
 */
-exports = module.exports = function (app) {
-    //Authentication is done against Crowd and compared to profile that is going to be used
-    //If routes are updated detection of profile should also be updated at CrowdServives
-    app.all('/blobs*', crowd.ensureAuthenticated)
-    app.post('/blobs', blobs.postBlob)
-    app.get('/blobs', blobs.getBlob)
-    app.get('/blobs/:id', blobs.getBlobById)
-    app.post('/blobs/:id', blobs.postBlobById)
-    app.delete('/blobs/:id', blobs.deleteBlobById)
-    app.get('/blobs/:id/content', blobs.getBlobByIdContent)
-    app.delete('/blobs/:id/content', blobs.deleteBlobByIdContent)
+module.exports = function (app) {
+    // Authentication is done against Crowd and compared to profile that is going to be used
+    // If routes are updated detection of profile should also be updated at CrowdServives
+	app.all('/blobs*', crowd.ensureAuthenticated);
+	app.post('/blobs', blobs.postBlob);
+	app.get('/blobs', blobs.getBlob);
+	app.get('/blobs/:id', blobs.getBlobById);
+	app.post('/blobs/:id', blobs.postBlobById);
+	app.delete('/blobs/:id', blobs.deleteBlobById);
+	app.get('/blobs/:id/content', blobs.getBlobByIdContent);
+	app.delete('/blobs/:id/content', blobs.deleteBlobByIdContent);
 
-    app.all('/profiles*', crowd.ensureAuthenticated)
-    app.put('/profiles/:name', profiles.upsertProfileByName)
-    app.get('/profiles/:name', profiles.getProfileByName)
+	app.all('/profiles*', crowd.ensureAuthenticated);
+	app.put('/profiles/:name', profiles.upsertProfileByName);
+	app.get('/profiles/:name', profiles.getProfileByName);
 };

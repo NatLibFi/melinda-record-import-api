@@ -1,6 +1,6 @@
 /**
 *
-* @licstart  The following is the entire license notice for the JavaScript code in this file. 
+* @licstart  The following is the entire license notice for the JavaScript code in this file.
 *
 * API microservice of Melinda record batch import system
 *
@@ -29,27 +29,28 @@
 /* eslint-disable no-unused-vars */
 'use strict';
 
-var mongoose = require('mongoose');
-var Schema = mongoose.Schema;
+const mongoose = require('mongoose');
 
-var Profile = new Schema({
-    name: { type: String, required: true, unique: true },
-    auth:{
-        groups: [{
-            type: String
-        }]
-    },
-    transformation: {
-        abortOnInvalidRecords: { type: Boolean},
-        image: { type: String },
-        env: { type: Object}
-    },
-    'import': {
-        image: { type: String },
-        env: { type: Object }
-    }
+const Schema = mongoose.Schema;
+
+const Profile = new Schema({
+	name: {type: String, required: true, unique: true},
+	auth: {
+		groups: [{
+			type: String
+		}]
+	},
+	transformation: {
+		abortOnInvalidRecords: {type: Boolean},
+		image: {type: String},
+		env: {type: Object}
+	},
+	import: {
+		image: {type: String},
+		env: {type: Object}
+	}
 }, {
-    strict: 'throw'
+	strict: 'throw'
 });
 
 module.exports = mongoose.model('Profile', Profile);

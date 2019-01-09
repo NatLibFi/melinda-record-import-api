@@ -1,6 +1,6 @@
 /**
 *
-* @licstart  The following is the entire license notice for the JavaScript code in this file. 
+* @licstart  The following is the entire license notice for the JavaScript code in this file.
 *
 * API microservice of Melinda record batch import system
 *
@@ -26,29 +26,21 @@
 *
 */
 
-/* eslint-disable no-unused-vars */
-
-import {configurationGeneral as config} from '@natlibfi/melinda-record-import-commons';
-
-const serverErrors = require('./ServerErrors');
+const serverErrors = require('./server-errors');
 
 module.exports = function (reason, res, next) {
-    switch (reason.name) {
-        case 'StrictModeError': {
-            return next(serverErrors.getValidationError());
-        }
-        case 'ValidationError':
-            return next(serverErrors.getValidationError('Unknown validation error'));
-        case 'MongoError': {
-            if (reason.code && reason.code === 11000) {
-                return next(serverErrors.getUnknownError('Unknown mongo error: ' + reason.name));
-            }
-        }
-        default: {
-            return next(serverErrors.getBadRequestError('Unknown error: ' + reason.name));
-        }
-    }
-
-    console.error(reason);
-    next(reason);
+	switch (reason.name) {
+		case 'StrictModeError': {
+			return next(serverErrors.getValidationError());
+		}
+		case 'ValidationError':
+			return next(serverErrors.getValidationError('Unknown validation error'));
+		case 'MongoError': {
+			console.log('MongoError: ', reason);
+			return next(serverErrors.getUnknownError('Unknown mongo error: ' + reason.name));
+		}
+		default: {
+			return next(serverErrors.getBadRequestError('Unknown error: ' + reason.name));
+		}
+	}
 };
