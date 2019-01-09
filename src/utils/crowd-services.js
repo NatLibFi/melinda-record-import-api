@@ -340,7 +340,6 @@ function getUserGroups(username) {
 				});
 				resolve(groups);
 			} else if (error) {
-				console.error('Error: ', error);
 				reject(serverErrors.getUnauthorizedError('Error in getting users groups', error));
 			} else if (response.statusCode === 401) {
 				reject(serverErrors.getUnauthorizedError());

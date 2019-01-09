@@ -29,178 +29,178 @@
 /* eslint-disable camelcase */
 
 'use strict';
-import {configurationGeneral as config} from '@natlibfi/melinda-record-import-commons';
+
+const mongoose = require('mongoose');
+const config = require('../../config-general');
+const chunks = require('./chunks');
 
 const logs = config.logs;
 
-const mongoose = require('mongoose');
-const chunks = require('./chunks');
-
-console.log('Setting up db-test');
-
-// /////////////////////////////////////////
-// Start: Generate testing objects to DB //
-mongoose.models.BlobMetadata.remove(() => {
-	mongoose.models.BlobMetadata.create({
-		id: '2000',
-		profile: '2200',
-		contentType: 'standard'
-	}, {
-		id: '2001',
-		profile: 'single_test_metadata',
-		contentType: 'standard'
-	}, {
-		id: '2002',
-		profile: '2200',
-		contentType: 'standard'
-	}, err => {
-		if (logs) {
-			console.log('Finished populating testing blobs, errors: ', err);
-		}
+module.exports = function () {
+	// /////////////////////////////////////////
+	// Start: Generate testing objects to DB //
+	mongoose.models.BlobMetadata.remove(() => {
+		mongoose.models.BlobMetadata.create({
+			id: '2000',
+			profile: '2200',
+			contentType: 'standard'
+		}, {
+			id: '2001',
+			profile: 'single_test_metadata',
+			contentType: 'standard'
+		}, {
+			id: '2002',
+			profile: '2200',
+			contentType: 'standard'
+		}, err => {
+			if (logs) {
+				console.log('Finished populating testing blobs, errors: ', err);
+			}
+		});
 	});
-});
 
-mongoose.models['BlobMetaDatas.File'].remove(() => {
-	mongoose.models['BlobMetaDatas.Chunk'].remove(() => {
-		mongoose.models['BlobMetaDatas.File'].create({
-			filename: '2000', // This is metadataID
-			contentType: 'binary/octet-stream',
-			length: 310,
-			chunkSize: 261120,
-			uploadDate: chunks.chunkDefDate,
-			aliases: null,
-			metadata: null,
-			md5: '5b8c890af47c4dc7df19ea512005f207'
-		}, (err, item) => {
-			if (logs) {
-				console.log('ID of created: ', item._id, ' Errors: ', err);
-			}
-
-			mongoose.models['BlobMetaDatas.Chunk'].create({
-				files_id: item._id,
-				n: 0,
-				data: Buffer.from(chunks.chunkDef, 'base64')
-			}, err => {
+	mongoose.models['BlobMetaDatas.File'].remove(() => {
+		mongoose.models['BlobMetaDatas.Chunk'].remove(() => {
+			mongoose.models['BlobMetaDatas.File'].create({
+				filename: '2000', // This is metadataID
+				contentType: 'binary/octet-stream',
+				length: 310,
+				chunkSize: 261120,
+				uploadDate: chunks.chunkDefDate,
+				aliases: null,
+				metadata: null,
+				md5: '5b8c890af47c4dc7df19ea512005f207'
+			}, (err, item) => {
 				if (logs) {
-					console.log('Chunk created for ', item._id, ', Error: ', err);
+					console.log('ID of created: ', item._id, ' Errors: ', err);
 				}
+
+				mongoose.models['BlobMetaDatas.Chunk'].create({
+					files_id: item._id,
+					n: 0,
+					data: Buffer.from(chunks.chunkDef, 'base64')
+				}, err => {
+					if (logs) {
+						console.log('Chunk created for ', item._id, ', Error: ', err);
+					}
+				});
 			});
-		});
 
-		mongoose.models['BlobMetaDatas.File'].create({
-			filename: '2001', // This is metadataID
-			contentType: 'binary/octet-stream',
-			length: 310,
-			chunkSize: 261120,
-			uploadDate: chunks.chunkDefDate,
-			aliases: null,
-			metadata: null,
-			md5: '5b8c890af47c4dc7df19ea512005f207'
-		}, (err, item) => {
-			if (logs) {
-				console.log('ID of created: ', item._id, ' Errors: ', err);
-			}
-
-			mongoose.models['BlobMetaDatas.Chunk'].create({
-				files_id: item._id,
-				n: 0,
-				data: Buffer.from(chunks.chunkDef, 'base64')
-			}, err => {
+			mongoose.models['BlobMetaDatas.File'].create({
+				filename: '2001', // This is metadataID
+				contentType: 'binary/octet-stream',
+				length: 310,
+				chunkSize: 261120,
+				uploadDate: chunks.chunkDefDate,
+				aliases: null,
+				metadata: null,
+				md5: '5b8c890af47c4dc7df19ea512005f207'
+			}, (err, item) => {
 				if (logs) {
-					console.log('Chunk created for ', item._id, ', Error: ', err);
+					console.log('ID of created: ', item._id, ' Errors: ', err);
 				}
+
+				mongoose.models['BlobMetaDatas.Chunk'].create({
+					files_id: item._id,
+					n: 0,
+					data: Buffer.from(chunks.chunkDef, 'base64')
+				}, err => {
+					if (logs) {
+						console.log('Chunk created for ', item._id, ', Error: ', err);
+					}
+				});
 			});
-		});
 
-		mongoose.models['BlobMetaDatas.File'].create({
-			filename: '2002', // This is metadataID
-			contentType: 'binary/octet-stream',
-			length: 310,
-			chunkSize: 261120,
-			uploadDate: chunks.chunkDefDate,
-			aliases: null,
-			metadata: null,
-			md5: '5b8c890af47c4dc7df19ea512005f207'
-		}, (err, item) => {
-			if (logs) {
-				console.log('ID of created: ', item._id, ' Errors: ', err);
-			}
-
-			mongoose.models['BlobMetaDatas.Chunk'].create({
-				files_id: item._id,
-				n: 0,
-				data: Buffer.from(chunks.chunkDef, 'base64')
-			}, err => {
+			mongoose.models['BlobMetaDatas.File'].create({
+				filename: '2002', // This is metadataID
+				contentType: 'binary/octet-stream',
+				length: 310,
+				chunkSize: 261120,
+				uploadDate: chunks.chunkDefDate,
+				aliases: null,
+				metadata: null,
+				md5: '5b8c890af47c4dc7df19ea512005f207'
+			}, (err, item) => {
 				if (logs) {
-					console.log('Chunk created for ', item._id, ', Error: ', err);
+					console.log('ID of created: ', item._id, ' Errors: ', err);
 				}
+
+				mongoose.models['BlobMetaDatas.Chunk'].create({
+					files_id: item._id,
+					n: 0,
+					data: Buffer.from(chunks.chunkDef, 'base64')
+				}, err => {
+					if (logs) {
+						console.log('Chunk created for ', item._id, ', Error: ', err);
+					}
+				});
 			});
 		});
 	});
-});
 
-mongoose.models.Profile.remove(() => {
-	mongoose.models.Profile.create({
-		name: '2200',
-		auth: {
-			groups: ['test']
-		},
-		transformation: {
-			abortOnInvalidRecords: false,
-			image: 'standard_user',
-			env: {}
-		},
-		import: {
-			image: 'standard_user',
-			env: {}
-		}
-	}, {
-		name: '2201',
-		auth: {
-			groups: ['admin', 'test']
-		},
-		transformation: {
-			abortOnInvalidRecords: false,
-			image: 'standard',
-			env: {}
-		},
-		import: {
-			image: 'standard',
-			env: {}
-		}
-	}, {
-		name: '2202',
-		auth: {
-			groups: ['subTest']
-		},
-		transformation: {
-			abortOnInvalidRecords: false,
-			image: 'standard_user',
-			env: {}
-		},
-		import: {
-			image: 'standard_user',
-			env: {}
-		}
-	}, {
-		name: 'single_test_metadata',
-		auth: {
-			groups: ['admin', 'test']
-		},
-		transformation: {
-			abortOnInvalidRecords: false,
-			image: 'standard',
-			env: {}
-		},
-		import: {
-			image: 'standard',
-			env: {}
-		}
-	}, err => {
-		if (logs) {
-			console.log('Finished populating testing profiles, errors: ', err);
-		}
+	mongoose.models.Profile.remove(() => {
+		mongoose.models.Profile.create({
+			name: '2200',
+			auth: {
+				groups: ['test']
+			},
+			transformation: {
+				abortOnInvalidRecords: false,
+				image: 'standard_user',
+				env: {}
+			},
+			import: {
+				image: 'standard_user',
+				env: {}
+			}
+		}, {
+			name: '2201',
+			auth: {
+				groups: ['admin', 'test']
+			},
+			transformation: {
+				abortOnInvalidRecords: false,
+				image: 'standard',
+				env: {}
+			},
+			import: {
+				image: 'standard',
+				env: {}
+			}
+		}, {
+			name: '2202',
+			auth: {
+				groups: ['subTest']
+			},
+			transformation: {
+				abortOnInvalidRecords: false,
+				image: 'standard_user',
+				env: {}
+			},
+			import: {
+				image: 'standard_user',
+				env: {}
+			}
+		}, {
+			name: 'single_test_metadata',
+			auth: {
+				groups: ['admin', 'test']
+			},
+			transformation: {
+				abortOnInvalidRecords: false,
+				image: 'standard',
+				env: {}
+			},
+			import: {
+				image: 'standard',
+				env: {}
+			}
+		}, err => {
+			if (logs) {
+				console.log('Finished populating testing profiles, errors: ', err);
+			}
+		});
 	});
-});
-// End: Generate testing objects to DB //
-// ///////////////////////////////////////
+	// End: Generate testing objects to DB //
+	// ///////////////////////////////////////
+};

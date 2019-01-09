@@ -241,7 +241,7 @@ describe('Blob services', () => {
 			});
 		});
 
-		it('should respond with 413 - Request body is too large (Test TODO)', done => {
+		it('should respond with 413 - Request body is too large', done => {
 			request(app)
 			.post('/blobs')
 			.set('Content', 'application/json')

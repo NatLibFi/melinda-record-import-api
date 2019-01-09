@@ -26,20 +26,27 @@
 *
 */
 
-const serverErrors = require('./server-errors');
+/* eslint-disable no-unused-vars */
 
-module.exports = function (reason, res, next) {
-	switch (reason.name) {
-		case 'StrictModeError': {
-			return next(serverErrors.getValidationError());
-		}
-		case 'ValidationError':
-			return next(serverErrors.getValidationError('Unknown validation error'));
-		case 'MongoError': {
-			return next(serverErrors.getUnknownError('Unknown mongo error: ' + reason.name));
-		}
-		default: {
-			return next(serverErrors.getBadRequestError('Unknown error: ' + reason.name));
-		}
-	}
+module.exports = {
+	OK: 200,
+	Created: 201,
+	Accepted: 202,
+	NoContent: 204,
+	Updated: 204,
+	Malformed: 400,
+	BadRequest: 400,
+	Unauthorized: 401,
+	Forbidden: 403,
+	NotFound: 404,
+	MethodNotAllowed: 405,
+	Conflict: 409,
+	PayloadTooLarge: 413,
+	Unsupported: 415,
+	Teapot: 418,
+	ValidationError: 422,
+	InternalServerError: 500,
+	NotImplemented: 501,
+	BadGateway: 502,
+	ServiceUnavailable: 503
 };

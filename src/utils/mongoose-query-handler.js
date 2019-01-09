@@ -26,9 +26,8 @@
 *
 */
 
-import {configurationGeneral as config} from '@natlibfi/melinda-record-import-commons';
-
 const _ = require('lodash');
+const config = require('../config-general');
 const serverErrors = require('./server-errors');
 
 module.exports = {

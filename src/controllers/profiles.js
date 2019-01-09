@@ -28,10 +28,9 @@
 
 'use strict';
 
-import {configurationGeneral as config} from '@natlibfi/melinda-record-import-commons';
-
 const mongoose = require('mongoose');
 
+const config = require('../config-general');
 const serverErrors = require('../utils/server-errors');
 const mongoErrorHandler = require('../utils/mongoose-error-handler');
 const queryHandler = require('../utils/mongoose-query-handler');

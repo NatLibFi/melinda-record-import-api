@@ -30,14 +30,14 @@
 
 'use strict';
 
-import {configurationGeneral as config} from '@natlibfi/melinda-record-import-commons';
-
-const logs = config.logs;
 const path = require('path');
 const express = require('express');
 const cors = require('cors');
 const mongoose = require('mongoose');
 const gridfs = require('gridfs-stream');
+const config = require('./config-general');
+
+const logs = config.logs;
 // Const bodyParser = require('body-parser');
 
 const MANDATORY_ENV_VARIABLES = [
@@ -55,8 +55,11 @@ const MANDATORY_ENV_VARIABLES = [
 	'CROWD_APPPASS'
 ];
 
-// If USE_DEF is set to true, app uses default values
+// If USE_DEF is set to true, app uses default values, otherwise checks that "mandatory" variables are set
 if (process.env.USE_DEF === 'true' || process.env.NODE_ENV === 'test') {
+	if (process.env.NODE_ENV === 'test') {
+		config.contentMaxLength = 100;
+	}
 	const configCrowd = require('./config-crowd'); // Load default crowd authentications to env variables
 	if (configCrowd) {
 		process.env.CROWD_TOKENNAME = process.env.CROWD_TOKENNAME || configCrowd.tokenName;
@@ -156,11 +159,10 @@ mongoose.connect(app.config.mongodb.uri).then(() => { // Routes uses mongo conne
 	});
 
 	// Clear DB or use seed version
-	let db = null;
 	if (app.config.seedDB === 'true') {
-		db = require('./utils/database/db-seed');
+		require('./utils/database/db-seed')();
 	} else if (process.env.NODE_ENV === 'test') { // Test version
-		db = require('./utils/database/db-test');
+		require('./utils/database/db-test')();
 	}
 
     // Finally, let's start our server...

@@ -28,14 +28,13 @@
 
 'use strict';
 
-import {configurationGeneral as config} from '@natlibfi/melinda-record-import-commons';
-
 const mongoose = require('mongoose');
 const gridfs = require('gridfs-stream');
 const moment = require('moment');
 const uuid = require('uuid');
 const _ = require('lodash');
 
+const config = require('../config-general');
 const serverErrors = require('../utils/server-errors');
 const mongoErrorHandler = require('../utils/mongoose-error-handler');
 const queryHandler = require('../utils/mongoose-query-handler');
@@ -72,8 +71,7 @@ module.exports.postBlob = function (req, res, next) {
 				return next(serverErrors.getMissingProfileError());
 			}
 		}).catch(err => mongoErrorHandler(err, res, next));
-
-	if ((!req.headers['content-length'] || config.contentMaxLength > 0) && req.headers['content-length'] > config.contentMaxLength) {
+	if (req.headers['content-length'] && config.contentMaxLength > 0 && req.headers['content-length'] > config.contentMaxLength) {
 		return next(serverErrors.getRequestBodyLargeError());
 	}
 
