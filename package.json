@@ -14,7 +14,7 @@
     "url": "git@github.com:natlibfi/melinda-record-import-api.git"
   },
   "license": "AGPL-3.0+",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "main": "./dist/index.js",
   "engines": {
     "node": ">=7"
@@ -22,6 +22,7 @@
   "scripts": {
     "prepublishOnly": "npm run build:transpile",
     "lint": "xo --fix",
+    "test:full": "cross-env NODE_ENV=test_full nyc mocha --require babel-core/register",
     "test": "cross-env NODE_ENV=test nyc mocha --require babel-core/register",
     "coverage": "nyc check-coverage",
     "clean": "rimraf build coverage .nyc_output dist",
@@ -52,7 +53,6 @@
     "moment": "^2.22.2",
     "mongoose": "^5.1.5",
     "morgan": "^1.9.0",
-    "passport": "^0.4.0",
     "passport-atlassian-crowd2": "0.0.17",
     "passport-local": "^1.0.0",
     "request": "^2.87.0",
@@ -70,7 +70,6 @@
     "codeclimate-test-reporter": "^0.5.0",
     "cross-env": "^5.2.0",
     "events": "^2.1.0",
-    "git-scripts": "^0.2.1",
     "istanbul": "^0.4.5",
     "mocha": "^4.0.1",
     "node-mocks-http": "^1.7.0",

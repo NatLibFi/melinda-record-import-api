@@ -4,7 +4,7 @@
 *
 * API microservice of Melinda record batch import system
 *
-* Copyright (C) 2018 University Of Helsinki (The National Library Of Finland)
+* Copyright (C) 2018-2019 University Of Helsinki (The National Library Of Finland)
 *
 * This file is part of melinda-record-import-api
 *
@@ -26,8 +26,6 @@
 *
 */
 
-import {configurationGeneral as config} from '@natlibfi/melinda-record-import-commons';
-
 const mongoose = require('mongoose');
 const authen = require('basic-auth');
 const request = require('request');
@@ -35,6 +33,7 @@ const _ = require('lodash');
 
 const serverErrors = require('../utils/server-errors');
 const queryHandler = require('../utils/mongoose-query-handler');
+const config = require('../config-general');
 
 const logs = config.logs;
 const defaultCrowdOptions = {
@@ -91,9 +90,9 @@ module.exports.authenticateUserSSO = function () {
 // 2. Check what profiles user is trying to use
 // 3. Check if user has rights to those profiles by checking users groups in crowd
 module.exports.ensureAuthenticated = function (req, res, next) {
-	if (!config.requireAuthentication) { // Authentication can be skipped via environment variable REQ_AUTH = false
+	if (process.env.REQ_AUTH === 'false') { // Authentication can be skipped via environment variable REQ_AUTH = false
 		if (logs) {
-			console.log('REQ_AUTH set to : ', process.env.REQ_AUTH, ' hence requireAuthentication : ', config.requireAuthentication, ' -> Skipping authentication');
+			console.log('REQ_AUTH set to : ', process.env.REQ_AUTH, ' -> Skipping authentication');
 		}
 		return next(); // User can continue to EP
 	}

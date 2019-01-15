@@ -4,7 +4,7 @@
 *
 * API microservice of Melinda record batch import system
 *
-* Copyright (C) 2018 University Of Helsinki (The National Library Of Finland)
+* Copyright (C) 2018-2019 University Of Helsinki (The National Library Of Finland)
 *
 * This file is part of melinda-record-import-api
 *
@@ -38,6 +38,7 @@ const gridfs = require('gridfs-stream');
 const config = require('./config-general');
 
 const logs = config.logs;
+let server = null;
 // Const bodyParser = require('body-parser');
 
 const MANDATORY_ENV_VARIABLES = [
@@ -56,10 +57,11 @@ const MANDATORY_ENV_VARIABLES = [
 ];
 
 // If USE_DEF is set to true, app uses default values, otherwise checks that "mandatory" variables are set
-if (process.env.USE_DEF === 'true' || process.env.NODE_ENV === 'test') {
-	if (process.env.NODE_ENV === 'test') {
-		config.contentMaxLength = 100;
-	}
+if (process.env.NODE_ENV === 'test') {
+	config.contentMaxLength = 100;
+	process.env.REQ_AUTH = false;
+} else if (process.env.USE_DEF === 'true' || process.env.NODE_ENV === 'test_full') {
+	config.contentMaxLength = 100;
 	const configCrowd = require('./config-crowd'); // Load default crowd authentications to env variables
 	if (configCrowd) {
 		process.env.CROWD_TOKENNAME = process.env.CROWD_TOKENNAME || configCrowd.tokenName;
@@ -81,7 +83,7 @@ app.enums = config.enums;
 app.use(cors());
 
 // Normal express config defaults
-if (process.env.NODE_ENV !== 'test') {
+if (process.env.NODE_ENV !== 'test' && process.env.NODE_ENV !== 'test_full') {
 	app.use(require('morgan')('dev'));
 }
 app.use(require('method-override')());
@@ -161,15 +163,26 @@ mongoose.connect(app.config.mongodb.uri).then(() => { // Routes uses mongo conne
 	// Clear DB or use seed version
 	if (app.config.seedDB === 'true') {
 		require('./utils/database/db-seed')();
-	} else if (process.env.NODE_ENV === 'test') { // Test version
+	} else if (process.env.NODE_ENV === 'test' || process.env.NODE_ENV === 'test_full') { // Test version
 		require('./utils/database/db-test')();
 	}
 
     // Finally, let's start our server...
-	const server = app.listen(app.config.portAPI, () => {
+	server = app.listen(app.config.portAPI, () => {
 		console.log('Server running using seed DB: ' + app.config.seedDB + ', at: ', server.address());
+
+		// Inform any listeners (tests) that server is running (and mongo/gridFS has had enough time)
+		setTimeout(() => {
+			app.emit('app_started');
+		}, 3000);
 	});
 });
 
 // Export app for testing
 module.exports = app;
+
+// Shut down app. (after tests)
+module.exports.close = function (callback) {
+	server.close();
+	callback();
+};

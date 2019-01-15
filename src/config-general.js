@@ -4,7 +4,7 @@
 *
 * Shared modules for microservices of Melinda record batch import system
 *
-* Copyright (C) 2018 University Of Helsinki (The National Library Of Finland)
+* Copyright (C) 2018-2019 University Of Helsinki (The National Library Of Finland)
 *
 * This file is part of melinda-record-import-commons
 *
@@ -25,7 +25,6 @@
 * for the JavaScript code in this file.
 *
 */
-// import {configurationGeneral as config} from '@natlibfi/melinda-record-import-commons';
 
 import {CommonUtils} from '@natlibfi/melinda-record-import-commons';
 
@@ -45,8 +44,6 @@ const portAPI = parseInt(process.env.PORT_API, 10) || 3000;
 exports.portAPI = portAPI;
 const portController = parseInt(process.env.PORT_CNTRL, 10) || 3001;
 exports.portController = portController;
-
-exports.requireAuthentication = process.env.REQ_AUTH !== 'false'; // Default: true
 
 exports.contentMaxLength = parseInt(process.env.CONT_MAX_LENGTH, 10) || 0; // 0=no max length set
 

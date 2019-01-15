@@ -4,7 +4,7 @@
 *
 * API microservice of Melinda record batch import system
 *
-* Copyright (C) 2018 University Of Helsinki (The National Library Of Finland)
+* Copyright (C) 2018-2019 University Of Helsinki (The National Library Of Finland)
 *
 * This file is part of melinda-record-import-api
 *
@@ -26,7 +26,7 @@
 *
 */
 
-import {configurationGeneral as config} from '@natlibfi/melinda-record-import-commons';
+const config = require('../config-general');
 
 module.exports.getMalformedError = function (message) {
 	const err = new Error('Malformed content');

@@ -4,7 +4,7 @@
 *
 * API microservice of Melinda record batch import system
 *
-* Copyright (C) 2018 University Of Helsinki (The National Library Of Finland)
+* Copyright (C) 2018-2019 University Of Helsinki (The National Library Of Finland)
 *
 * This file is part of melinda-record-import-api
 *
@@ -35,11 +35,6 @@ const chaiHTTP = require('chai-http');
 const request = require('supertest');
 const chai = require('chai');
 const _ = require('lodash');
-const configCrowd = require('../src/config-crowd');
-
-const app = require('../dist/index');
-const profiles = require('../dist/controllers/profiles');
-const crowd = require('../dist/utils/crowd-services');
 
 const should = chai.should();
 const logs = true;
@@ -48,525 +43,710 @@ let token = null;
 
 chai.use(chaiHTTP);
 
-// /////////////////////////////////////////////////
-//    These test should be run for all paths     //
-// /////////////////////////////////////////////////
-describe('All paths', () => {
-    // List of all routes to be tested
-	const routesObj = [
-        // {
-        //     'method': 'POST',
-        //     'url': '/blobs?Import-Profile=2200',
-        // },
-        // {
-        //     'method': 'GET',
-        //     'url': '/blobs?profile=2200'
-        // },
-        // {
-        //     'method': 'GET',
-        //     'url': '/blobs/2000'
-        // },
-        // {
-        //     'method': 'POST',
-        //     'url': '/blobs/2000',
-        // },
-        // {
-        //     'method': 'DELETE',
-        //     'url': '/blobs/2000',
-        // },
-        // {
-        //     'method': 'GET',
-        //     'url': '/blobs/2000/content',
-        // },
-        // {
-        //     'method': 'DELETE',
-        //     'url': '/blobs/2000/content',
-        // },
-        // {
-        //     'method': 'PUT',
-        //     'url': '/profiles/2200',
-        // },
-		{
-			method: 'GET',
-			url: '/profiles/2200'
-		}
-	];
+const app = require('../src/index');
 
-    // Tests that should be valid for all paths
-	const testsValid = [
-		{
-			description: 'Valid user Basic'
-		}, {
-			description: 'Valid user SSO',
-			ssoTest: true
-		}];
+before(function (done) {
+	this.timeout(10000);
 
-	const testsInvalid = [
-		{
-			description: 'Invalid Basic user',
-			auth: {
-				headerName: 'Authorization',
-				headerValue: 'Basic invalid_token'
-			},
-			res: 'request.authentication.unauthorized'
-		}, {
-			description: 'Invalid SSO-token',
-			ssoTest: true,
-			auth: {
-				headerName: configCrowd.tokenName,
-				headerValue: '000MhP8JqjjCTxAzcMIvT000'
-			},
-			res: 'request.authentication.unauthorized'
-		}];
-
-	it('Getting SSO token', function (done) {
-		this.timeout(10000);
-		const getToken = crowd.authenticateUserSSO();
-		getToken.then(providedToken => {
-			providedToken.should.be.an('string');
-			token = providedToken;
-			if (logs) {
-				console.log('Token: ', token);
-			}
-			done();
-		}).catch(err => {
-			done(err);
-		});
-	});
-
-    // It('Waiting', function (done) {
-    //     this.timeout(30000);
-    // });
-
-	const encodedAuth = configCrowd.encodedAuth;
-
-	_.forEach(routesObj, route => {
-		describe('Tests for path: ' + route.url, () => {
-			_.forEach(testsValid, value => {
-				const requestParams = {
-					method: route.method,
-					url: route.url,
-					body: {
-						data: 'test data'
-					},
-					headers: {}
-				};
-
-				it(value.description, done => {
-                    // Add authentication methods
-					if (value.ssoTest && !token) {
-						if (!token) {
-							return; // Should be SSO test but no token received from earlier test
-						}
-						requestParams.headers[configCrowd.tokenName] = token;
-					} else {
-						requestParams.headers.Authorization = encodedAuth;
-					}
-
-					const req = httpMocks.createRequest(requestParams);
-
-					const res = httpMocks.createResponse({
-						eventEmitter: require('events').EventEmitter
-					});
-					crowd.ensureAuthenticated(req, res, err => {
-						if (err) {
-							done(err);
-						} else {
-							done();
-						}
-					});
-				});
-			});
-
-			_.forEach(testsInvalid, value => {
-				const requestParams = {
-					method: route.method,
-					url: route.url,
-					body: {
-						data: 'test data'
-					},
-					headers: {}
-				};
-
-				it(value.description, done => {
-                    // Add authentication methods
-					if (value.auth && value.auth.headerName && value.auth.headerValue) {
-						requestParams.headers[value.auth.headerName] = value.auth.headerValue;
-					}
-
-					const req = httpMocks.createRequest(requestParams);
-
-					const res = httpMocks.createResponse({
-						eventEmitter: require('events').EventEmitter
-					});
-					crowd.ensureAuthenticated(req, res, err => {
-						try {
-							err.type.should.be.equal(value.res);
-						} catch (err) {
-							return done(err);
-						}
-						done();
-					});
-				});
-			});
-		});
+	// App emits this after app is started
+	app.on('app_started', () => {
+		done();
 	});
 });
 
-// ///////////////////////////////////////////////////
-// Tests for blob services, meaning /blobs/* paths //
-// ///////////////////////////////////////////////////
-describe('Blob services', () => {
-    // //////////////////////////
-    // Start: POST /blobs     //
-	describe('#POST /blobs', () => {
-		it('should respond with 201 - The blob was succesfully created...', done => {
-			request(app)
-			.post('/blobs')
-			.set('Content', 'application/json')
-			.set('Import-Profile', 2200)
-			.set(configCrowd.tokenName, token)
-			.send({
-				data: 'test data',
-				data2: 'more data'
-			})
-			.end((err, res) => {
-				if (err) {
-					return done(err);
+describe('All tests', () => {
+	const configCrowd = require('../src/config-crowd');
+	const profiles = require('../src/controllers/profiles');
+	const crowd = require('../src/utils/crowd-services');
+	// ////////////////////////////////////////////////////////////////////
+	//    Authentication tests, cannot be run without crowd connection   //
+	// ////////////////////////////////////////////////////////////////////
+	if (process.env.NODE_ENV === 'test_full') {
+		describe('All paths', () => {
+			// List of all routes to be tested
+			const routesObj = [
+				// {
+				//     'method': 'POST',
+				//     'url': '/blobs?Import-Profile=2200',
+				// },
+				// {
+				//     'method': 'GET',
+				//     'url': '/blobs?profile=2200'
+				// },
+				// {
+				//     'method': 'GET',
+				//     'url': '/blobs/2000'
+				// },
+				// {
+				//     'method': 'POST',
+				//     'url': '/blobs/2000',
+				// },
+				// {
+				//     'method': 'DELETE',
+				//     'url': '/blobs/2000',
+				// },
+				// {
+				//     'method': 'GET',
+				//     'url': '/blobs/2000/content',
+				// },
+				// {
+				//     'method': 'DELETE',
+				//     'url': '/blobs/2000/content',
+				// },
+				// {
+				//     'method': 'PUT',
+				//     'url': '/profiles/2200',
+				// },
+				{
+					method: 'GET',
+					url: '/profiles/2200'
 				}
-				res.statusCode.should.equal(200);
-				res.text.should.be.an('string');
-				res.text.should.equal('The blob was succesfully created. State is set to PENDING_TRANSFORMATION');
-				done();
-			});
-		});
+			];
 
-		it('should respond with 413 - Request body is too large', done => {
-			request(app)
-			.post('/blobs')
-			.set('Content', 'application/json')
-			.set('Import-Profile', 2200)
-			.set(configCrowd.tokenName, token)
-			.send({
-				data: 'Default max content length should be 100',
-				data2: 'These should contain combined 101 chars'
-			})
-			.end((err, res) => {
-				if (err) {
-					return done(err);
-				}
-				res.statusCode.should.equal(413);
-				res.text.should.be.an('string');
-				res.text.should.equal('Request body is too large');
-				done();
-			});
-		});
-
-		it('should respond with 415 - Content type was not specified', done => {
-			blobs = require('../dist/controllers/blobs');
-
-			const req = httpMocks.createRequest({
-				method: 'POST',
-				url: '/blobs',
-				query: {'Import-Profile': '2200'},
-				body: {
-					data: 'test data',
-					data2: 'more data'
-				}
-			});
-
-			const res = httpMocks.createResponse({
-				eventEmitter: require('events').EventEmitter
-			});
-
-			blobs.postBlob(req, res, err => {
-				try {
-					err.message.should.be.equal('Content type was not specified');
-				} catch (err) {
-					return done(err);
-				}
-				done();
-			});
-		});
-	});
-    // End: POST /blobs       //
-    // //////////////////////////
-
-    // //////////////////////////
-    // Start: GET /blobs      //
-	describe('#GET /blobs', () => {
-		describe('-valid queries (should respond with 200)', () => {
+			// Tests that should be valid for all paths
 			const testsValid = [
 				{
-					description: 'list of URLs',
-					query: {
-					},
-					gte: 0
+					description: 'Valid user Basic'
 				}, {
-					description: 'array (parameter profile)',
-					query: {
-						profile: '2200'
-					},
-					gte: 0
-				}, {
-					description: 'array (parameter contentType)',
-					query: {
-						contentType: 'standard'
-					},
-					gte: 0
-				}, {
-					description: 'array of URLs (parameter creationTime 2000-2100)',
-					query: {
-						creationTime: ['2000-01-01T00:00Z', '2100-01-01T00:00Z']
-                        // This is identical to:
-                        // ?creationTime=2000-01-01T00:00Z&creationTime=2100-01-01T00:00Z
-					},
-					gte: 1
-				}, {
-					description: 'array of URLs (parameter modificationTime 2000-2100)',
-					query: {
-						modificationTime: ['2000-01-01T00:00Z', '2100-01-01T00:00Z']
-					},
-					gte: 1
-				}, {
-					description: 'single URL (from seed)',
-					query: {
-						profile: 'single_test_metadata'
-					},
-					exact: 1
-				}, {
-					description: 'single URL (from #POST test)',
-					query: {
-						profile: 'single_test_metadata'
-					},
-					exact: 1
-				}, {
-					description: 'empty array',
-					query: {
-						profile: 'nonexistent'
-					},
-					exact: 0
+					description: 'Valid user SSO',
+					ssoTest: true
 				}];
 
-			_.forEach(testsValid, value => {
-				it(value.description, done => {
-					const req = httpMocks.createRequest({
-						method: 'GET',
-						url: '/blobs',
-						query: value.query
-					});
+			const testsInvalid = [
+				{
+					description: 'Invalid Basic user',
+					auth: {
+						headerName: 'Authorization',
+						headerValue: 'Basic invalid_token'
+					},
+					res: 'request.authentication.unauthorized'
+				}, {
+					description: 'Invalid SSO-token',
+					ssoTest: true,
+					auth: {
+						headerName: configCrowd.tokenName,
+						headerValue: '000MhP8JqjjCTxAzcMIvT000'
+					},
+					res: 'request.authentication.unauthorized'
+				}];
 
-					const res = httpMocks.createResponse({
-						eventEmitter: require('events').EventEmitter
-					});
+			it('Getting SSO token', function (done) {
+				this.timeout(10000);
+				const getToken = crowd.authenticateUserSSO();
+				getToken.then(providedToken => {
+					providedToken.should.be.an('string');
+					token = providedToken;
+					if (logs) {
+						console.log('Token: ', token);
+					}
+					done();
+				}).catch(err => {
+					done(err);
+				});
+			});
 
-					blobs.getBlob(req, res);
+			// It('Waiting', function (done) {
+			//     this.timeout(30000);
+			// });
 
-					res.on('end', () => {
-						try {
-							const data = res._getData();
-							res.statusCode.should.equal(200);
-							data.should.be.an('array');
-							if (value.gte) {
-								data.should.have.length.gte(value.gte);
-							} else if (value.exact) {
-								data.should.have.lengthOf(value.exact);
+			const encodedAuth = configCrowd.encodedAuth;
+
+			_.forEach(routesObj, route => {
+				describe('Tests for path: ' + route.url, () => {
+					_.forEach(testsValid, value => {
+						const requestParams = {
+							method: route.method,
+							url: route.url,
+							body: {
+								data: 'test data'
+							},
+							headers: {}
+						};
+
+						it(value.description, done => {
+							// Add authentication methods
+							if (value.ssoTest && !token) {
+								if (!token) {
+									return; // Should be SSO test but no token received from earlier test
+								}
+								requestParams.headers[configCrowd.tokenName] = token;
+							} else {
+								requestParams.headers.Authorization = encodedAuth;
 							}
-							done();
-						} catch (err) {
-							done(err);
-						}
+
+							const req = httpMocks.createRequest(requestParams);
+
+							const res = httpMocks.createResponse({
+								eventEmitter: require('events').EventEmitter
+							});
+							crowd.ensureAuthenticated(req, res, err => {
+								if (err) {
+									done(err);
+								} else {
+									done();
+								}
+							});
+						});
+					});
+
+					_.forEach(testsInvalid, value => {
+						const requestParams = {
+							method: route.method,
+							url: route.url,
+							body: {
+								data: 'test data'
+							},
+							headers: {}
+						};
+
+						it(value.description, done => {
+							// Add authentication methods
+							if (value.auth && value.auth.headerName && value.auth.headerValue) {
+								requestParams.headers[value.auth.headerName] = value.auth.headerValue;
+							}
+
+							const req = httpMocks.createRequest(requestParams);
+
+							const res = httpMocks.createResponse({
+								eventEmitter: require('events').EventEmitter
+							});
+							crowd.ensureAuthenticated(req, res, err => {
+								try {
+									err.type.should.be.equal(value.res);
+								} catch (err) {
+									return done(err);
+								}
+								done();
+							});
+						});
 					});
 				});
 			});
 		});
+	}
 
-		describe('-invalid queries (should respond with 400 - )', () => {
-			const testsInvalid = [
-				{
-					description: '(date format)',
-					query: {
-						creationTime: ['20000-01-01T00:00Z', '2100-01-01T00:00Z']
+	// ///////////////////////////////////////////////////
+	// Tests for blob services, meaning /blobs/* paths //
+	// ///////////////////////////////////////////////////
+	describe('Blob services', () => {
+		// //////////////////////////
+		// Start: POST /blobs     //
+		describe('#POST /blobs', () => {
+			it('should respond with 200 - The blob was succesfully created...', done => {
+				request(app)
+				.post('/blobs')
+				.set('Content', 'application/json')
+				.set('Import-Profile', 2200)
+				.set(configCrowd.tokenName, token)
+				.send({
+					data: 'test data',
+					data2: 'more data'
+				})
+				.end((err, res) => {
+					if (err) {
+						return done(err);
 					}
-				}, {
-					description: '(single date)',
-					query: {
-						creationTime: '20000-01-01T00:00Z'
-					}
-				}, {
-					description: '(too many values in creationTime)',
-					query: {
-						creationTime: ['2000-01-01T00:00Z', '2100-01-01T00:00Z', '2000-01-01T00:00Z']
-					}
-				}, {
-					description: '(wrong parameter name #1)',
-					query: {
-						creationTime: ['2000-01-01T00:00Z', '2100-01-01T00:00Z'],
-						creationsTime: ['2000-01-01T00:00Z', '2100-01-01T00:00Z']
-					}
-				}, {
-					description: '(wrong parameter name #2)',
-					query: {
-						profiles: 'wrong'
-					}
-				}, {
-					description: '(double parameter #1)',
-					query: {
-						profile: ['wrong', 'weird']
-					}
-				}, {
-					description: '(triple parameter)',
-					query: {
-						profiles: 'wrong',
-						profiless: 'really',
-						profile: 'weird'
-					}
-				}, {
-					description: '(double parameter #2)',
-					query: {
-						contentType: ['wrong', 'really']
-					}
-				}
-			];
+					res.statusCode.should.equal(200);
+					res.text.should.be.an('string');
+					res.text.should.equal('The blob was succesfully created. State is set to PENDING_TRANSFORMATION');
+					done();
+				});
+			});
 
-			_.forEach(testsInvalid, value => {
-				it(value.description, done => {
-					const req = httpMocks.createRequest({
-						method: 'GET',
-						url: '/blobs',
-						query: value.query
-					});
+			it('should respond with 413 - Request body is too large', done => {
+				request(app)
+				.post('/blobs')
+				.set('Content', 'application/json')
+				.set('Import-Profile', 2200)
+				.set(configCrowd.tokenName, token)
+				.send({
+					data: 'Default max content length should be 100',
+					data2: 'These should contain combined 101 chars'
+				})
+				.end((err, res) => {
+					// Console.log("Res: ", res);
+					if (err) {
+						return done(err);
+					}
+					res.statusCode.should.equal(413);
+					res.text.should.be.an('string');
+					res.text.should.equal('Request body is too large');
+					done();
+				});
+			});
 
-					const res = httpMocks.createResponse({
-						eventEmitter: require('events').EventEmitter
-					});
+			it('should respond with 415 - Content type was not specified', done => {
+				blobs = require('../src/controllers/blobs');
 
-					blobs.getBlob(req, res);
+				const req = httpMocks.createRequest({
+					method: 'POST',
+					url: '/blobs',
+					query: {'Import-Profile': '2200'},
+					body: {
+						data: 'test data',
+						data2: 'more data'
+					}
+				});
 
-					const data = res._getData();
-					res.statusCode.should.equal(400);
-					data.should.be.an('string');
-					data.should.equal('Invalid query');
+				const res = httpMocks.createResponse({
+					eventEmitter: require('events').EventEmitter
+				});
+
+				blobs.postBlob(req, res, err => {
+					try {
+						err.message.should.be.equal('Content type was not specified');
+					} catch (err) {
+						return done(err);
+					}
 					done();
 				});
 			});
 		});
-	});
-    // End: GET /blobs        //
-    // //////////////////////////
+		// End: POST /blobs       //
+		// //////////////////////////
 
-    // //////////////////////////
-    // Start: GET /blobs/{id} //
-	describe('#GET /blobs/{id}', () => {
-		const testsValid = [
-			{
-				description: 'Basic test',
-				params: {
-					id: 2001
-				}
-			}];
+		// //////////////////////////
+		// Start: GET /blobs      //
+		describe('#GET /blobs', () => {
+			describe('-valid queries (should respond with 200)', () => {
+				const testsValid = [
+					{
+						description: 'list of URLs',
+						query: {
+						},
+						gte: 0
+					}, {
+						description: 'array (parameter profile)',
+						query: {
+							profile: '2200'
+						},
+						gte: 0
+					}, {
+						description: 'array (parameter contentType)',
+						query: {
+							contentType: 'standard'
+						},
+						gte: 0
+					}, {
+						description: 'array of URLs (parameter creationTime 2000-2100)',
+						query: {
+							creationTime: ['2000-01-01T00:00Z', '2100-01-01T00:00Z']
+							// This is identical to:
+							// ?creationTime=2000-01-01T00:00Z&creationTime=2100-01-01T00:00Z
+						},
+						gte: 1
+					}, {
+						description: 'array of URLs (parameter modificationTime 2000-2100)',
+						query: {
+							modificationTime: ['2000-01-01T00:00Z', '2100-01-01T00:00Z']
+						},
+						gte: 1
+					}, {
+						description: 'single URL (from seed)',
+						query: {
+							profile: 'single_test_metadata'
+						},
+						exact: 1
+					}, {
+						description: 'single URL (from #POST test)',
+						query: {
+							profile: 'single_test_metadata'
+						},
+						exact: 1
+					}, {
+						description: 'empty array',
+						query: {
+							profile: 'nonexistent'
+						},
+						exact: 0
+					}];
 
-		describe('-valid queries (should respond with 200)', () => {
-			_.forEach(testsValid, value => {
-				it(value.description, done => {
-					const req = httpMocks.createRequest({
-						method: 'GET',
-						url: '/blobs/validID',
-						params: value.params
-					});
+				_.forEach(testsValid, value => {
+					it(value.description, done => {
+						const req = httpMocks.createRequest({
+							method: 'GET',
+							url: '/blobs',
+							query: value.query
+						});
 
-					const res = httpMocks.createResponse({
-						eventEmitter: require('events').EventEmitter
-					});
+						const res = httpMocks.createResponse({
+							eventEmitter: require('events').EventEmitter
+						});
 
-					blobs.getBlobById(req, res);
+						blobs.getBlob(req, res);
 
-					res.on('end', () => {
-						try {
-							const data = res._getData();
-
-							res.statusCode.should.equal(200);
-							data.should.be.an('object');
-
-							should.exist(data);
-							should.exist(data.id);
-							data.id.should.be.an('string');
-							should.exist(data.contentType);
-							data.contentType.should.be.an('string');
-							should.exist(data.state);
-							data.state.should.be.an('string');
-							should.exist(data.creationTime);
-							data.creationTime.should.be.an('Date');
-							should.exist(data.modificationTime);
-							data.modificationTime.should.be.an('Date');
-							should.exist(data.processingInfo);
-							should.equal(data.processingInfo.transformationError, null);
-							should.equal(data.processingInfo.numberOfRecords, null);
-							should.exist(data.processingInfo.importResults);
-							data.processingInfo.importResults.should.be.an('array');
-							done();
-						} catch (err) {
-							done(err);
-						}
+						res.on('end', () => {
+							try {
+								const data = res._getData();
+								res.statusCode.should.equal(200);
+								data.should.be.an('array');
+								if (value.gte) {
+									data.should.have.length.gte(value.gte);
+								} else if (value.exact) {
+									data.should.have.lengthOf(value.exact);
+								}
+								done();
+							} catch (err) {
+								done(err);
+							}
+						});
 					});
 				});
 			});
-		});
 
-		describe('-invalid queries (404)', () => {
-			const testsInvalid = [
-				{
-					description: 'Without param',
-					params: {
-					},
-					res: 'The blob does not exist'
-				}, {
-					description: 'With invalid param',
-					params: {
-						ids: 2001
-					},
-					res: 'The blob does not exist'
-				}];
-
-			_.forEach(testsInvalid, value => {
-				it(value.description, done => {
-					const req = httpMocks.createRequest({
-						method: 'GET',
-						url: '/blobs/invalidID',
-						params: value.params
-					});
-
-					const res = httpMocks.createResponse({
-						eventEmitter: require('events').EventEmitter
-					});
-
-					blobs.getBlobById(req, res, err => {
-						try {
-							err.message.should.be.equal(value.res);
-						} catch (err) {
-							return done(err);
+			describe('-invalid queries (should respond with 400 - )', () => {
+				const testsInvalid = [
+					{
+						description: '(date format)',
+						query: {
+							creationTime: ['20000-01-01T00:00Z', '2100-01-01T00:00Z']
 						}
+					}, {
+						description: '(single date)',
+						query: {
+							creationTime: '20000-01-01T00:00Z'
+						}
+					}, {
+						description: '(too many values in creationTime)',
+						query: {
+							creationTime: ['2000-01-01T00:00Z', '2100-01-01T00:00Z', '2000-01-01T00:00Z']
+						}
+					}, {
+						description: '(wrong parameter name #1)',
+						query: {
+							creationTime: ['2000-01-01T00:00Z', '2100-01-01T00:00Z'],
+							creationsTime: ['2000-01-01T00:00Z', '2100-01-01T00:00Z']
+						}
+					}, {
+						description: '(wrong parameter name #2)',
+						query: {
+							profiles: 'wrong'
+						}
+					}, {
+						description: '(double parameter #1)',
+						query: {
+							profile: ['wrong', 'weird']
+						}
+					}, {
+						description: '(triple parameter)',
+						query: {
+							profiles: 'wrong',
+							profiless: 'really',
+							profile: 'weird'
+						}
+					}, {
+						description: '(double parameter #2)',
+						query: {
+							contentType: ['wrong', 'really']
+						}
+					}
+				];
+
+				_.forEach(testsInvalid, value => {
+					it(value.description, done => {
+						const req = httpMocks.createRequest({
+							method: 'GET',
+							url: '/blobs',
+							query: value.query
+						});
+
+						const res = httpMocks.createResponse({
+							eventEmitter: require('events').EventEmitter
+						});
+
+						blobs.getBlob(req, res);
+
+						const data = res._getData();
+						res.statusCode.should.equal(400);
+						data.should.be.an('string');
+						data.should.equal('Invalid query');
 						done();
 					});
 				});
 			});
 		});
+		// End: GET /blobs        //
+		// //////////////////////////
 
-		describe('-questionable queries', () => {
-			const testsInvalid = [{
-				description: 'With multiple params (one is valid)',
-				params: {
-					id: 2001,
-					ids: 2001
-				},
-				resCode: 200
-			}];
+		// //////////////////////////
+		// Start: GET /blobs/{id} //
+		describe('#GET /blobs/{id}', () => {
+			const testsValid = [
+				{
+					description: 'Basic test',
+					params: {
+						id: 2001
+					}
+				}];
 
-			_.forEach(testsInvalid, value => {
+			describe('-valid queries (should respond with 200)', () => {
+				_.forEach(testsValid, value => {
+					it(value.description, done => {
+						const req = httpMocks.createRequest({
+							method: 'GET',
+							url: '/blobs/validID',
+							params: value.params
+						});
+
+						const res = httpMocks.createResponse({
+							eventEmitter: require('events').EventEmitter
+						});
+
+						blobs.getBlobById(req, res);
+
+						res.on('end', () => {
+							try {
+								const data = res._getData();
+
+								res.statusCode.should.equal(200);
+								data.should.be.an('object');
+
+								should.exist(data);
+								should.exist(data.id);
+								data.id.should.be.an('string');
+								should.exist(data.contentType);
+								data.contentType.should.be.an('string');
+								should.exist(data.state);
+								data.state.should.be.an('string');
+								should.exist(data.creationTime);
+								data.creationTime.should.be.an('Date');
+								should.exist(data.modificationTime);
+								data.modificationTime.should.be.an('Date');
+								should.exist(data.processingInfo);
+								should.equal(data.processingInfo.transformationError, null);
+								should.equal(data.processingInfo.numberOfRecords, null);
+								should.exist(data.processingInfo.importResults);
+								data.processingInfo.importResults.should.be.an('array');
+								done();
+							} catch (err) {
+								done(err);
+							}
+						});
+					});
+				});
+			});
+
+			describe('-invalid queries (404)', () => {
+				const testsInvalid = [
+					{
+						description: 'Without param',
+						params: {
+						},
+						res: 'The blob does not exist'
+					}, {
+						description: 'With invalid param',
+						params: {
+							ids: 2001
+						},
+						res: 'The blob does not exist'
+					}];
+
+				_.forEach(testsInvalid, value => {
+					it(value.description, done => {
+						const req = httpMocks.createRequest({
+							method: 'GET',
+							url: '/blobs/invalidID',
+							params: value.params
+						});
+
+						const res = httpMocks.createResponse({
+							eventEmitter: require('events').EventEmitter
+						});
+
+						blobs.getBlobById(req, res, err => {
+							try {
+								err.message.should.be.equal(value.res);
+							} catch (err) {
+								return done(err);
+							}
+							done();
+						});
+					});
+				});
+			});
+
+			describe('-questionable queries', () => {
+				const testsInvalid = [{
+					description: 'With multiple params (one is valid)',
+					params: {
+						id: 2001,
+						ids: 2001
+					},
+					resCode: 200
+				}];
+
+				_.forEach(testsInvalid, value => {
+					it(value.description, done => {
+						const req = httpMocks.createRequest({
+							method: 'GET',
+							url: '/blobs/invalidID',
+							params: value.params
+						});
+
+						const res = httpMocks.createResponse({
+							eventEmitter: require('events').EventEmitter
+						});
+
+						blobs.getBlobById(req, res);
+
+						res.on('end', () => {
+							try {
+								const data = res._getData();
+								res.statusCode.should.equal(value.resCode);
+								data.should.be.an('object');
+								done();
+							} catch (err) {
+								done(err);
+							}
+						});
+					});
+				});
+			});
+		});
+		// End: GET /blobs/{id}   //
+		// //////////////////////////
+
+		// //////////////////////////
+		// Start: POST /blobs/{id} //
+		describe('#POST /blobs/{id}', () => {
+			const testsValid = [
+				{
+					description: 'Basic test',
+					params: {
+						id: 2001
+					},
+					body: {
+						profile: '2200'
+					}
+				}
+			];
+
+			describe('-valid queries (should respond with 204)', () => {
+				_.forEach(testsValid, value => {
+					it(value.description, done => {
+						const req = httpMocks.createRequest({
+							method: 'POST',
+							url: '/blobs/',
+							params: value.params,
+							body: value.body
+						});
+
+						const res = httpMocks.createResponse({
+							eventEmitter: require('events').EventEmitter
+						});
+
+						blobs.postBlobById(req, res);
+
+						res.on('end', () => {
+							try {
+								const data = res._getData();
+								res.statusCode.should.equal(204);
+								data.should.be.an('string');
+								data.should.equal('The metadata was updated');
+								done();
+							} catch (err) {
+								done(err);
+							}
+						});
+					});
+				});
+			});
+
+			const testsInvalid = [
+				/* ,
+				//This test is disabled for the moment since
+				//sending malformed JSON doesn't seem to work
+				//Test malformed JSON with Postman
+				{
+					'description': 'Malformed',
+					'params': {
+						'id': 2001
+					},
+					'body': {
+						'profile': Malformed'
+					},
+					'res': 400
+				}, */
+				{
+					description: 'Not existing',
+					params: {
+						id: 9999
+					},
+					body: {
+						profile: '2200'
+					},
+					res: 'request.content.missing'
+				}, {
+					description: 'Invalid syntax',
+					params: {
+						id: 2001
+					},
+					body: {
+						profileInvalid: 2200
+					},
+					res: 'request.content.validation'
+				}
+			];
+
+			describe('-invalid queries', () => {
+				_.forEach(testsInvalid, value => {
+					it(value.description, done => {
+						const req = httpMocks.createRequest({
+							method: 'POST',
+							url: '/blobs/',
+							params: value.params,
+							body: value.body
+						});
+
+						const res = httpMocks.createResponse({
+							eventEmitter: require('events').EventEmitter
+						});
+
+						blobs.postBlobById(req, res, err => {
+							try {
+								err.type.should.be.equal(value.res);
+								done();
+							} catch (err) {
+								done(err);
+							}
+						});
+					});
+				});
+			});
+		});
+		// End: POST /blobs/{id}  //
+		// //////////////////////////
+
+		// //////////////////////////
+		// Start: DELETE /blobs/{id} //
+		describe('#DELETE /blobs/{id}', () => {
+			const tests = [
+				{
+					description: 'Basic test (valid)',
+					params: {
+						id: '2001'
+					},
+					res: 204
+				}, {
+					description: 'Earlier removed blob',
+					params: {
+						id: '2001'
+					},
+					res: 'request.content.missing'
+				}, {
+					description: 'Not existing',
+					params: {
+						id: '9999'
+					},
+					res: 'request.content.missing'
+				}
+			];
+
+			_.forEach(tests, value => {
 				it(value.description, done => {
 					const req = httpMocks.createRequest({
-						method: 'GET',
-						url: '/blobs/invalidID',
+						method: 'DELETE',
+						url: '/blobs/',
 						params: value.params
 					});
 
@@ -574,13 +754,18 @@ describe('Blob services', () => {
 						eventEmitter: require('events').EventEmitter
 					});
 
-					blobs.getBlobById(req, res);
+					blobs.deleteBlobById(req, res, err => {
+						try {
+							err.type.should.be.equal(value.res);
+							done();
+						} catch (err) {
+							done(err);
+						}
+					});
 
 					res.on('end', () => {
 						try {
-							const data = res._getData();
-							res.statusCode.should.equal(value.resCode);
-							data.should.be.an('object');
+							res.statusCode.should.equal(value.res);
 							done();
 						} catch (err) {
 							done(err);
@@ -589,47 +774,123 @@ describe('Blob services', () => {
 				});
 			});
 		});
-	});
-    // End: GET /blobs/{id}   //
-    // //////////////////////////
+		// End: DELETE /blobs/{id}  //
+		// ////////////////////////////
 
-    // //////////////////////////
-    // Start: POST /blobs/{id} //
-	describe('#POST /blobs/{id}', () => {
-		const testsValid = [
-			{
-				description: 'Basic test',
-				params: {
-					id: 2001
-				},
-				body: {
-					profile: '2200'
+		// //////////////////////////////////
+		// Start: GET /blobs/{id}/content //
+		describe('#GET /blobs/{id}/content', () => {
+			const tests = [
+				{
+					description: 'Basic test (valid)',
+					params: {
+						id: '2002'
+					},
+					res: 200
+				}, {
+					description: 'Earlier removed blob',
+					params: {
+						id: '2001'
+					},
+					res: 'request.content.missing'
+				}, {
+					description: 'Not existing',
+					params: {
+						id: '9999'
+					},
+					res: 'request.content.missing'
 				}
-			}
-		];
+			];
 
-		describe('-valid queries (should respond with 204)', () => {
-			_.forEach(testsValid, value => {
+			_.forEach(tests, value => {
 				it(value.description, done => {
 					const req = httpMocks.createRequest({
-						method: 'POST',
-						url: '/blobs/',
-						params: value.params,
-						body: value.body
+						method: 'GET',
+						url: '/blobs/' + value.params.id + '/content',
+						params: value.params
 					});
 
 					const res = httpMocks.createResponse({
 						eventEmitter: require('events').EventEmitter
 					});
 
-					blobs.postBlobById(req, res);
+					blobs.getBlobByIdContent(req, res, err => {
+						try {
+							err.type.should.be.equal(value.res);
+							done();
+						} catch (err) {
+							done(err);
+						}
+					});
+
+					res.on('end', () => {
+						try {
+							// Const data = res._getData();
+							res.statusCode.should.equal(value.res);
+							done();
+						} catch (err) {
+							done(err);
+						}
+					});
+				});
+			});
+		});
+		// End: GET /blobs/{id}/content  //
+		// /////////////////////////////////
+
+		// /////////////////////////////////////
+		// Start: DELETE /blobs/{id}/content //
+		// The blob content is removed. If blob state is PENDING_TRANSFORMATION it is set to ABORTED
+		describe('#DELETE /blobs/{id}/content', () => {
+			const tests = [
+				{
+					description: 'Basic test (valid)',
+					params: {
+						id: '2002'
+					},
+					res: 204
+				}, {
+					description: 'Earlier removed blob',
+					params: {
+						id: '2002'
+					},
+					res: 'request.content.missing'
+				}, {
+					description: 'Not existing',
+					params: {
+						id: '9999'
+					},
+					res: 'request.content.missing'
+				}
+			];
+
+			_.forEach(tests, value => {
+				it(value.description, done => {
+					const req = httpMocks.createRequest({
+						method: 'DELETE',
+						url: '/blobs/' + value.params.id + '/content',
+						params: value.params
+					});
+
+					const res = httpMocks.createResponse({
+						eventEmitter: require('events').EventEmitter
+					});
+
+					blobs.deleteBlobByIdContent(req, res, err => {
+						try {
+							err.type.should.be.equal(value.res);
+							done();
+						} catch (err) {
+							done(err);
+						}
+					});
 
 					res.on('end', () => {
 						try {
 							const data = res._getData();
 							res.statusCode.should.equal(204);
 							data.should.be.an('string');
-							data.should.equal('The metadata was updated');
+							data.should.equal('The content was removed');
 							done();
 						} catch (err) {
 							done(err);
@@ -638,465 +899,222 @@ describe('Blob services', () => {
 				});
 			});
 		});
+		// End: DELETE /blobs/{id}/content //
+		// ///////////////////////////////////
+	});
 
-		const testsInvalid = [
-            /* ,
-            //This test is disabled for the moment since
-            //sending malformed JSON doesn't seem to work
-            //Test malformed JSON with Postman
-            {
-                'description': 'Malformed',
-                'params': {
-                    'id': 2001
-                },
-                'body': {
-                    'profile': Malformed'
-                },
-                'res': 400
-            }, */
-			{
-				description: 'Not existing',
+	// //////////////////////////////////////////////////////
+	// Tests for profile services, meaning /profiles/* paths //
+	// //////////////////////////////////////////////////////
+	describe('Profile services', () => {
+		// ///////////////////////////////
+		// Start: PUT /profiles/{name} //
+		describe('#PUT /profiles/{name}', () => {
+			const testsValid = [{
+				description: 'Add profile',
 				params: {
-					id: 9999
+					name: 2203
 				},
 				body: {
-					profile: '2200'
+					auth: {
+						groups: ['admin', 'user']
+					},
+					transformation: {
+						abortOnInvalidRecords: false,
+						image: 'standard',
+						env: {}
+					},
+					import: {
+						image: 'standard',
+						env: {}
+					}
 				},
-				res: 'request.content.missing'
+				status: 201,
+				response: 'The profile was created'
 			}, {
-				description: 'Invalid syntax',
+				description: 'Update profile',
 				params: {
-					id: 2001
+					name: 2202
 				},
 				body: {
-					profileInvalid: 2200
-				},
-				res: 'request.content.validation'
-			}
-		];
-
-		describe('-invalid queries', () => {
-			_.forEach(testsInvalid, value => {
-				it(value.description, done => {
-					const req = httpMocks.createRequest({
-						method: 'POST',
-						url: '/blobs/',
-						params: value.params,
-						body: value.body
-					});
-
-					const res = httpMocks.createResponse({
-						eventEmitter: require('events').EventEmitter
-					});
-
-					blobs.postBlobById(req, res, err => {
-						try {
-							err.type.should.be.equal(value.res);
-							done();
-						} catch (err) {
-							done(err);
-						}
-					});
-				});
-			});
-		});
-	});
-    // End: POST /blobs/{id}  //
-    // //////////////////////////
-
-    // //////////////////////////
-    // Start: DELETE /blobs/{id} //
-	describe('#DELETE /blobs/{id}', () => {
-		const tests = [
-			{
-				description: 'Basic test (valid)',
-				params: {
-					id: '2001'
-				},
-				res: 204
-			}, {
-				description: 'Earlier removed blob',
-				params: {
-					id: '2001'
-				},
-				res: 'request.content.missing'
-			}, {
-				description: 'Not existing',
-				params: {
-					id: '9999'
-				},
-				res: 'request.content.missing'
-			}
-		];
-
-		_.forEach(tests, value => {
-			it(value.description, done => {
-				const req = httpMocks.createRequest({
-					method: 'DELETE',
-					url: '/blobs/',
-					params: value.params
-				});
-
-				const res = httpMocks.createResponse({
-					eventEmitter: require('events').EventEmitter
-				});
-
-				blobs.deleteBlobById(req, res, err => {
-					try {
-						err.type.should.be.equal(value.res);
-						done();
-					} catch (err) {
-						done(err);
-					}
-				});
-
-				res.on('end', () => {
-					try {
-						res.statusCode.should.equal(value.res);
-						done();
-					} catch (err) {
-						done(err);
-					}
-				});
-			});
-		});
-	});
-    // End: DELETE /blobs/{id}  //
-    // ////////////////////////////
-
-    // //////////////////////////////////
-    // Start: GET /blobs/{id}/content //
-	describe('#GET /blobs/{id}/content', () => {
-		const tests = [
-			{
-				description: 'Basic test (valid)',
-				params: {
-					id: '2002'
-				},
-				res: 200
-			}, {
-				description: 'Earlier removed blob',
-				params: {
-					id: '2001'
-				},
-				res: 'request.content.missing'
-			}, {
-				description: 'Not existing',
-				params: {
-					id: '9999'
-				},
-				res: 'request.content.missing'
-			}
-		];
-
-		_.forEach(tests, value => {
-			it(value.description, done => {
-				const req = httpMocks.createRequest({
-					method: 'GET',
-					url: '/blobs/' + value.params.id + '/content',
-					params: value.params
-				});
-
-				const res = httpMocks.createResponse({
-					eventEmitter: require('events').EventEmitter
-				});
-
-				blobs.getBlobByIdContent(req, res, err => {
-					try {
-						err.type.should.be.equal(value.res);
-						done();
-					} catch (err) {
-						done(err);
-					}
-				});
-
-				res.on('end', () => {
-					try {
-						// Const data = res._getData();
-						res.statusCode.should.equal(value.res);
-						done();
-					} catch (err) {
-						done(err);
-					}
-				});
-			});
-		});
-	});
-    // End: GET /blobs/{id}/content  //
-    // /////////////////////////////////
-
-    // /////////////////////////////////////
-    // Start: DELETE /blobs/{id}/content //
-    // The blob content is removed. If blob state is PENDING_TRANSFORMATION it is set to ABORTED
-	describe('#DELETE /blobs/{id}/content', () => {
-		const tests = [
-			{
-				description: 'Basic test (valid)',
-				params: {
-					id: '2002'
-				},
-				res: 204
-			}, {
-				description: 'Earlier removed blob',
-				params: {
-					id: '2002'
-				},
-				res: 'request.content.missing'
-			}, {
-				description: 'Not existing',
-				params: {
-					id: '9999'
-				},
-				res: 'request.content.missing'
-			}
-		];
-
-		_.forEach(tests, value => {
-			it(value.description, done => {
-				const req = httpMocks.createRequest({
-					method: 'DELETE',
-					url: '/blobs/' + value.params.id + '/content',
-					params: value.params
-				});
-
-				const res = httpMocks.createResponse({
-					eventEmitter: require('events').EventEmitter
-				});
-
-				blobs.deleteBlobByIdContent(req, res, err => {
-					try {
-						err.type.should.be.equal(value.res);
-						done();
-					} catch (err) {
-						done(err);
-					}
-				});
-
-				res.on('end', () => {
-					try {
-						const data = res._getData();
-						res.statusCode.should.equal(204);
-						data.should.be.an('string');
-						data.should.equal('The content was removed');
-						done();
-					} catch (err) {
-						done(err);
-					}
-				});
-			});
-		});
-	});
-    // End: DELETE /blobs/{id}/content //
-    // ///////////////////////////////////
-});
-
-// //////////////////////////////////////////////////////
-// Tests for profile services, meaning /profiles/* paths //
-// //////////////////////////////////////////////////////
-describe('Profile services', () => {
-    // ///////////////////////////////
-    // Start: PUT /profiles/{name} //
-	describe('#PUT /profiles/{name}', () => {
-		const testsValid = [{
-			description: 'Add profile',
-			params: {
-				name: 2203
-			},
-			body: {
-				auth: {
-					groups: ['admin', 'user']
-				},
-				transformation: {
-					abortOnInvalidRecords: false,
-					image: 'standard',
-					env: {}
-				},
-				import: {
-					image: 'standard',
-					env: {}
-				}
-			},
-			status: 201,
-			response: 'The profile was created'
-		}, {
-			description: 'Update profile',
-			params: {
-				name: 2202
-			},
-			body: {
-				name: 2202,
-				auth: {
-					groups: ['admin']
-				}
-			},
-			status: 204,
-			response: 'The profile was updated'
-		}];
-
-		describe('-valid queries (should respond with 20*)', () => {
-			_.forEach(testsValid, value => {
-				it(value.description, done => {
-					const req = httpMocks.createRequest({
-						method: 'PUT',
-						url: '/profiles/' + value.params.name,
-						params: value.params,
-						body: value.body
-					});
-
-					const res = httpMocks.createResponse({
-						eventEmitter: require('events').EventEmitter
-					});
-
-					profiles.upsertProfileByName(req, res);
-
-					res.on('end', () => {
-						try {
-							const data = res._getData();
-							res.statusCode.should.equal(value.status);
-							data.should.be.an('string');
-							data.should.equal(value.response);
-							done();
-						} catch (err) {
-							done(err);
-						}
-					});
-				});
-			});
-		});
-
-		const testsInvalid = [
-			{
-				description: 'Names not matching',
-				body: {
-					name: 2203,
+					name: 2202,
 					auth: {
 						groups: ['admin']
 					}
 				},
+				status: 204,
+				response: 'The profile was updated'
+			}];
+
+			describe('-valid queries (should respond with 20*)', () => {
+				_.forEach(testsValid, value => {
+					it(value.description, done => {
+						const req = httpMocks.createRequest({
+							method: 'PUT',
+							url: '/profiles/' + value.params.name,
+							params: value.params,
+							body: value.body
+						});
+
+						const res = httpMocks.createResponse({
+							eventEmitter: require('events').EventEmitter
+						});
+
+						profiles.upsertProfileByName(req, res);
+
+						res.on('end', () => {
+							try {
+								const data = res._getData();
+								res.statusCode.should.equal(value.status);
+								data.should.be.an('string');
+								data.should.equal(value.response);
+								done();
+							} catch (err) {
+								done(err);
+							}
+						});
+					});
+				});
+			});
+
+			const testsInvalid = [
+				{
+					description: 'Names not matching',
+					body: {
+						name: 2203,
+						auth: {
+							groups: ['admin']
+						}
+					},
+					params: {
+						name: 2202
+					},
+					status: 422,
+					res: 'entity.not.object'
+				}
+				/* ,
+				//This test is disabled for the moment since
+				//sending malformed JSON doesn't seem to work
+				//Test malformed JSON with Postman
+				{
+					'description': 'Malformed body',
+					'body': '{ 'auth' :'{'groups': ['admin']'}',
+					'status': 400,
+					'response': 'Malformed content'
+				}
+				*/
+			];
+
+			describe('-invalid queries (should respond with 4**)', () => {
+				_.forEach(testsInvalid, value => {
+					it(value.description, done => {
+						const req = httpMocks.createRequest({
+							method: 'PUT',
+							url: '/profiles/' + value.params.name,
+							body: value.body,
+							params: value.params
+						});
+
+						const res = httpMocks.createResponse({
+							eventEmitter: require('events').EventEmitter
+						});
+
+						profiles.upsertProfileByName(req, res, err => {
+							try {
+								err.type.should.be.equal(value.res);
+							} catch (err) {
+								return done(err);
+							}
+							done();
+						});
+					});
+				});
+			});
+		});
+		//  End: PUT /profiles/{name}  //
+		// /////////////////////////////
+
+		// /////////////////////////////
+		// Start: GET /profiles/{name} //
+		describe('#GET /profiles/{name}', () => {
+			const testsValid = [{
+				description: 'Get profile',
 				params: {
-					name: 2202
+					name: '2202'
 				},
-				status: 422,
-				res: 'entity.not.object'
-			}
-            /* ,
-            //This test is disabled for the moment since
-            //sending malformed JSON doesn't seem to work
-            //Test malformed JSON with Postman
-            {
-                'description': 'Malformed body',
-                'body': '{ 'auth' :'{'groups': ['admin']'}',
-                'status': 400,
-                'response': 'Malformed content'
-            }
-            */
-		];
+				status: 200
+			}];
 
-		describe('-invalid queries (should respond with 4**)', () => {
-			_.forEach(testsInvalid, value => {
-				it(value.description, done => {
-					const req = httpMocks.createRequest({
-						method: 'PUT',
-						url: '/profiles/' + value.params.name,
-						body: value.body,
-						params: value.params
+			describe('-valid queries (should respond with 20*)', () => {
+				_.forEach(testsValid, value => {
+					it(value.description, done => {
+						const req = httpMocks.createRequest({
+							method: 'GET',
+							url: '/profiles/' + value.params.id,
+							params: value.params,
+							body: value.body
+						});
+
+						const res = httpMocks.createResponse({
+							eventEmitter: require('events').EventEmitter
+						});
+
+						profiles.getProfileByName(req, res);
+
+						res.on('end', () => {
+							try {
+								const data = res._getData();
+								res.statusCode.should.equal(value.status);
+								data.should.be.an('object');
+								done();
+							} catch (err) {
+								done(err);
+							}
+						});
 					});
+				});
+			});
 
-					const res = httpMocks.createResponse({
-						eventEmitter: require('events').EventEmitter
-					});
+			const testsInvalid = [{
+				description: 'Not existing',
+				params: {
+					name: 9999
+				},
+				status: 404,
+				res: 'request.content.missing'
+			}];
 
-					profiles.upsertProfileByName(req, res, err => {
-						try {
-							err.type.should.be.equal(value.res);
-						} catch (err) {
-							return done(err);
-						}
-						done();
+			describe('-invalid queries (should respond with 4**)', () => {
+				_.forEach(testsInvalid, value => {
+					it(value.description, done => {
+						const req = httpMocks.createRequest({
+							method: 'GET',
+							url: '/profiles/' + value.params.id,
+							params: value.params,
+							body: value.body
+						});
+
+						const res = httpMocks.createResponse({
+							eventEmitter: require('events').EventEmitter
+						});
+
+						profiles.getProfileByName(req, res, err => {
+							try {
+								err.type.should.be.equal(value.res);
+								done();
+							} catch (err) {
+								done(err);
+							}
+						});
 					});
 				});
 			});
 		});
+		// End: PUT /profiles/{name} //
+		// ///////////////////////////
 	});
-    //  End: PUT /profiles/{name}  //
-    // /////////////////////////////
 
-    // /////////////////////////////
-    // Start: GET /profiles/{name} //
-	describe('#GET /profiles/{name}', () => {
-		const testsValid = [{
-			description: 'Get profile',
-			params: {
-				name: '2202'
-			},
-			status: 200
-		}];
-
-		describe('-valid queries (should respond with 20*)', () => {
-			_.forEach(testsValid, value => {
-				it(value.description, done => {
-					const req = httpMocks.createRequest({
-						method: 'GET',
-						url: '/profiles/' + value.params.id,
-						params: value.params,
-						body: value.body
-					});
-
-					const res = httpMocks.createResponse({
-						eventEmitter: require('events').EventEmitter
-					});
-
-					profiles.getProfileByName(req, res);
-
-					res.on('end', () => {
-						try {
-							const data = res._getData();
-							res.statusCode.should.equal(value.status);
-							data.should.be.an('object');
-							done();
-						} catch (err) {
-							done(err);
-						}
-					});
-				});
-			});
-		});
-
-		const testsInvalid = [{
-			description: 'Not existing',
-			params: {
-				name: 9999
-			},
-			status: 404,
-			res: 'request.content.missing'
-		}];
-
-		describe('-invalid queries (should respond with 4**)', () => {
-			_.forEach(testsInvalid, value => {
-				it(value.description, done => {
-					const req = httpMocks.createRequest({
-						method: 'GET',
-						url: '/profiles/' + value.params.id,
-						params: value.params,
-						body: value.body
-					});
-
-					const res = httpMocks.createResponse({
-						eventEmitter: require('events').EventEmitter
-					});
-
-					profiles.getProfileByName(req, res, err => {
-						try {
-							err.type.should.be.equal(value.res);
-							done();
-						} catch (err) {
-							done(err);
-						}
-					});
-				});
-			});
-		});
+	after(done => {
+		app.close(done);
 	});
-    // End: PUT /profiles/{name} //
-    // ///////////////////////////
 });
