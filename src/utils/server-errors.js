@@ -92,6 +92,13 @@ module.exports.getIDConflictError = function () {
 	return err;
 };
 
+module.exports.getStreamError = function (message) {
+	const err = new Error('Error on stream');
+	err.type = config.enums.errorTypes.stream;
+	err.message = message;
+	return err;
+};
+
 module.exports.getUnknownError = function (description, data) {
 	const err = new Error(description);
 	err.type = config.enums.errorTypes.unknown;

@@ -29,7 +29,6 @@
 'use strict';
 
 const mongoose = require('mongoose');
-const gridfs = require('gridfs-stream');
 const moment = require('moment');
 const uuid = require('uuid');
 const _ = require('lodash');
@@ -39,7 +38,7 @@ const serverErrors = require('../utils/server-errors');
 const mongoErrorHandler = require('../utils/mongoose-error-handler');
 const queryHandler = require('../utils/mongoose-query-handler');
 
-const gfs = gridfs(mongoose.connection.db);
+const gFSB = new mongoose.mongo.GridFSBucket(mongoose.connection.db, {bucketName: 'blobmetadatas'});
 const logs = config.logs;
 const allowedQueryFields = ['profile', 'contentType', 'state', 'creationTime', 'modificationTime'];
 
@@ -84,16 +83,12 @@ module.exports.postBlob = function (req, res, next) {
 		newBlobMetadata.state = config.enums.blobStates.pending;
 		newBlobMetadata.creationTime = moment(); // Use this if you want datetime to be formated etc, otherwise mongoose appends creation and modificationTime
 
-		newBlobMetadata.save((err, result) => {
+		newBlobMetadata.save(err => {
 			if (err) {
 				return next(serverErrors.getValidationError());
 			}
 
-			const options = {
-				root: 'blobmetadatas',
-				filename: result.id
-			};
-			const writestream = gfs.createWriteStream(options);
+			const writestream = gFSB.openUploadStream(newBlobMetadata.id);
 
 			req.on('error', err => {
 				return next(serverErrors.getUnknownError(err));
@@ -232,30 +227,28 @@ module.exports.deleteBlobById = function (req, res, next) {
 		console.log(req.params.id);
 	}
 
-	const options = {
-		root: 'blobmetadatas',
-		filename: req.params.id
-	};
+	mongoose.models['BlobMetaDatas.File'].where('filename', req.params.id)
+		.exec()
+		.then(documents => {
+			if (documents.length === 1) {
+				// Delete both .chunks and .file
+				gFSB.delete(documents[0]._id, error => {
+					if (error) {
+						return next(serverErrors.getUnknownError(error));
+					}
 
-	gfs.exist(options, (err, file) => {
-		if (err) {
-			return next(serverErrors.getUnknownError(err));
-		} else if (!file) {
-			return next(serverErrors.getMissingContentError(null));
-		}
-		gfs.remove(options, errRem => {
-			if (errRem) {
-				return mongoErrorHandler(errRem, res, next);
+						// Remove metadata
+					mongoose.models.BlobMetadata.findOneAndRemove()
+							.where('id', req.params.id)
+							.exec()
+							.then(documents => queryHandler.removeOne(documents, res, next, 'The blob was removed'))
+							.catch(err => mongoErrorHandler(err, res, next));
+				});
+			} else {
+				return next(serverErrors.getMissingContentError());
 			}
-
-			// Remove metadata
-			mongoose.models.BlobMetadata.findOneAndRemove()
-				.where('id', req.params.id)
-				.exec()
-				.then(documents => queryHandler.removeOne(documents, res, next, 'The blob was removed'))
-				.catch(err => mongoErrorHandler(err, res, next));
-		});
-	});
+		})
+		.catch(err => mongoErrorHandler(err, res, next));
 };
 
 /**
@@ -268,20 +261,22 @@ module.exports.getBlobByIdContent = function (req, res, next) {
 		console.log(req.params.id);
 	}
 
-	const options = {
-		root: 'blobmetadatas',
-		filename: req.params.id
-	};
+	mongoose.models['BlobMetaDatas.File'].where('filename', req.params.id)
+		.exec()
+		.then(documents => {
+			if (documents.length === 1) {
+				const downloadStream = gFSB.openDownloadStream(documents[0]._id);
 
-	// Check file exist on MongoDB
-	gfs.exist(options, (err, file) => {
-		if (err || !file) {
-			return next(serverErrors.getMissingContentError('The blob does not exist'));
-		}
-		const readstream = gfs.createReadStream(options);
+				downloadStream.on('error', err => {
+					return next(serverErrors.getStreamError('Error on download stream, possibly missing content chunks', err));
+				});
 
-		readstream.pipe(res);
-	});
+				downloadStream.pipe(res);
+			} else {
+				return next(serverErrors.getMissingContentError());
+			}
+		})
+		.catch(err => mongoErrorHandler(err, res, next));
 };
 
 /**
@@ -295,22 +290,19 @@ module.exports.deleteBlobByIdContent = function (req, res, next) {
 		console.log(req.params.id);
 	}
 
-	const options = {
-		root: 'blobmetadatas',
-		filename: req.params.id
-	};
-
-	gfs.exist(options, (err, file) => {
-		if (err) {
-			return next(serverErrors.getUnknownError(err));
-		} else if (!file) {
-			return next(serverErrors.getMissingContentError(null));
-		}
-		gfs.remove(options, errRem => {
-			if (errRem) {
-				return mongoErrorHandler(errRem, res, next);
+	mongoose.models['BlobMetaDatas.File'].where('filename', req.params.id)
+		.exec()
+		.then(documents => {
+			if (documents.length === 1) {
+				gFSB.delete(documents[0]._id, error => {
+					if (error) {
+						return next(serverErrors.getUnknownError(error));
+					}
+					queryHandler.removeOne({id: documents[0]._id}, res, next, 'The content was removed');
+				});
+			} else {
+				return next(serverErrors.getMissingContentError());
 			}
-			queryHandler.removeOne(file, res, next, 'The content was removed');
-		});
-	});
+		})
+		.catch(err => mongoErrorHandler(err, res, next));
 };

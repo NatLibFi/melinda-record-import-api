@@ -64,6 +64,7 @@ exports.errorTypes = {
 	bodyTooLarge: 'request.body.large',
 	validation: 'request.content.validation',
 	idConflict: 'request.mismatch.id',
+	stream: 'stream.general',
 	unknown: 'unknown'
 };
 

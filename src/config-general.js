@@ -45,7 +45,11 @@ exports.portAPI = portAPI;
 const portController = parseInt(process.env.PORT_CNTRL, 10) || 3001;
 exports.portController = portController;
 
-exports.contentMaxLength = parseInt(process.env.CONT_MAX_LENGTH, 10) || 0; // 0=no max length set
+if (process.env.NODE_ENV === 'test' || process.env.NODE_ENV === 'test_full') {
+	exports.contentMaxLength = 100;
+} else {
+	exports.contentMaxLength = parseInt(process.env.CONT_MAX_LENGTH, 10) || 0; // 0=no max length set
+}
 
 exports.urlAPI = process.env.URL_API || 'http://' + hostname + ':' + portAPI;
 

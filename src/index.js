@@ -34,7 +34,6 @@ const path = require('path');
 const express = require('express');
 const cors = require('cors');
 const mongoose = require('mongoose');
-const gridfs = require('gridfs-stream');
 const config = require('./config-general');
 
 const logs = config.logs;
@@ -58,10 +57,8 @@ const MANDATORY_ENV_VARIABLES = [
 
 // If USE_DEF is set to true, app uses default values, otherwise checks that "mandatory" variables are set
 if (process.env.NODE_ENV === 'test') {
-	config.contentMaxLength = 100;
 	process.env.REQ_AUTH = false;
 } else if (process.env.USE_DEF === 'true' || process.env.NODE_ENV === 'test_full') {
-	config.contentMaxLength = 100;
 	const configCrowd = require('./config-crowd'); // Load default crowd authentications to env variables
 	if (configCrowd) {
 		process.env.CROWD_TOKENNAME = process.env.CROWD_TOKENNAME || configCrowd.tokenName;
@@ -95,8 +92,7 @@ app.use(express.static(path.join(__dirname, '/public')));
 // app.use(bodyParser.json());
 
 // Start mongo from configuration
-mongoose.connect(app.config.mongodb.uri).then(() => { // Routes uses mongo connection to setup gridFS
-	gridfs.mongo = mongoose.mongo;
+mongoose.connect(app.config.mongodb.uri, {useNewUrlParser: true}).then(() => { // Routes uses mongo connection to setup gridFS
 	mongoose.set('debug', app.config.mongoDebug);
 
     // Setup routes
@@ -142,6 +138,8 @@ mongoose.connect(app.config.mongodb.uri).then(() => { // Routes uses mongo conne
 				return res.status(config.httpCodes.ValidationError).send(err.message || 'Request validation failed');
 			case config.enums.errorTypes.idConflict:
 				return res.status(config.httpCodes.ValidationError).send('Invalid syntax');
+			case config.enums.errorTypes.stream:
+				return res.status(config.httpCodes.InternalServerError).send(err.message || 'Unspecified stream error');
 			case config.enums.errorTypes.unknown: {
 				console.error(err); // Log unkown errors by default, others are semi-normal usage errors
 				return res.status(config.httpCodes.InternalServerError).send('Unknown error');
@@ -161,7 +159,7 @@ mongoose.connect(app.config.mongodb.uri).then(() => { // Routes uses mongo conne
 	});
 
 	// Clear DB or use seed version
-	if (app.config.seedDB === 'true') {
+	if (app.config.seedDB === true) {
 		require('./utils/database/db-seed')();
 	} else if (process.env.NODE_ENV === 'test' || process.env.NODE_ENV === 'test_full') { // Test version
 		require('./utils/database/db-test')();
