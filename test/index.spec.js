@@ -150,7 +150,7 @@ describe('All tests', () => {
 			// });
 
 			const encodedAuth = configCrowd.encodedAuth;
-
+			
 			_.forEach(routesObj, route => {
 				describe('Tests for path: ' + route.url, () => {
 					_.forEach(testsValid, value => {

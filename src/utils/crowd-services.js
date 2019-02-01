@@ -62,11 +62,14 @@ authenticateUserOptions.body = {
 
 module.exports.authenticateUserSSO = function () {
 	return new Promise((resolve, reject) => {
-        // Accepted response is in JSON-format
+		// Accepted response is in JSON-format
 		function callback(error, response, body) {
-			if (!error && (response.statusCode === 200 || response.statusCode === 201) &&
-                body && body.token) {
-				resolve(body.token);
+			if (!error ){
+				if((response.statusCode === 200 || response.statusCode === 201) && body && body.token) {
+					resolve(body.token);
+				}else{
+					reject({message: "Authentication failed", code: response.statusCode})
+				}
 			} else {
 				if (logs) {
 					console.log('Error: ', error);

@@ -142,7 +142,7 @@ module.exports = function () {
 		mongoose.models.Profile.create({
 			name: '2200',
 			auth: {
-				groups: ['test']
+				groups: ['admin', 'test']
 			},
 			transformation: {
 				abortOnInvalidRecords: false,
