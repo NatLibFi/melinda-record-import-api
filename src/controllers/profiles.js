@@ -86,7 +86,7 @@ module.exports.upsertProfileByName = function (req, res, next) {
 module.exports.getProfileByName = function (req, res, next) {
 	if (logs) {
 		console.log('-------------- Get profile --------------');
-		console.log(req.params.id);
+		console.log(req.params.name);
 	}
 
 	mongoose.models.Profile.where('name', req.params.name)

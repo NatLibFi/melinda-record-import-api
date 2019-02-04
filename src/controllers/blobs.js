@@ -198,7 +198,7 @@ module.exports.getBlobById = function (req, res, next) {
 */
 module.exports.postBlobById = function (req, res, next) {
 	if (logs) {
-		console.log('-------------- Update  blob by id --------------');
+		console.log('-------------- Update blob by id --------------');
 		console.log(req.params.id);
 	}
 

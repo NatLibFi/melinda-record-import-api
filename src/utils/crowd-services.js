@@ -63,18 +63,16 @@ authenticateUserOptions.body = {
 module.exports.authenticateUserSSO = function () {
 	return new Promise((resolve, reject) => {
 		// Accepted response is in JSON-format
-		function callback(error, response, body) {
-			if (!error ){
-				if((response.statusCode === 200 || response.statusCode === 201) && body && body.token) {
-					resolve(body.token);
-				}else{
-					reject({message: "Authentication failed", code: response.statusCode})
-				}
-			} else {
+		function callback(err, response, body) {
+			if (err) {
 				if (logs) {
-					console.log('Error: ', error);
+					console.log('Error: ', err);
 				}
-				reject(error);
+				reject(err);
+			} else if ((response.statusCode === 200 || response.statusCode === 201) && body && body.token) {
+				resolve(body.token);
+			} else {
+				reject(serverErrors.getUnauthorizedError());
 			}
 		}
 
@@ -108,13 +106,13 @@ module.exports.ensureAuthenticated = function (req, res, next) {
 		}
         // 2. Check what profiles user is trying to use
 		const getProfilenamesPromise = getProfilename(req, res, next);
-		getProfilenamesPromise.then(profilename => {
+		getProfilenamesPromise.then(profileName => {
 			if (logs) {
-				console.log('Trying to use profile: ', profilename);
+				console.log('Trying to use profile: ', profileName);
 			}
             // 3. Check if user has rights to that profile by checking users groups in crowd
-			if (profilename) { // User is trying to access some profile
-				const getAuthenticationGroupsPromise = getAuthenticationGrous(profilename);
+			if (profileName) { // User is trying to access some profile
+				const getAuthenticationGroupsPromise = getAuthenticationGrous(req, profileName); // Get AuthGroups stored in db
 				getAuthenticationGroupsPromise.then(authGroups => {
 					if (logs) {
 						console.log('Authentication groups: ', authGroups);
@@ -124,12 +122,12 @@ module.exports.ensureAuthenticated = function (req, res, next) {
 					isUserInGroupsPromise.then(isInGroup => {
 						if (isInGroup) {
 							if (logs) {
-								console.log('User is in usergroup, they can continue to Endpoint');
+								console.log('User can continue to Endpoint');
 							}
 							return next(); // User can continue to EP
 						}
 						if (logs) {
-							console.log('User is in not in all usergroups they are trying to use, they cannot continue to Endpoint');
+							console.log('User is in not in any usergroup they are trying to use, they cannot continue to Endpoint');
 						}
 						return next(serverErrors.getForbiddenError());
 					}).catch(err => {
@@ -255,11 +253,11 @@ function getProfilename(req) {
 			if (req.headers['Import-Profile']) {
 				profileName = [req.headers['Import-Profile']];
 			} else {
-				resolve(null); // No profile can continue, but EP should throw error
+				return resolve(null); // No profile can continue, but EP should throw error
 			}
         // EP: GET /blobs query
 		} else if (met === 'GET' && (url.startsWith('/blobs?') || url === '/blobs')) {
-			resolve(null); // Authenticated users can make queries
+			return resolve(null); // Authenticated users can make queries
             // profile = [findProfile(url)]; //Can be one of multiple parameters
 		} else if ((met === 'GET' || met === 'POST' || met === 'DELETE') && url.startsWith('/blobs')) {
             // EP: GET&DELETE /blobs/{id}/content
@@ -272,9 +270,6 @@ function getProfilename(req) {
 
         // PUT&GET /profiles/{id}
 		} else if (url.startsWith('/profiles/')) {
-			if (req.body && req.body.auth && req.body.auth.groups) {
-				resolve(req.body.auth.groups);
-			}
 			profileName = url.slice(10);
 		}
 
@@ -299,16 +294,36 @@ function getProfilename(req) {
 	});
 }
 
-function getAuthenticationGrous(profilename) {
+function getAuthenticationGrous(req, profilename) {
 	return new Promise((resolve, reject) => {
-		mongoose.models.Profile.where('name', profilename)
-        .exec()
-        .then(documents => queryHandler.findAuthgroups(documents, resolve, reject))
-        .catch(err => {
-	console.error(err);
-	reject(err);
-});
-        // Resolve(['admin', 'test']);
+		// Get possible authentication groups from request
+		const getReqGroupsPromise = getRequestAuthenticationGroups(req);
+		getReqGroupsPromise.then(reqGroups => {
+			mongoose.models.Profile.where('name', profilename)
+			.exec()
+			.then(documents => queryHandler.findAuthgroups(documents, reqGroups, resolve, reject))
+			.catch(err => {
+				console.error('Catched error: ', err);
+				reject(err);
+			});
+		}).catch(err => {
+			reject(err);
+		});
+	});
+}
+
+function getRequestAuthenticationGroups(req) {
+	return new Promise((resolve, reject) => {
+		try {
+			// EP to update profile, EP contains authentication groups in DB and in request (new/modified profile)
+			if (req.url.startsWith('/profiles/') && req.method === 'PUT' &&
+			req && req.body && req.body.auth) {
+				resolve(req.body.auth.groups || []);
+			}
+		} catch (err) {
+			reject(err);
+		}
+		resolve([]);
 	});
 }
 
@@ -322,7 +337,23 @@ function isUserInGroups(username, authGroups) { // AuthGroups contains authentic
 	return new Promise((resolve, reject) => {
 		const getUserGroupsPromise = getUserGroups(username);
 		getUserGroupsPromise.then(groupnames => { // Groupnames contains groups that user is part of
-			resolve(arrayContainsArray(authGroups, groupnames)); // This returns true if any of array's elements match
+			const reqCont = arrayContainsArray(authGroups.reqGroups, groupnames);
+			const dbCont = arrayContainsArray(authGroups.DBGroups, groupnames);
+
+			//Go trough all cases
+			if (reqCont && authGroups.DBGroups.length === 0) {
+				console.warn('Adding usergroup to profile without usergroup or added new profile');
+				resolve(true);
+			} else if (reqCont && dbCont) {
+				resolve(true);
+			} else if (reqCont && !dbCont) {
+				resolve(false);
+			} else if (!reqCont && dbCont) {
+				console.warn('User removed usergroup from profile -> cannot use this profile with this user');
+				resolve(true);
+			} else if (!reqCont && !dbCont) {
+				resolve(false);
+			}
 		}).catch(err => {
 			reject(err); // Pass error foward
 		});

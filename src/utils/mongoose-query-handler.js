@@ -62,13 +62,13 @@ module.exports = {
 			}
 		}
 	},
-	findAuthgroups(findResults, resolve, reject) {
+	findAuthgroups(findResults, reqGroups, resolve, reject) {
 		switch (findResults.length) {
 			case 0: {
-				return reject(serverErrors.getMissingProfileError());
+				return resolve({reqGroups, DBGroups: []});
 			}
 			case 1: {
-				return resolve(findResults[0].toJSON().auth.groups);
+				return resolve({reqGroups, DBGroups: findResults[0].toJSON().auth.groups});
 			}
 			default: {
 				console.warn('Should be just one search result, found multiple: ', findResults);

@@ -31,6 +31,7 @@
 'use strict';
 
 // Endpoint controllers
+const restifyPlugs = require('restify').plugins;
 const blobs = require('./controllers/blobs');
 const profiles = require('./controllers/profiles');
 const crowd = require('./utils/crowd-services');
@@ -58,14 +59,14 @@ module.exports = function (app) {
     // If routes are updated detection of profile should also be updated at CrowdServives
 	app.all('/blobs*', crowd.ensureAuthenticated);
 	app.post('/blobs', blobs.postBlob);
-	app.get('/blobs', blobs.getBlob);
+	app.get('/blobs', restifyPlugs.queryParser(), blobs.getBlob);
 	app.get('/blobs/:id', blobs.getBlobById);
-	app.post('/blobs/:id', blobs.postBlobById);
+	app.post('/blobs/:id', restifyPlugs.bodyParser(), blobs.postBlobById);
 	app.delete('/blobs/:id', blobs.deleteBlobById);
 	app.get('/blobs/:id/content', blobs.getBlobByIdContent);
 	app.delete('/blobs/:id/content', blobs.deleteBlobByIdContent);
 
-	app.all('/profiles*', crowd.ensureAuthenticated);
+	app.all('/profiles*', restifyPlugs.bodyParser(), crowd.ensureAuthenticated);
 	app.put('/profiles/:name', profiles.upsertProfileByName);
 	app.get('/profiles/:name', profiles.getProfileByName);
 };

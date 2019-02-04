@@ -38,9 +38,8 @@ const config = require('./config-general');
 
 const logs = config.logs;
 let server = null;
-// Const bodyParser = require('body-parser');
 
-const MANDATORY_ENV_VARIABLES = [
+let MANDATORY_ENV_VARIABLES = [
 	'HOSTNAME_API',
 	'PORT_API',
 	'URL_API',
@@ -53,23 +52,23 @@ const MANDATORY_ENV_VARIABLES = [
 	'CROWD_APPPASS'
 ];
 
-// If USE_DEF is set to true, app uses default values, otherwise checks that "mandatory" variables are set
+// Checks that 'mandatory' variables are set etc
+if (process.env.NODE_ENV === 'test_full') {
+	MANDATORY_ENV_VARIABLES = [
+		'CROWD_TOKENNAME',
+		'CROWD_SERVER',
+		'CROWD_APPNAME',
+		'CROWD_APPPASS',
+		'CROWD_USERNAME',
+		'CROWD_PASS'
+	];
+} else if (process.env.NODE_ENV === 'test') {
+	MANDATORY_ENV_VARIABLES = [];
+}
+config.default(MANDATORY_ENV_VARIABLES); // Check that all values are set
+
 if (process.env.NODE_ENV === 'test') {
 	process.env.REQ_AUTH = false;
-} else if (process.env.USE_DEF === 'true' || process.env.NODE_ENV === 'test_full') {
-	const configCrowd = require('./config-crowd'); // Load default crowd authentications to env variables
-	if (configCrowd) {
-		process.env.CROWD_TOKENNAME = process.env.CROWD_TOKENNAME || configCrowd.tokenName;
-		process.env.CROWD_USERNAME = process.env.CROWD_USERNAME || configCrowd.username;
-		process.env.CROWD_PASS = process.env.CROWD_PASS || configCrowd.password;
-		process.env.CROWD_SERVER = process.env.CROWD_SERVER || configCrowd.server;
-		process.env.CROWD_APPNAME = process.env.CROWD_APPNAME || configCrowd.appName;
-		process.env.CROWD_APPPASS = process.env.CROWD_APPPASS || configCrowd.appPass;
-	} else {
-		throw new Error('Trying to use default variables, but Crowd configuration file not found');
-	}
-} else {
-	config.default(MANDATORY_ENV_VARIABLES); // Check that all values are set
 }
 
 const app = express();
@@ -84,10 +83,6 @@ if (process.env.NODE_ENV !== 'test' && process.env.NODE_ENV !== 'test_full') {
 app.use(require('method-override')());
 
 app.use(express.static(path.join(__dirname, '/public')));
-
-// These were enabled during development for manual testing purposes
-// app.use(bodyParser.urlencoded({ extended: false }));
-// app.use(bodyParser.json());
 
 // Start mongo from configuration
 mongoose.connect(app.config.mongodb.uri, {useNewUrlParser: true}).then(() => { // Routes uses mongo connection to setup gridFS

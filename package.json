@@ -40,7 +40,6 @@
     "atlassian-crowd": "^0.5.0",
     "atlassian-crowd-client": "^2.0.0",
     "basic-auth": "^2.0.0",
-    "body-parser": "^1.18.3",
     "chai-http": "^3.0.0",
     "connect": "^3.2.0",
     "cors": "^2.8.4",
@@ -55,6 +54,7 @@
     "passport-atlassian-crowd2": "0.0.17",
     "passport-local": "^1.0.0",
     "request": "^2.87.0",
+    "restify": "^7.7.0",
     "swagger-tools": "0.10.1",
     "swagger-ui-express": "^3.0.10",
     "uuid": "^3.2.1"

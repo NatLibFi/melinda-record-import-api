@@ -150,7 +150,7 @@ describe('All tests', () => {
 			// });
 
 			const encodedAuth = configCrowd.encodedAuth;
-			
+
 			_.forEach(routesObj, route => {
 				describe('Tests for path: ' + route.url, () => {
 					_.forEach(testsValid, value => {
@@ -264,7 +264,6 @@ describe('All tests', () => {
 					data2: 'These should contain combined 101 chars'
 				})
 				.end((err, res) => {
-					// Console.log("Res: ", res);
 					if (err) {
 						return done(err);
 					}
