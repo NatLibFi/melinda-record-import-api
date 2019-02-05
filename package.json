@@ -22,8 +22,8 @@
   "scripts": {
     "prepublishOnly": "npm run build:transpile",
     "lint": "xo --fix",
-    "test:full": "cross-env NODE_ENV=test_full nyc mocha --require babel-core/register",
-    "test": "cross-env NODE_ENV=test nyc mocha --require babel-core/register",
+    "test:full": "cross-env NODE_ENV=test_full nyc mocha --require babel-core/register --exit",
+    "test": "cross-env NODE_ENV=test nyc mocha --require babel-core/register --exit",
     "coverage": "nyc check-coverage",
     "clean": "rimraf build coverage .nyc_output dist",
     "build:transpile": "babel src --source-maps --copy-files --out-dir=dist --minified",

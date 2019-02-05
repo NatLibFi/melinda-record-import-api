@@ -340,7 +340,7 @@ function isUserInGroups(username, authGroups) { // AuthGroups contains authentic
 			const reqCont = arrayContainsArray(authGroups.reqGroups, groupnames);
 			const dbCont = arrayContainsArray(authGroups.DBGroups, groupnames);
 
-			//Go trough all cases
+			// Go trough all cases
 			if (reqCont && authGroups.DBGroups.length === 0) {
 				console.warn('Adding usergroup to profile without usergroup or added new profile');
 				resolve(true);

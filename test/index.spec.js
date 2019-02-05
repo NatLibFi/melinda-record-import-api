@@ -236,6 +236,7 @@ describe('All tests', () => {
 				.post('/blobs')
 				.set('Content', 'application/json')
 				.set('Import-Profile', 2200)
+				.set(process.env.CROWD_TOKENNAME || 'token', token)
 				.send({
 					data: 'test data',
 					data2: 'more data'
@@ -256,6 +257,7 @@ describe('All tests', () => {
 				.post('/blobs')
 				.set('Content', 'application/json')
 				.set('Import-Profile', 2200)
+				.set(process.env.CROWD_TOKENNAME || 'token', token)
 				.send({
 					data: 'Default max content length should be 100',
 					data2: 'These should contain combined 101 chars'
