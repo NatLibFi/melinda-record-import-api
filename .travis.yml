@@ -3,9 +3,14 @@ node_js:
   - 'node'
   - '7'
 script: npm run travisci
+before_script:
+  - sleep 15
+  - mongo mydb_test --eval 'db.createUser({user:"generalAdmin",pwd:"ToDoChangeAdmin",roles:["readWrite"]});'
 after_script:
   - codeclimate-test-reporter < coverage/lcov.info
 addons:
   code_climate:
     repo_token:
       secure: ""
+services:
+  - mongodb
