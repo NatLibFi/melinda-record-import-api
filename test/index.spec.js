@@ -148,7 +148,7 @@ describe('All tests', () => {
 			//     this.timeout(30000);
 			// });
 
-			const encodedAuth = 'Basic ' + Buffer.from(process.env.CROWD_USERNAME + ':' + process.env.CROWD_PASS).toString('base64');;
+			const encodedAuth = 'Basic ' + Buffer.from(process.env.CROWD_USERNAME + ':' + process.env.CROWD_PASS).toString('base64');
 
 			_.forEach(routesObj, route => {
 				describe('Tests for path: ' + route.url, () => {
@@ -236,7 +236,6 @@ describe('All tests', () => {
 				.post('/blobs')
 				.set('Content', 'application/json')
 				.set('Import-Profile', 2200)
-				.set(process.env.CROWD_TOKENNAME, token)
 				.send({
 					data: 'test data',
 					data2: 'more data'
@@ -257,7 +256,6 @@ describe('All tests', () => {
 				.post('/blobs')
 				.set('Content', 'application/json')
 				.set('Import-Profile', 2200)
-				.set(process.env.CROWD_TOKENNAME, token)
 				.send({
 					data: 'Default max content length should be 100',
 					data2: 'These should contain combined 101 chars'
