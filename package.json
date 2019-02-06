@@ -27,7 +27,7 @@
     "coverage": "nyc check-coverage",
     "clean": "rimraf build coverage .nyc_output dist",
     "build:transpile": "babel src --source-maps --copy-files --out-dir=dist --minified",
-    "build": "npm run build:transpile && ncu",
+    "build": "npm run build:transpile && ncu --packageFile package.json",
     "dev": "npm run clean && npm run build:transpile",
     "dev:check": "npm run clean && npm run lint && npm test;npm run coverage;npm run dev",
     "dev:watch": "chokidar src -c 'npm run build:transpile && node dist/index.js'",
@@ -48,8 +48,8 @@
     "js-yaml": "^3.12.0",
     "lodash": "^4.17.10",
     "method-override": "^2.3.10",
-    "moment": "^2.22.2",
-    "mongoose": "^5.4.4",
+    "moment": "^2.24.0",
+    "mongoose": "^5.4.10",
     "morgan": "^1.9.0",
     "passport-atlassian-crowd2": "0.0.17",
     "passport-local": "^1.0.0",
@@ -76,7 +76,7 @@
     "npm-check-updates": "^2.14.2",
     "nyc": "^11.9.0",
     "rimraf": "^2.6.2",
-    "supertest": "^3.1.0",
+    "supertest": "^3.4.2",
     "xo": "^0.18.2"
   },
   "xo": {
@@ -115,9 +115,9 @@
     ],
     "sourceMap": false,
     "instrument": false,
-    "lines": 100,
-    "statements": 100,
-    "functions": 100,
-    "branches": 100
+    "lines": 50,
+    "statements": 50,
+    "functions": 30,
+    "branches": 30
   }
 }
