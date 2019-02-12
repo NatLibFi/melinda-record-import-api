@@ -146,11 +146,11 @@ module.exports = function () {
 			},
 			transformation: {
 				abortOnInvalidRecords: false,
-				image: 'standard_user',
+				image: 'melinda-transformer',
 				env: {}
 			},
 			import: {
-				image: 'standard_user',
+				image: 'melinda-importer',
 				env: {}
 			}
 		}, {
@@ -160,11 +160,11 @@ module.exports = function () {
 			},
 			transformation: {
 				abortOnInvalidRecords: false,
-				image: 'standard',
+				image: 'melinda-transformer',
 				env: {}
 			},
 			import: {
-				image: 'standard',
+				image: 'melinda-importer',
 				env: {}
 			}
 		}, {
@@ -174,11 +174,11 @@ module.exports = function () {
 			},
 			transformation: {
 				abortOnInvalidRecords: false,
-				image: 'standard_user',
+				image: 'melinda-transformer',
 				env: {}
 			},
 			import: {
-				image: 'standard_user',
+				image: 'melinda-importer',
 				env: {}
 			}
 		}, {
@@ -188,11 +188,11 @@ module.exports = function () {
 			},
 			transformation: {
 				abortOnInvalidRecords: false,
-				image: 'standard',
+				image: 'melinda-transformer',
 				env: {}
 			},
 			import: {
-				image: 'standard',
+				image: 'melinda-importer',
 				env: {}
 			}
 		}, err => {

@@ -919,11 +919,11 @@ describe('All tests', () => {
 					},
 					transformation: {
 						abortOnInvalidRecords: false,
-						image: 'standard',
+						image: 'melinda-transformer',
 						env: {}
 					},
 					import: {
-						image: 'standard',
+						image: 'melinda-transformer',
 						env: {}
 					}
 				},

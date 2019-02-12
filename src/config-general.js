@@ -26,17 +26,14 @@
 *
 */
 
-import {CommonUtils} from '@natlibfi/melinda-record-import-commons';
-
-const enums = require('./utils/enums');
-const httpCodes = require('./utils/http-codes');
+import {CommonUtils, enums} from '@natlibfi/melinda-record-import-commons';
 
 export default function checkEnv(MANDATORY_ENV_VARIABLES) {
 	CommonUtils.checkEnv(MANDATORY_ENV_VARIABLES);
 }
 
 exports.enums = enums;
-exports.httpCodes = httpCodes;
+exports.httpCodes = enums.httpCodes;
 
 const hostname = process.env.HOSTNAME_API || '127.0.0.1';
 exports.hostname = hostname;
