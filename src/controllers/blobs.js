@@ -102,7 +102,7 @@ module.exports.postBlob = function (req, res, next) {
 				if (logs) {
 					console.log('Finished writing blob with id: ', newBlobMetadata.id);
 				}
-				return res.status(config.enums.HTTP_CODES.OK).send('The blob was succesfully created. State is set to ' + newBlobMetadata.state);
+				return res.status(config.enums.HTTP_CODES.OK).header({'Location': config.urlAPI + '/blobs/' + newBlobMetadata.id}).send('The blob was succesfully created. State is set to ' + newBlobMetadata.state);
 			});
 		});
 	}
