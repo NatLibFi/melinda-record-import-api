@@ -30,78 +30,78 @@ const config = require('../config-general');
 
 module.exports.getMalformedError = function (message) {
 	const err = new Error('Malformed content');
-	err.type = config.enums.errorTypes.notObject;
+	err.type = config.enums.ERROR_TYPES.notObject;
 	err.message = message;
 	return err;
 };
 
 module.exports.getUnauthorizedError = function () {
 	const err = new Error('Authentication failed');
-	err.type = config.enums.errorTypes.unauthorized;
+	err.type = config.enums.ERROR_TYPES.unauthorized;
 	return err;
 };
 
 module.exports.getForbiddenError = function () {
 	const err = new Error('Not authorized');
-	err.type = config.enums.errorTypes.forbidden;
+	err.type = config.enums.ERROR_TYPES.forbidden;
 	return err;
 };
 
 module.exports.getBadRequestError = function (message) {
 	const err = new Error('Unknown bad request');
-	err.type = config.enums.errorTypes.badRequest;
+	err.type = config.enums.ERROR_TYPES.badRequest;
 	err.message = message;
 	return err;
 };
 
 module.exports.getMissingProfileError = function () {
 	const err = new Error('The profile does not exist or the user is not authorized to it');
-	err.type = config.enums.errorTypes.missingProfile;
+	err.type = config.enums.ERROR_TYPES.missingProfile;
 	return err;
 };
 
 module.exports.getMissingContentError = function (message) {
 	const err = new Error(message || 'Content not found');
-	err.type = config.enums.errorTypes.missingContent;
+	err.type = config.enums.ERROR_TYPES.missingContent;
 	err.message = message;
 	return err;
 };
 
 module.exports.getMissingContentTypeError = function () {
 	const err = new Error('Content type was not specified');
-	err.type = config.enums.errorTypes.missingContentType;
+	err.type = config.enums.ERROR_TYPES.missingContentType;
 	return err;
 };
 
 module.exports.getRequestBodyLargeError = function () {
 	const err = new Error('Request body is too large');
-	err.type = config.enums.errorTypes.bodyTooLarge;
+	err.type = config.enums.ERROR_TYPES.bodyTooLarge;
 	return err;
 };
 
 module.exports.getValidationError = function (message) {
 	const err = new Error('Validation error');
-	err.type = config.enums.errorTypes.validation;
+	err.type = config.enums.ERROR_TYPES.validation;
 	err.message = message;
 	return err;
 };
 
 module.exports.getIDConflictError = function () {
 	const err = new Error('IDs do not match');
-	err.type = config.enums.errorTypes.idConflict;
+	err.type = config.enums.ERROR_TYPES.idConflict;
 	return err;
 };
 
 module.exports.getStreamError = function (message) {
 	const err = new Error('Error on stream');
-	err.type = config.enums.errorTypes.stream;
+	err.type = config.enums.ERROR_TYPES.stream;
 	err.message = message;
 	return err;
 };
 
 module.exports.getUnknownError = function (description, data) {
 	const err = new Error(description);
-	err.type = config.enums.errorTypes.unknown;
+	err.type = config.enums.ERROR_TYPES.unknown;
 	err.data = data;
 	return err;
 };

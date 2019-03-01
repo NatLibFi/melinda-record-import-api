@@ -42,27 +42,27 @@ module.exports = function () {
 			id: '1001',
 			profile: '1201',
 			contentType: 'standard',
-			state: config.enums.blobStates.pending
+			state: config.enums.BLOB_STATE.pending
 		}, {
 			id: '1002',
-			profile: 'standard',
+			profile: '1201',
 			contentType: 'standard',
-			state: config.enums.blobStates.processed
+			state: config.enums.BLOB_STATE.transformed
 		}, {
 			id: '1003',
 			profile: 'standard',
 			contentType: 'stylized',
-			state: config.enums.blobStates.processed
+			state: config.enums.BLOB_STATE.processed
 		}, {
 			id: '1004',
 			profile: '1201',
 			contentType: 'stylized',
-			state: config.enums.blobStates.processed
+			state: config.enums.BLOB_STATE.inProgress
 		}, {
 			id: '1005',
 			profile: '1201',
 			contentType: 'standard',
-			state: config.enums.blobStates.processed
+			state: config.enums.BLOB_STATE.inProgress
 		}, err => {
 			if (logs) {
 				console.log('Finished populating development blobs, errors: ', err);

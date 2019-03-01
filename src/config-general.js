@@ -26,14 +26,20 @@
 *
 */
 
-import {CommonUtils, enums} from '@natlibfi/melinda-record-import-commons';
+import * as commons from '@natlibfi/melinda-record-import-commons';
 
 export default function checkEnv(MANDATORY_ENV_VARIABLES) {
-	CommonUtils.checkEnv(MANDATORY_ENV_VARIABLES);
+	commons.checkEnv(MANDATORY_ENV_VARIABLES);
 }
 
-exports.enums = enums;
-exports.httpCodes = enums.httpCodes;
+exports.enums = {
+	ENVIRONMENT: commons.ENVIRONMENT,
+	BLOB_STATE: commons.BLOB_STATE,
+	RECORD_IMPORT_STATE: commons.RECORD_IMPORT_STATE, // Not used
+	HTTP_CODES: commons.HTTP_CODES,
+	ERROR_TYPES: commons.ERROR_TYPES,
+	JOBS: commons.JOBS // Not used
+};
 
 const hostname = process.env.HOSTNAME_API || '127.0.0.1';
 exports.hostname = hostname;
@@ -42,7 +48,7 @@ exports.portAPI = portAPI;
 const portController = parseInt(process.env.PORT_CNTRL, 10) || 3001;
 exports.portController = portController;
 
-if (process.env.NODE_ENV === 'test' || process.env.NODE_ENV === 'test_full') {
+if (process.env.NODE_ENV === commons.ENVIRONMENT.testing || process.env.NODE_ENV === commons.ENVIRONMENT.testing + '_full') {
 	exports.contentMaxLength = 100;
 } else {
 	exports.contentMaxLength = parseInt(process.env.CONT_MAX_LENGTH, 10) || 0; // 0=no max length set

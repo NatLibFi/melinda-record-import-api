@@ -53,7 +53,7 @@ let MANDATORY_ENV_VARIABLES = [
 ];
 
 // Checks that 'mandatory' variables are set etc
-if (process.env.NODE_ENV === 'test_full') {
+if (process.env.NODE_ENV === config.enums.ENVIRONMENT.testing + '_full') {
 	MANDATORY_ENV_VARIABLES = [
 		'CROWD_TOKENNAME',
 		'CROWD_SERVER',
@@ -62,22 +62,21 @@ if (process.env.NODE_ENV === 'test_full') {
 		'CROWD_USERNAME',
 		'CROWD_PASS'
 	];
-} else if (process.env.NODE_ENV === 'test') {
+} else if (process.env.NODE_ENV === config.enums.ENVIRONMENT.testing) {
 	MANDATORY_ENV_VARIABLES = [];
 }
 config.default(MANDATORY_ENV_VARIABLES); // Check that all values are set
 
-if (process.env.NODE_ENV === 'test') {
+if (process.env.NODE_ENV === config.enums.ENVIRONMENT.testing) {
 	process.env.REQ_AUTH = false;
 }
 
 const app = express();
 app.config = config; // If env variables are set, those are used, otherwise defaults
-app.enums = config.enums;
 app.use(cors());
 
 // Normal express config defaults
-if (process.env.NODE_ENV !== 'test' && process.env.NODE_ENV !== 'test_full') {
+if (process.env.NODE_ENV !== config.enums.ENVIRONMENT.testing && process.env.NODE_ENV !== config.enums.ENVIRONMENT.testing + '_full') {
 	app.use(require('morgan')('dev'));
 }
 app.use(require('method-override')());
@@ -111,31 +110,31 @@ mongoose.connect(app.config.mongodb.uri, {useNewUrlParser: true}).then(() => { /
 		}
 
 		switch (err.type) {
-			case config.enums.errorTypes.notObject:
-				return res.status(config.httpCodes.Malformed).send('Malformed content');
-			case config.enums.errorTypes.unauthorized:
-				return res.status(config.httpCodes.Unauthorized).send('Authentication failed');
-			case config.enums.errorTypes.forbidden:
-				return res.status(config.httpCodes.Forbidden).send('Not authorized');
-			case config.enums.errorTypes.badRequest:
-				return res.status(config.httpCodes.BadRequest).send('The profile does not exist or the user is not authorized to it');
-			case config.enums.errorTypes.missingProfile:
-				return res.status(config.httpCodes.BadRequest).send(err.message || 'Bad request');
-			case config.enums.errorTypes.missingContent:
-				return res.status(config.httpCodes.NotFound).send(err.message || 'Content not found');
-			case config.enums.errorTypes.missingContentType:
-				return res.status(config.httpCodes.Unsupported).send('Content type was not specified');
-			case config.enums.errorTypes.bodyTooLarge:
-				return res.status(config.httpCodes.PayloadTooLarge).send('Request body is too large');
-			case config.enums.errorTypes.validation:
-				return res.status(config.httpCodes.ValidationError).send(err.message || 'Request validation failed');
-			case config.enums.errorTypes.idConflict:
-				return res.status(config.httpCodes.ValidationError).send('Invalid syntax');
-			case config.enums.errorTypes.stream:
-				return res.status(config.httpCodes.InternalServerError).send(err.message || 'Unspecified stream error');
-			case config.enums.errorTypes.unknown: {
+			case config.enums.ERROR_TYPES.notObject:
+				return res.status(config.enums.HTTP_CODES.Malformed).send('Malformed content');
+			case config.enums.ERROR_TYPES.unauthorized:
+				return res.status(config.enums.HTTP_CODES.Unauthorized).send('Authentication failed');
+			case config.enums.ERROR_TYPES.forbidden:
+				return res.status(config.enums.HTTP_CODES.Forbidden).send('Not authorized');
+			case config.enums.ERROR_TYPES.badRequest:
+				return res.status(config.enums.HTTP_CODES.BadRequest).send('The profile does not exist or the user is not authorized to it');
+			case config.enums.ERROR_TYPES.missingProfile:
+				return res.status(config.enums.HTTP_CODES.BadRequest).send(err.message || 'Bad request');
+			case config.enums.ERROR_TYPES.missingContent:
+				return res.status(config.enums.HTTP_CODES.NotFound).send(err.message || 'Content not found');
+			case config.enums.ERROR_TYPES.missingContentType:
+				return res.status(config.enums.HTTP_CODES.Unsupported).send('Content type was not specified');
+			case config.enums.ERROR_TYPES.bodyTooLarge:
+				return res.status(config.enums.HTTP_CODES.PayloadTooLarge).send('Request body is too large');
+			case config.enums.ERROR_TYPES.validation:
+				return res.status(config.enums.HTTP_CODES.ValidationError).send(err.message || 'Request validation failed');
+			case config.enums.ERROR_TYPES.idConflict:
+				return res.status(config.enums.HTTP_CODES.ValidationError).send('Invalid syntax');
+			case config.enums.ERROR_TYPES.stream:
+				return res.status(config.enums.HTTP_CODES.InternalServerError).send(err.message || 'Unspecified stream error');
+			case config.enums.ERROR_TYPES.unknown: {
 				console.error(err); // Log unkown errors by default, others are semi-normal usage errors
-				return res.status(config.httpCodes.InternalServerError).send('Unknown error');
+				return res.status(config.enums.HTTP_CODES.InternalServerError).send('Unknown error');
 			}
 			default: {
 				console.error(err); // Log missed errors by default
@@ -154,7 +153,7 @@ mongoose.connect(app.config.mongodb.uri, {useNewUrlParser: true}).then(() => { /
 	// Clear DB or use seed version
 	if (app.config.seedDB === true) {
 		require('./utils/database/db-seed')();
-	} else if (process.env.NODE_ENV === 'test' || process.env.NODE_ENV === 'test_full') { // Test version
+	} else if (process.env.NODE_ENV === config.enums.ENVIRONMENT.testing || process.env.NODE_ENV === config.enums.ENVIRONMENT.testing + '_full') { // Test version
 		require('./utils/database/db-test')();
 	}
 

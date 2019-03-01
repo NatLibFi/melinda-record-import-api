@@ -146,7 +146,7 @@ module.exports.ensureAuthenticated = function (req, res, next) {
 			return next(err);
 		});
 	}).catch(err => {
-		if (!(err.type && (err.type === config.enums.errorTypes.unauthorized || err.type === config.enums.errorTypes.forbidden))) {
+		if (!(err.type && (err.type === config.enums.ERROR_TYPES.unauthorized || err.type === config.enums.ERROR_TYPES.forbidden))) {
 			console.error('Unanticipated authentication error: ', err);
 		}
 		return next(err); // Top layer, log error or pass to handler with throw
@@ -342,14 +342,12 @@ function isUserInGroups(username, authGroups) { // AuthGroups contains authentic
 
 			// Go trough all cases
 			if (reqCont && authGroups.DBGroups.length === 0) {
-				console.warn('Adding usergroup to profile without usergroup or added new profile');
 				resolve(true);
 			} else if (reqCont && dbCont) {
 				resolve(true);
 			} else if (reqCont && !dbCont) {
 				resolve(false);
 			} else if (!reqCont && dbCont) {
-				console.warn('User removed usergroup from profile -> cannot use this profile with this user');
 				resolve(true);
 			} else if (!reqCont && !dbCont) {
 				resolve(false);

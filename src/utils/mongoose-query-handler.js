@@ -41,11 +41,11 @@ module.exports = {
 				delete result._id;
 				delete result.__v;
 				delete result.MetaDataID;
-				return res.status(config.httpCodes.OK).send(result);
+				return res.status(config.enums.HTTP_CODES.OK).send(result);
 			}
 			default:
 				console.warn('Should be just one search result, found multiple: ', findResults);
-				return res.status(config.httpCodes.Conflict).send('Found multiple documents when expected to find only one.');
+				return res.status(config.enums.HTTP_CODES.Conflict).send('Found multiple documents when expected to find only one.');
 		}
 	},
 	findOneProfile(findResults, resolve, reject) {
@@ -80,11 +80,11 @@ module.exports = {
 		_.forEach(findResults, value => {
 			delete value.id;
 		});
-		return res.status(config.httpCodes.OK).send(findResults);
+		return res.status(config.enums.HTTP_CODES.OK).send(findResults);
 	},
 	updateOne(result, res, next, notFound) {
 		if (result) {
-			return res.status(config.httpCodes.Updated).send('The metadata was updated');
+			return res.status(config.enums.HTTP_CODES.Updated).send('The metadata was updated');
 		}
 		return next(serverErrors.getMissingContentError(notFound || 'Data not found'));
 	},
@@ -93,21 +93,21 @@ module.exports = {
 		_.forEach(findResults, value => {
 			results.push(config.urlAPI + '/blobs/' + value.id);
 		});
-		return res.status(config.httpCodes.OK).send(results);
+		return res.status(config.enums.HTTP_CODES.OK).send(results);
 	},
 	removeOne(obj, res, next, whatWasRemoved) {
 		if (obj) {
-			return res.status(config.httpCodes.NoContent).send(whatWasRemoved);
+			return res.status(config.enums.HTTP_CODES.NoContent).send(whatWasRemoved);
 		}
 		return next(serverErrors.getMissingContentError('Content not found'));
 	},
 	invalidQuery(res) {
-		return res.status(config.httpCodes.BadRequest).send('Invalid query');
+		return res.status(config.enums.HTTP_CODES.BadRequest).send('Invalid query');
 	},
 	upsertObject(updated, res) {
 		if (updated) {
-			return res.status(config.httpCodes.NoContent).send('The profile was updated');
+			return res.status(config.enums.HTTP_CODES.NoContent).send('The profile was updated');
 		}
-		return res.status(config.httpCodes.Created).send('The profile was created');
+		return res.status(config.enums.HTTP_CODES.Created).send('The profile was created');
 	}
 };

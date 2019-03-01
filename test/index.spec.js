@@ -60,7 +60,7 @@ describe('All tests', () => {
 	// ////////////////////////////////////////////////////////////////////
 	//    Authentication tests, cannot be run without crowd connection   //
 	// ////////////////////////////////////////////////////////////////////
-	if (process.env.NODE_ENV === 'test_full') {
+	if (process.env.NODE_ENV === 'testing_full') {
 		describe('All paths', () => {
 			// List of all routes to be tested
 			const routesObj = [

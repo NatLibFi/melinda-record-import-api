@@ -43,8 +43,8 @@ const BlobMetadata = new Schema({
 	contentType: {type: String, required: true},
 	state: {
 		type: String,
-		enum: _.values(config.enums.blobStates), // Defined in enums
-		default: config.enums.blobStates.pending
+		enum: _.values(config.enums.BLOB_STATE), // Defined in enums
+		default: config.enums.BLOB_STATE.pending
 	},
 	creationTime: {type: Date, default: Date.now},
 	modificationTime: {type: Date, default: Date.now},

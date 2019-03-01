@@ -80,7 +80,7 @@ module.exports.postBlob = function (req, res, next) {
 		newBlobMetadata.id = uuid.v4();
 		newBlobMetadata.profile = req.headers['import-profile'];
 		newBlobMetadata.contentType = req.headers['content-type'];
-		newBlobMetadata.state = config.enums.blobStates.pending;
+		newBlobMetadata.state = config.enums.BLOB_STATE.pending;
 		newBlobMetadata.creationTime = moment(); // Use this if you want datetime to be formated etc, otherwise mongoose appends creation and modificationTime
 
 		newBlobMetadata.save(err => {
@@ -102,7 +102,7 @@ module.exports.postBlob = function (req, res, next) {
 				if (logs) {
 					console.log('Finished writing blob with id: ', newBlobMetadata.id);
 				}
-				return res.status(config.httpCodes.OK).send('The blob was succesfully created. State is set to ' + newBlobMetadata.state);
+				return res.status(config.enums.HTTP_CODES.OK).send('The blob was succesfully created. State is set to ' + newBlobMetadata.state);
 			});
 		});
 	}
