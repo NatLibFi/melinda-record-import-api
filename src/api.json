@@ -386,19 +386,6 @@
                     "status": {
                         "$ref": "#/components/schemas/RecordImportStatus"
                     },
-                    "id": {
-                        "anyOf": [
-                            {
-                                "type": "string"
-                            },
-                            {
-                                "type": "array",
-                                "items": {
-                                    "type": "string"
-                                }
-                            }
-                        ]
-                    },
                     "metadata": {
                         "type": "object"
                     }
@@ -525,7 +512,9 @@
                         "numberOfRecords": 1000,
                         "importResults": [
                             {
-                                "id": 6000,
+                                "metadata": {
+                                    "id": 6000
+                                },
                                 "state": "CREATED"
                             }
                         ]
