@@ -51,9 +51,13 @@ const BlobMetadata = new Schema({
 	processingInfo: {
 		transformationError: {type: Object, default: null},
 		numberOfRecords: {type: Number, default: null},
-		importResults: [{
-			type: String // Array of RecordImportResults UUID's
-		}]
+		importResults: [new Schema({
+			status: {
+				type: String,
+				enum: _.values(config.enums.RECORD_IMPORT_STATE),
+				required: true},
+			metadata: {type: String, required: true, unique: true}
+		}, {_id: false})]
 	}
 }, {
 	strict: 'throw'

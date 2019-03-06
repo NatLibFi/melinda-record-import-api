@@ -127,13 +127,13 @@ mongoose.connect(app.config.mongodb.uri, {useNewUrlParser: true}).then(() => { /
 			case config.enums.ERROR_TYPES.bodyTooLarge:
 				return res.status(config.enums.HTTP_CODES.PayloadTooLarge).send('Request body is too large');
 			case config.enums.ERROR_TYPES.validation:
-				return res.status(config.enums.HTTP_CODES.ValidationError).send(err.message || 'Request validation failed');
+				return res.status(config.enums.HTTP_CODES.ValidationError).send('Invalid syntax');
 			case config.enums.ERROR_TYPES.idConflict:
 				return res.status(config.enums.HTTP_CODES.ValidationError).send('Invalid syntax');
 			case config.enums.ERROR_TYPES.stream:
 				return res.status(config.enums.HTTP_CODES.InternalServerError).send(err.message || 'Unspecified stream error');
 			case config.enums.ERROR_TYPES.unknown: {
-				console.error(err); // Log unkown errors by default, others are semi-normal usage errors
+				console.error('Unkown error logged: ', err); // Log unkown errors by default, others are semi-normal usage errors
 				return res.status(config.enums.HTTP_CODES.InternalServerError).send('Unknown error');
 			}
 			default: {

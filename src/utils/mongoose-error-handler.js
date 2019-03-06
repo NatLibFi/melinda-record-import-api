@@ -31,15 +31,18 @@ const serverErrors = require('./server-errors');
 module.exports = function (reason, res, next) {
 	switch (reason.name) {
 		case 'StrictModeError': {
-			return next(serverErrors.getValidationError());
+			return next(serverErrors.getBadRequestError('Strict mode error: ' + reason.message));
 		}
 		case 'ValidationError':
-			return next(serverErrors.getValidationError('Unknown validation error'));
+			return next(serverErrors.getValidationError('Validation error: ' + reason.message));
 		case 'MongoError': {
-			return next(serverErrors.getUnknownError('Unknown mongo error: ' + reason.name));
+			return next(serverErrors.getUnknownError('Unknown mongo error: ' + reason.message));
+		}
+		case 'CastError': {
+			return next(serverErrors.getValidationError('Casting error: ' + reason.message));
 		}
 		default: {
-			return next(serverErrors.getBadRequestError('Unknown error: ' + reason.name));
+			return next(serverErrors.getBadRequestError('Unknown error: ' + reason.message));
 		}
 	}
 };

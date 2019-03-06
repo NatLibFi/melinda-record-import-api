@@ -682,7 +682,7 @@ describe('All tests', () => {
 					body: {
 						profileInvalid: 2200
 					},
-					res: 'request.content.validation'
+					res: 'request.bad'
 				}
 			];
 

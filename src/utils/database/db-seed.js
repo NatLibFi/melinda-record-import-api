@@ -47,7 +47,12 @@ module.exports = function () {
 			id: '1002',
 			profile: '1201',
 			contentType: 'standard',
-			state: config.enums.BLOB_STATE.transformed
+			state: config.enums.BLOB_STATE.transformed,
+			processingInfo: {
+				transformationError: null,
+				numberOfRecords: 2,
+				importResults: []
+			}
 		}, {
 			id: '1003',
 			profile: 'standard',

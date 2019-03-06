@@ -35,10 +35,11 @@ export default function checkEnv(MANDATORY_ENV_VARIABLES) {
 exports.enums = {
 	ENVIRONMENT: commons.ENVIRONMENT,
 	BLOB_STATE: commons.BLOB_STATE,
-	RECORD_IMPORT_STATE: commons.RECORD_IMPORT_STATE, // Not used
+	RECORD_IMPORT_STATE: commons.RECORD_IMPORT_STATE,
 	HTTP_CODES: commons.HTTP_CODES,
 	ERROR_TYPES: commons.ERROR_TYPES,
-	JOBS: commons.JOBS // Not used
+	JOBS: commons.JOBS, // Not used
+	OP: commons.BLOB_UPDATE_OPERATIONS
 };
 
 const hostname = process.env.HOSTNAME_API || '127.0.0.1';

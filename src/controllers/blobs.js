@@ -102,7 +102,7 @@ module.exports.postBlob = function (req, res, next) {
 				if (logs) {
 					console.log('Finished writing blob with id: ', newBlobMetadata.id);
 				}
-				return res.status(config.enums.HTTP_CODES.OK).header({'Location': config.urlAPI + '/blobs/' + newBlobMetadata.id}).send('The blob was succesfully created. State is set to ' + newBlobMetadata.state);
+				return res.status(config.enums.HTTP_CODES.OK).header({Location: config.urlAPI + '/blobs/' + newBlobMetadata.id}).send('The blob was succesfully created. State is set to ' + newBlobMetadata.state);
 			});
 		});
 	}
@@ -206,14 +206,78 @@ module.exports.postBlobById = function (req, res, next) {
 		return next(serverErrors.getIDConflictError());
 	}
 
-	const blob = Object.assign({}, req.body);
+	let blob = Object.assign({}, req.body);
 
+	// Operations:
+	if (blob.op) {
+		const op = blob.op;
+		delete blob.op; // Cannot mongo if invalid element
+		switch (op) {
+			// Blob processing is aborted. State is set to ABORTED and (precondition) all the records related to the blob are removed from the import queue
+			case config.enums.OP.abort: {
+				blob = {state: config.enums.BLOB_STATE.aborted};
+				break;  // Use normal update
+			}
+			// Blob transformation is started. State is set to TRANSFORMATION_IN_PROGRESS
+			case config.enums.OP.transformationStarted: {
+				blob = {state: config.enums.BLOB_STATE.inProgress};
+				break; // Use normal update
+			}
+			// Blob state is set to TRANSFORMED and numberOfRecords is set to the provided value
+			case config.enums.OP.transformationDone: {
+				if (typeof (blob.numberOfRecords) !== 'number') {
+					return next(serverErrors.getMalformedError('Missing valid number of records'));
+				}
+				blob = {state: config.enums.BLOB_STATE.transformed, processingInfo: {numberOfRecords: blob.numberOfRecords}};
+				break; // Use normal update
+			}
+			// Blob state is set to TRANSFORMATION_FAILED and transformationError is set to the provided value
+			case config.enums.OP.transformationFailed: {
+				if (typeof (blob.error) !== 'object') {
+					return next(serverErrors.getMalformedError('Missing valid error'));
+				}
+				blob = {state: config.enums.BLOB_STATE.failed, processingInfo: {transformationError: blob.error}};
+				break; // Use normal update
+			}
+			// The record result is appended to the importResults property. If the number of items in the importResults property equals numberOfRecords state if set to PROCESSED
+			case config.enums.OP.recordProcessed: {
+				blob = {content: blob.content};
+				mongoose.models.BlobMetadata.findOneAndUpdate(
+					{id: req.params.id},
+					{
+						$push: {
+							'processingInfo.importResults': blob.content
+						}
+					},
+					{new: true, upsert: false, runValidators: true}
+				).then(result => {
+					if (result.processingInfo.importResults && result.processingInfo.importResults.length === result.processingInfo.numberOfRecords) {
+						mongoose.models.BlobMetadata.findOneAndUpdate(
+							{id: req.params.id},
+							{state: config.enums.BLOB_STATE.processed},
+							{new: true, upsert: false, runValidators: true}
+						).then(result => queryHandler.updateOne(result, res, next, 'The blob does not exist')
+						).catch(err => mongoErrorHandler(err, res, next));
+					} else {
+						queryHandler.updateOne(result, res, next, 'The blob does not exist');
+					}
+				}).catch(err => mongoErrorHandler(err, res, next));
+				return; // Ensure that normal update is not called after op update
+			}
+
+			default: {
+				return next(serverErrors.getMalformedError('Unidentified op'));
+			}
+		}
+	}
+
+	// Default post update
 	mongoose.models.BlobMetadata.findOneAndUpdate(
 		{id: req.params.id},
 		blob,
 		{new: true, upsert: false, runValidators: true}
 	).then(result => queryHandler.updateOne(result, res, next, 'The blob does not exist'))
-		.catch(err => mongoErrorHandler(err, res, next));
+	.catch(err => mongoErrorHandler(err, res, next));
 };
 
 /**
