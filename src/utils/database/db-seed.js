@@ -30,13 +30,16 @@
 
 'use strict';
 
+const {Utils} = require('@natlibfi/melinda-commons');
+const {createLogger} = Utils;
+
 const mongoose = require('mongoose');
 const config = require('../../config-general');
 const chunks = require('./chunks');
 
-const logs = config.logs;
-
 module.exports = function () {
+	const Logger = createLogger();
+
 	mongoose.models.BlobMetadata.remove(() => {
 		mongoose.models.BlobMetadata.create({
 			id: '1001',
@@ -68,11 +71,7 @@ module.exports = function () {
 			profile: '1201',
 			contentType: 'standard',
 			state: config.enums.BLOB_STATE.inProgress
-		}, err => {
-			if (logs) {
-				console.log('Finished populating development blobs, errors: ', err);
-			}
-		});
+		}, err => createLogger.log('info', `Finished populating development blobs, errors: ${err}`));
 	});
 
 	mongoose.models['BlobMetaDatas.File'].remove(() => {
@@ -219,9 +218,7 @@ module.exports = function () {
 				env: {}
 			}
 		}, err => {
-			if (logs) {
-				console.log('Finished populating testing profiles, errors: ', err);
-			}
+			Logger.log('info', `Finished populating testing profiles, errors: ${err}`);
 		});
 	});
 };

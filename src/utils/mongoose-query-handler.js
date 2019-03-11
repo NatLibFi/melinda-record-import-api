@@ -36,6 +36,7 @@ module.exports = {
 			case 0: {
 				return next(serverErrors.getMissingContentError(notFound));
 			}
+
 			case 1: {
 				const result = findResults[0].toJSON();
 				delete result._id;
@@ -43,6 +44,7 @@ module.exports = {
 				delete result.MetaDataID;
 				return res.status(config.enums.HTTP_CODES.OK).send(result);
 			}
+
 			default:
 				console.warn('Should be just one search result, found multiple: ', findResults);
 				return res.status(config.enums.HTTP_CODES.Conflict).send('Found multiple documents when expected to find only one.');
@@ -53,9 +55,11 @@ module.exports = {
 			case 0: {
 				return resolve(null); // Item not found, no profile used
 			}
+
 			case 1: {
 				return resolve(findResults[0].toJSON().profile);
 			}
+
 			default: {
 				console.warn('Should be just one search result, found multiple: ', findResults);
 				return reject(null);
@@ -67,9 +71,11 @@ module.exports = {
 			case 0: {
 				return resolve({reqGroups, DBGroups: []});
 			}
+
 			case 1: {
 				return resolve({reqGroups, DBGroups: findResults[0].toJSON().auth.groups});
 			}
+
 			default: {
 				console.warn('Should be just one search result, found multiple: ', findResults);
 				return reject(null);
@@ -86,6 +92,7 @@ module.exports = {
 		if (result) {
 			return res.status(config.enums.HTTP_CODES.Updated).send('The metadata was updated');
 		}
+
 		return next(serverErrors.getMissingContentError(notFound || 'Data not found'));
 	},
 	returnUUID(findResults, res) {
@@ -99,6 +106,7 @@ module.exports = {
 		if (obj) {
 			return res.status(config.enums.HTTP_CODES.NoContent).send(whatWasRemoved);
 		}
+
 		return next(serverErrors.getMissingContentError('Content not found'));
 	},
 	invalidQuery(res) {
@@ -108,6 +116,7 @@ module.exports = {
 		if (updated) {
 			return res.status(config.enums.HTTP_CODES.NoContent).send('The profile was updated');
 		}
+
 		return res.status(config.enums.HTTP_CODES.Created).send('The profile was created');
 	}
 };

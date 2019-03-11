@@ -26,7 +26,12 @@
 *
 */
 
+/* eslint-disable valid-jsdoc */
+
 'use strict';
+
+const {Utils} = require('@natlibfi/melinda-commons');
+const {createLogger} = Utils;
 
 const mongoose = require('mongoose');
 const moment = require('moment');
@@ -39,8 +44,9 @@ const mongoErrorHandler = require('../utils/mongoose-error-handler');
 const queryHandler = require('../utils/mongoose-query-handler');
 
 const gFSB = new mongoose.mongo.GridFSBucket(mongoose.connection.db, {bucketName: 'blobmetadatas'});
-const logs = config.logs;
 const allowedQueryFields = ['profile', 'contentType', 'state', 'creationTime', 'modificationTime'];
+
+const Logger = createLogger();
 
 /**
  * Create a new blob
@@ -49,10 +55,6 @@ const allowedQueryFields = ['profile', 'contentType', 'state', 'creationTime', '
  * no response value expected for this operation
 */
 module.exports.postBlob = function (req, res, next) {
-	if (logs) {
-		console.log('-------------- Post blob --------------');
-	}
-
 	// Check mandarory variables (http turns those to lowercase)
 	if (!req.headers['content-type']) {
 		return next(serverErrors.getMissingContentTypeError());
@@ -61,6 +63,7 @@ module.exports.postBlob = function (req, res, next) {
 	if (!req.headers['import-profile']) {
 		return next(serverErrors.getMissingProfileError());
 	}
+
 	mongoose.models.Profile.where('name', req.headers['import-profile'])
 		.exec()
 		.then(documents => {
@@ -93,15 +96,11 @@ module.exports.postBlob = function (req, res, next) {
 			req.on('error', err => {
 				return next(serverErrors.getUnknownError(err));
 			}).on('data', chunk => {
-				if (logs) {
-					console.log(moment(), ' Chunk: ', chunk);
-				}
+				Logger.log('debug', `${moment()} Chunk: ${chunk}`);
 				writestream.write(chunk);
 			}).on('end', () => {
 				writestream.end();
-				if (logs) {
-					console.log('Finished writing blob with id: ', newBlobMetadata.id);
-				}
+				Logger.log('debug', `Finished writing blob with id: ${newBlobMetadata.id}`);
 				return res.status(config.enums.HTTP_CODES.OK).header({Location: config.urlAPI + '/blobs/' + newBlobMetadata.id}).send('The blob was succesfully created. State is set to ' + newBlobMetadata.state);
 			});
 		});
@@ -119,11 +118,7 @@ module.exports.postBlob = function (req, res, next) {
  * returns array
 */
 module.exports.getBlob = function (req, res, next) {
-	if (logs) {
-		console.log('-------------- Query blob --------------');
-		console.log(req.query);
-	}
-
+	Logger.log('debug', `Query: ${JSON.stringify(req.query)}`);
 	const query = req.query;
 
 	try {
@@ -180,11 +175,6 @@ module.exports.getBlob = function (req, res, next) {
  * returns BlobMetadata
 */
 module.exports.getBlobById = function (req, res, next) {
-	if (logs) {
-		console.log('-------------- Get blob by id --------------');
-		console.log(req.params.id);
-	}
-
 	mongoose.models.BlobMetadata.where('id', req.params.id)
 		.exec()
 		.then(documents => queryHandler.findOne(documents, res, next, 'The blob does not exist'))
@@ -197,11 +187,6 @@ module.exports.getBlobById = function (req, res, next) {
  * body object  (optional)
 */
 module.exports.postBlobById = function (req, res, next) {
-	if (logs) {
-		console.log('-------------- Update blob by id --------------');
-		console.log(req.params.id);
-	}
-
 	if (req.body.id && req.body.id !== req.params.id) {
 		return next(serverErrors.getIDConflictError());
 	}
@@ -216,29 +201,35 @@ module.exports.postBlobById = function (req, res, next) {
 			// Blob processing is aborted. State is set to ABORTED and (precondition) all the records related to the blob are removed from the import queue
 			case config.enums.OP.abort: {
 				blob = {state: config.enums.BLOB_STATE.aborted};
-				break;  // Use normal update
+				break; // Use normal update
 			}
+
 			// Blob transformation is started. State is set to TRANSFORMATION_IN_PROGRESS
 			case config.enums.OP.transformationStarted: {
 				blob = {state: config.enums.BLOB_STATE.inProgress};
 				break; // Use normal update
 			}
+
 			// Blob state is set to TRANSFORMED and numberOfRecords is set to the provided value
 			case config.enums.OP.transformationDone: {
 				if (typeof (blob.numberOfRecords) !== 'number') {
 					return next(serverErrors.getMalformedError('Missing valid number of records'));
 				}
+
 				blob = {state: config.enums.BLOB_STATE.transformed, processingInfo: {numberOfRecords: blob.numberOfRecords}};
 				break; // Use normal update
 			}
+
 			// Blob state is set to TRANSFORMATION_FAILED and transformationError is set to the provided value
 			case config.enums.OP.transformationFailed: {
 				if (typeof (blob.error) !== 'object') {
 					return next(serverErrors.getMalformedError('Missing valid error'));
 				}
+
 				blob = {state: config.enums.BLOB_STATE.failed, processingInfo: {transformationError: blob.error}};
 				break; // Use normal update
 			}
+
 			// The record result is appended to the importResults property. If the number of items in the importResults property equals numberOfRecords state if set to PROCESSED
 			case config.enums.OP.recordProcessed: {
 				blob = {content: blob.content};
@@ -277,7 +268,7 @@ module.exports.postBlobById = function (req, res, next) {
 		blob,
 		{new: true, upsert: false, runValidators: true}
 	).then(result => queryHandler.updateOne(result, res, next, 'The blob does not exist'))
-	.catch(err => mongoErrorHandler(err, res, next));
+		.catch(err => mongoErrorHandler(err, res, next));
 };
 
 /**
@@ -286,11 +277,6 @@ module.exports.postBlobById = function (req, res, next) {
  *
 */
 module.exports.deleteBlobById = function (req, res, next) {
-	if (logs) {
-		console.log('-------------- Remove blob by id --------------');
-		console.log(req.params.id);
-	}
-
 	mongoose.models['BlobMetaDatas.File'].where('filename', req.params.id)
 		.exec()
 		.then(documents => {
@@ -301,12 +287,12 @@ module.exports.deleteBlobById = function (req, res, next) {
 						return next(serverErrors.getUnknownError(error));
 					}
 
-						// Remove metadata
+					// Remove metadata
 					mongoose.models.BlobMetadata.findOneAndRemove()
-							.where('id', req.params.id)
-							.exec()
-							.then(documents => queryHandler.removeOne(documents, res, next, 'The blob was removed'))
-							.catch(err => mongoErrorHandler(err, res, next));
+						.where('id', req.params.id)
+						.exec()
+						.then(documents => queryHandler.removeOne(documents, res, next, 'The blob was removed'))
+						.catch(err => mongoErrorHandler(err, res, next));
 				});
 			} else {
 				return next(serverErrors.getMissingContentError());
@@ -320,11 +306,6 @@ module.exports.deleteBlobById = function (req, res, next) {
  *
 */
 module.exports.getBlobByIdContent = function (req, res, next) {
-	if (logs) {
-		console.log('-------------- Get blob content by id --------------');
-		console.log(req.params.id);
-	}
-
 	mongoose.models['BlobMetaDatas.File'].where('filename', req.params.id)
 		.exec()
 		.then(documents => {
@@ -349,11 +330,6 @@ module.exports.getBlobByIdContent = function (req, res, next) {
  *
 */
 module.exports.deleteBlobByIdContent = function (req, res, next) {
-	if (logs) {
-		console.log('-------------- Remove blob content by id --------------');
-		console.log(req.params.id);
-	}
-
 	mongoose.models['BlobMetaDatas.File'].where('filename', req.params.id)
 		.exec()
 		.then(documents => {
@@ -362,6 +338,7 @@ module.exports.deleteBlobByIdContent = function (req, res, next) {
 					if (error) {
 						return next(serverErrors.getUnknownError(error));
 					}
+
 					queryHandler.removeOne({id: documents[0]._id}, res, next, 'The content was removed');
 				});
 			} else {

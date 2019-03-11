@@ -26,16 +26,20 @@
 *
 */
 
+/* eslint-disable valid-jsdoc */
+
 'use strict';
+
+const {Utils} = require('@natlibfi/melinda-commons');
+const {createLogger} = Utils;
 
 const mongoose = require('mongoose');
 
-const config = require('../config-general');
 const serverErrors = require('../utils/server-errors');
 const mongoErrorHandler = require('../utils/mongoose-error-handler');
 const queryHandler = require('../utils/mongoose-query-handler');
 
-const logs = config.logs;
+const Logger = createLogger();
 
 /**
  * Create or update a profile
@@ -44,21 +48,18 @@ const logs = config.logs;
  * no response value expected for this operation
 */
 module.exports.upsertProfileByName = function (req, res, next) {
-	if (logs) {
-		console.log('-------------- Upsert profile --------------');
-		console.log(req.body);
-	}
+	Logger.log('debug', `Profile payload: ${JSON.stringify(req.body)}`);
 
 	if (typeof (req.body) !== 'object') {
 		return next(serverErrors.getMalformedError());
 	}
 
-    // Ensure that name is in body if it's not there already
+	// Ensure that name is in body if it's not there already
 	if (!req.body.name && req.params.name) {
 		req.body.name = req.params.name;
 	}
 
-    // Check that param name and body name matches
+	// Check that param name and body name matches
 	if (req.params.name && req.body.name !== req.params.name) {
 		return next(serverErrors.getMalformedError('Names not matching'));
 	}
@@ -71,11 +72,11 @@ module.exports.upsertProfileByName = function (req, res, next) {
 	}
 
 	mongoose.models.Profile.findOneAndUpdate(
-        {name: profile.name},
-        profile,
-        {new: true, upsert: true, runValidators: true, rawResult: true}
-        ).then(result => queryHandler.upsertObject(result.lastErrorObject.updatedExisting, res))
-        .catch(err => mongoErrorHandler(err, res, next));
+		{name: profile.name},
+		profile,
+		{new: true, upsert: true, runValidators: true, rawResult: true}
+	).then(result => queryHandler.upsertObject(result.lastErrorObject.updatedExisting, res))
+		.catch(err => mongoErrorHandler(err, res, next));
 };
 
 /**
@@ -84,13 +85,8 @@ module.exports.upsertProfileByName = function (req, res, next) {
  * returns Profile
 */
 module.exports.getProfileByName = function (req, res, next) {
-	if (logs) {
-		console.log('-------------- Get profile --------------');
-		console.log(req.params.name);
-	}
-
 	mongoose.models.Profile.where('name', req.params.name)
-        .exec()
-        .then(documents => queryHandler.findOne(documents, res, next, 'The profile does not exist'))
-        .catch(err => mongoErrorHandler(err, res, next));
+		.exec()
+		.then(documents => queryHandler.findOne(documents, res, next, 'The profile does not exist'))
+		.catch(err => mongoErrorHandler(err, res, next));
 };

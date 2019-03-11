@@ -37,7 +37,6 @@ const chai = require('chai');
 const _ = require('lodash');
 
 const should = chai.should();
-const logs = true;
 let blobs = null; // This will be loaded later when app has started since this requires gridFS component loaded at app
 let token = null;
 
@@ -135,9 +134,9 @@ describe('All tests', () => {
 				getToken.then(providedToken => {
 					providedToken.should.be.an('string');
 					token = providedToken;
-					if (logs) {
-						console.log('Token: ', token);
-					}
+					
+					console.log(`Token: ${token}`);
+					
 					done();
 				}).catch(err => {
 					done(err);

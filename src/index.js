@@ -30,13 +30,14 @@
 
 'use strict';
 
+const {Utils} = require('@natlibfi/melinda-commons');
+const {createLogger, createExpressLogger} = Utils;
 const path = require('path');
 const express = require('express');
 const cors = require('cors');
 const mongoose = require('mongoose');
 const config = require('./config-general');
 
-const logs = config.logs;
 let server = null;
 
 let MANDATORY_ENV_VARIABLES = [
@@ -53,7 +54,7 @@ let MANDATORY_ENV_VARIABLES = [
 ];
 
 // Checks that 'mandatory' variables are set etc
-if (process.env.NODE_ENV === config.enums.ENVIRONMENT.testing + '_full') {
+if (process.env.NODE_ENV === config.enums.ENVIRONMENT.test + '_full') {
 	MANDATORY_ENV_VARIABLES = [
 		'CROWD_TOKENNAME',
 		'CROWD_SERVER',
@@ -65,20 +66,20 @@ if (process.env.NODE_ENV === config.enums.ENVIRONMENT.testing + '_full') {
 } else if (process.env.NODE_ENV === config.enums.ENVIRONMENT.testing) {
 	MANDATORY_ENV_VARIABLES = [];
 }
+
 config.default(MANDATORY_ENV_VARIABLES); // Check that all values are set
 
 if (process.env.NODE_ENV === config.enums.ENVIRONMENT.testing) {
 	process.env.REQ_AUTH = false;
 }
 
+const Logger = createLogger();
 const app = express();
-app.config = config; // If env variables are set, those are used, otherwise defaults
-app.use(cors());
 
-// Normal express config defaults
-if (process.env.NODE_ENV !== config.enums.ENVIRONMENT.testing && process.env.NODE_ENV !== config.enums.ENVIRONMENT.testing + '_full') {
-	app.use(require('morgan')('dev'));
-}
+app.config = config; // If env variables are set, those are used, otherwise defaults
+
+app.use(createExpressLogger());
+app.use(cors());
 app.use(require('method-override')());
 
 app.use(express.static(path.join(__dirname, '/public')));
@@ -87,27 +88,24 @@ app.use(express.static(path.join(__dirname, '/public')));
 mongoose.connect(app.config.mongodb.uri, {useNewUrlParser: true}).then(() => { // Routes uses mongo connection to setup gridFS
 	mongoose.set('debug', app.config.mongoDebug);
 
-    // Setup routes
+	// Setup routes
 	require('./routes')(app);
 
-    // Swagger UI
+	// Swagger UI
 	const swaggerUi = require('swagger-ui-express');
 	const swaggerDocument = require('./api.json');
 	app.use('/', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 
-    // Catch 404 and forward to error handler
+	// Catch 404 and forward to error handler
 	app.use((req, res, next) => {
 		const err = new Error('Not Found');
 		err.status = 404;
 		next(err);
 	});
 
-    // General error, next required for overloading
+	// General error, next required for overloading
 	app.use((err, req, res, next) => {
-		if (logs) {
-			console.log('-------------- At error handling --------------');
-			console.warn(err);
-		}
+		Logger.log('debug', `At error handling: ${err}`);
 
 		switch (err.type) {
 			case config.enums.ERROR_TYPES.notObject:
@@ -136,6 +134,7 @@ mongoose.connect(app.config.mongodb.uri, {useNewUrlParser: true}).then(() => { /
 				console.error('Unkown error logged: ', err); // Log unkown errors by default, others are semi-normal usage errors
 				return res.status(config.enums.HTTP_CODES.InternalServerError).send('Unknown error');
 			}
+
 			default: {
 				console.error(err); // Log missed errors by default
 				res.status(err.status || 500);
@@ -143,7 +142,7 @@ mongoose.connect(app.config.mongodb.uri, {useNewUrlParser: true}).then(() => { /
 					errors: {
 						message: err.message,
 						error: {}
-                        // Error: err // will print stacktrace
+						// Error: err // will print stacktrace
 					}
 				});
 			}
@@ -153,13 +152,13 @@ mongoose.connect(app.config.mongodb.uri, {useNewUrlParser: true}).then(() => { /
 	// Clear DB or use seed version
 	if (app.config.seedDB === true) {
 		require('./utils/database/db-seed')();
-	} else if (process.env.NODE_ENV === config.enums.ENVIRONMENT.testing || process.env.NODE_ENV === config.enums.ENVIRONMENT.testing + '_full') { // Test version
+	} else if (process.env.NODE_ENV === config.enums.ENVIRONMENT.testing || process.env.NODE_ENV === config.enums.ENVIRONMENT.test + '_full') { // Test version
 		require('./utils/database/db-test')();
 	}
 
-    // Finally, let's start our server...
+	// Finally, let's start our server...
 	server = app.listen(app.config.portAPI, () => {
-		console.log('Server running using seed DB: ' + app.config.seedDB + ', at: ', server.address());
+		Logger.log('info', `Server running using seed DB: ${app.config.seedDB} at: ${JSON.stringify(server.address())}`);
 
 		// Inform any listeners (tests) that server is running (and mongo/gridFS has had enough time)
 		setTimeout(() => {

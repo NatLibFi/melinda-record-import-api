@@ -49,7 +49,7 @@ exports.portAPI = portAPI;
 const portController = parseInt(process.env.PORT_CNTRL, 10) || 3001;
 exports.portController = portController;
 
-if (process.env.NODE_ENV === commons.ENVIRONMENT.testing || process.env.NODE_ENV === commons.ENVIRONMENT.testing + '_full') {
+if (process.env.NODE_ENV === commons.ENVIRONMENT.testing || process.env.NODE_ENV === commons.ENVIRONMENT.test + '_full') {
 	exports.contentMaxLength = 100;
 } else {
 	exports.contentMaxLength = parseInt(process.env.CONT_MAX_LENGTH, 10) || 0; // 0=no max length set
@@ -69,7 +69,5 @@ exports.agendaMongo = {
 };
 
 exports.mongoDebug = process.env.MONGODB_DEBUG === 'true'; // Default: false
-
-exports.logs = process.env.DEBUG === 'true'; // Default: false
 
 exports.seedDB = process.env.DB_SEED === 'true'; // Default: false

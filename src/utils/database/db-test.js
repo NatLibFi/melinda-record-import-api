@@ -30,13 +30,15 @@
 
 'use strict';
 
+const {Utils} = require('@natlibfi/melinda-commons');
+const {createLogger} = Utils;
+
 const mongoose = require('mongoose');
-const config = require('../../config-general');
 const chunks = require('./chunks');
 
-const logs = config.logs;
-
 module.exports = function () {
+	const Logger = createLogger();
+
 	// /////////////////////////////////////////
 	// Start: Generate testing objects to DB //
 	mongoose.models.BlobMetadata.remove(() => {
@@ -53,9 +55,7 @@ module.exports = function () {
 			profile: '2200',
 			contentType: 'standard'
 		}, err => {
-			if (logs) {
-				console.log('Finished populating testing blobs, errors: ', err);
-			}
+			Logger.log('info', `Finished populating testing blobs, errors: ${err}`);
 		});
 	});
 
@@ -71,18 +71,14 @@ module.exports = function () {
 				metadata: null,
 				md5: '5b8c890af47c4dc7df19ea512005f207'
 			}, (err, item) => {
-				if (logs) {
-					console.log('ID of created: ', item._id, ' Errors: ', err);
-				}
+				Logger.log('info', `ID of created: ${item._id}, Errors: ${err}`);
 
 				mongoose.models['BlobMetaDatas.Chunk'].create({
 					files_id: item._id,
 					n: 0,
 					data: Buffer.from(chunks.chunkDef, 'base64')
 				}, err => {
-					if (logs) {
-						console.log('Chunk created for ', item._id, ', Error: ', err);
-					}
+					Logger.log('info', `Chunk created for ${item._id}, Error: ${err}`);
 				});
 			});
 
@@ -96,18 +92,14 @@ module.exports = function () {
 				metadata: null,
 				md5: '5b8c890af47c4dc7df19ea512005f207'
 			}, (err, item) => {
-				if (logs) {
-					console.log('ID of created: ', item._id, ' Errors: ', err);
-				}
+				Logger.log('info', `ID of created: ${item._id}, Errors: ${err}`);
 
 				mongoose.models['BlobMetaDatas.Chunk'].create({
 					files_id: item._id,
 					n: 0,
 					data: Buffer.from(chunks.chunkDef, 'base64')
 				}, err => {
-					if (logs) {
-						console.log('Chunk created for ', item._id, ', Error: ', err);
-					}
+					Logger.log('info', `Chunk created for ${item._id}, Error: ${err}`);
 				});
 			});
 
@@ -121,18 +113,14 @@ module.exports = function () {
 				metadata: null,
 				md5: '5b8c890af47c4dc7df19ea512005f207'
 			}, (err, item) => {
-				if (logs) {
-					console.log('ID of created: ', item._id, ' Errors: ', err);
-				}
+				Logger.log('info', `ID of created: ${item._id}, Errors: ${err}`);
 
 				mongoose.models['BlobMetaDatas.Chunk'].create({
 					files_id: item._id,
 					n: 0,
 					data: Buffer.from(chunks.chunkDef, 'base64')
 				}, err => {
-					if (logs) {
-						console.log('Chunk created for ', item._id, ', Error: ', err);
-					}
+					Logger.log('info', `Chunk created for ${item._id}, Error: ${err}`);
 				});
 			});
 		});
@@ -196,9 +184,7 @@ module.exports = function () {
 				env: {}
 			}
 		}, err => {
-			if (logs) {
-				console.log('Finished populating testing profiles, errors: ', err);
-			}
+			Logger.log('info', `Finished populating testing profiles, errors: ${err}`);
 		});
 	});
 	// End: Generate testing objects to DB //

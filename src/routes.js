@@ -55,8 +55,8 @@ PUT /profiles/{id} - Create or update a profile
 GET /profiles/{id} - Retrieve a profile
 */
 module.exports = function (app) {
-    // Authentication is done against Crowd and compared to profile that is going to be used
-    // If routes are updated detection of profile should also be updated at CrowdServives
+	// Authentication is done against Crowd and compared to profile that is going to be used
+	// If routes are updated detection of profile should also be updated at CrowdServives
 	app.all('/blobs*', crowd.ensureAuthenticated);
 	app.post('/blobs', blobs.postBlob);
 	app.get('/blobs', restifyPlugs.queryParser(), blobs.getBlob);
