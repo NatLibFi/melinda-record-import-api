@@ -574,9 +574,7 @@
                                 "type": "string",
                                 "pattern": "^transformationFailed$"
                             },
-                            "error": {
-                                "type": "object"
-                            }
+                            "error": {}
                         }
                     },
                     {

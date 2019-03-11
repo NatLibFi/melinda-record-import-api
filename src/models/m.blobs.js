@@ -49,14 +49,15 @@ const BlobMetadata = new Schema({
 	creationTime: {type: Date, default: Date.now},
 	modificationTime: {type: Date, default: Date.now},
 	processingInfo: {
-		transformationError: {type: Object, default: null},
+		transformationError: {},
 		numberOfRecords: {type: Number, default: null},
 		importResults: [new Schema({
 			status: {
 				type: String,
 				enum: _.values(config.enums.RECORD_IMPORT_STATE),
-				required: true},
-			metadata: {type: String, required: true, unique: true}
+				required: true
+			},
+			metadata: {}
 		}, {_id: false})]
 	}
 }, {

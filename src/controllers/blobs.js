@@ -101,7 +101,7 @@ module.exports.postBlob = function (req, res, next) {
 			}).on('end', () => {
 				writestream.end();
 				Logger.log('debug', `Finished writing blob with id: ${newBlobMetadata.id}`);
-				return res.status(config.enums.HTTP_CODES.OK).header({Location: config.urlAPI + '/blobs/' + newBlobMetadata.id}).send('The blob was succesfully created. State is set to ' + newBlobMetadata.state);
+				return res.status(config.enums.HTTP_CODES.Created).header('Location', config.urlAPI + '/blobs/' + newBlobMetadata.id).send('The blob was succesfully created. State is set to ' + newBlobMetadata.state);
 			});
 		});
 	}
@@ -221,11 +221,7 @@ module.exports.postBlobById = function (req, res, next) {
 			}
 
 			// Blob state is set to TRANSFORMATION_FAILED and transformationError is set to the provided value
-			case config.enums.OP.transformationFailed: {
-				if (typeof (blob.error) !== 'object') {
-					return next(serverErrors.getMalformedError('Missing valid error'));
-				}
-
+			case config.enums.OP.transformationFailed: {				
 				blob = {state: config.enums.BLOB_STATE.failed, processingInfo: {transformationError: blob.error}};
 				break; // Use normal update
 			}
