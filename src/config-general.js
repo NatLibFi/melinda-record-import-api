@@ -28,10 +28,6 @@
 
 import * as commons from '@natlibfi/melinda-record-import-commons';
 
-export default function checkEnv(MANDATORY_ENV_VARIABLES) {
-	commons.checkEnv(MANDATORY_ENV_VARIABLES);
-}
-
 exports.enums = {
 	ENVIRONMENT: commons.ENVIRONMENT,
 	BLOB_STATE: commons.BLOB_STATE,
@@ -71,3 +67,10 @@ exports.agendaMongo = {
 exports.mongoDebug = process.env.MONGODB_DEBUG === 'true'; // Default: false
 
 exports.seedDB = process.env.DB_SEED === 'true'; // Default: false
+
+exports.USER_AGENT_LOGGING_BLACKLIST = [
+	'_RECORD-IMPORT-CONTROLLER',
+	'_RECORD-IMPORT-IMPORTER',
+	'_RECORD-IMPORT-TRANSFORMER',
+	'_RECORD-IMPORT-HARVESTER'
+];

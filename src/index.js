@@ -39,8 +39,8 @@ const mongoose = require('mongoose');
 const config = require('./config-general');
 
 let server = null;
-
-let MANDATORY_ENV_VARIABLES = [
+/*
+Let MANDATORY_ENV_VARIABLES = [
 	'HOSTNAME_API',
 	'PORT_API',
 	'URL_API',
@@ -68,7 +68,7 @@ if (process.env.NODE_ENV === config.enums.ENVIRONMENT.test + '_full') {
 }
 
 config.default(MANDATORY_ENV_VARIABLES); // Check that all values are set
-
+*/
 if (process.env.NODE_ENV === config.enums.ENVIRONMENT.testing) {
 	process.env.REQ_AUTH = false;
 }
@@ -78,7 +78,11 @@ const app = express();
 
 app.config = config; // If env variables are set, those are used, otherwise defaults
 
-app.use(createExpressLogger());
+app.use(createExpressLogger({
+	// Do not log requests from automated processes ('Cause there'll be plenty)
+	skip: r => config.USER_AGENT_LOGGING_BLACKLIST.includes(r.get('User-Agent'))
+}));
+
 app.use(cors());
 app.use(require('method-override')());
 
@@ -158,7 +162,7 @@ mongoose.connect(app.config.mongodb.uri, {useNewUrlParser: true}).then(() => { /
 
 	// Finally, let's start our server...
 	server = app.listen(app.config.portAPI, () => {
-		Logger.log('info', `Server running using seed DB: ${app.config.seedDB} at: ${JSON.stringify(server.address())}`);
+		Logger.log('info', 'Started melinda-record-import-api');
 
 		// Inform any listeners (tests) that server is running (and mongo/gridFS has had enough time)
 		setTimeout(() => {

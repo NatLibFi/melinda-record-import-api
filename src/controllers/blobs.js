@@ -96,7 +96,6 @@ module.exports.postBlob = function (req, res, next) {
 			req.on('error', err => {
 				return next(serverErrors.getUnknownError(err));
 			}).on('data', chunk => {
-				Logger.log('debug', `${moment()} Chunk: ${chunk}`);
 				writestream.write(chunk);
 			}).on('end', () => {
 				writestream.end();
@@ -126,8 +125,7 @@ module.exports.getBlob = function (req, res, next) {
 		// Allowed field
 		// No duplicates
 		_.forEach(query, (value, key) => {
-			if (!allowedQueryFields.includes(key) ||
-				(Array.isArray(value) && !(key === 'creationTime' || key === 'modificationTime'))) {
+			if (!allowedQueryFields.includes(key)) {
 				throw new Error('Invalid query field');
 			}
 		});
@@ -191,7 +189,8 @@ module.exports.postBlobById = function (req, res, next) {
 		return next(serverErrors.getIDConflictError());
 	}
 
-	let blob = Object.assign({}, req.body);
+	const modificationTime = Date.now();
+	let blob = Object.assign({}, req.body, {modificationTime});
 
 	// Operations:
 	if (blob.op) {
@@ -200,13 +199,13 @@ module.exports.postBlobById = function (req, res, next) {
 		switch (op) {
 			// Blob processing is aborted. State is set to ABORTED and (precondition) all the records related to the blob are removed from the import queue
 			case config.enums.OP.abort: {
-				blob = {state: config.enums.BLOB_STATE.aborted};
+				blob = {state: config.enums.BLOB_STATE.aborted, modificationTime};
 				break; // Use normal update
 			}
 
 			// Blob transformation is started. State is set to TRANSFORMATION_IN_PROGRESS
 			case config.enums.OP.transformationStarted: {
-				blob = {state: config.enums.BLOB_STATE.inProgress};
+				blob = {state: config.enums.BLOB_STATE.inProgress, modificationTime};
 				break; // Use normal update
 			}
 
@@ -216,13 +215,13 @@ module.exports.postBlobById = function (req, res, next) {
 					return next(serverErrors.getMalformedError('Missing valid number of records'));
 				}
 
-				blob = {state: config.enums.BLOB_STATE.transformed, processingInfo: {numberOfRecords: blob.numberOfRecords}};
+				blob = {state: config.enums.BLOB_STATE.transformed, modificationTime, processingInfo: {numberOfRecords: blob.numberOfRecords, failedRecords: blob.failedRecords}};
 				break; // Use normal update
 			}
 
 			// Blob state is set to TRANSFORMATION_FAILED and transformationError is set to the provided value
-			case config.enums.OP.transformationFailed: {				
-				blob = {state: config.enums.BLOB_STATE.failed, processingInfo: {transformationError: blob.error}};
+			case config.enums.OP.transformationFailed: {
+				blob = {state: config.enums.BLOB_STATE.failed, modificationTime, processingInfo: {transformationError: blob.error}};
 				break; // Use normal update
 			}
 
@@ -232,6 +231,7 @@ module.exports.postBlobById = function (req, res, next) {
 				mongoose.models.BlobMetadata.findOneAndUpdate(
 					{id: req.params.id},
 					{
+						$set: {modificationTime},
 						$push: {
 							'processingInfo.importResults': blob.content
 						}
@@ -241,7 +241,7 @@ module.exports.postBlobById = function (req, res, next) {
 					if (result.processingInfo.importResults && result.processingInfo.importResults.length === result.processingInfo.numberOfRecords) {
 						mongoose.models.BlobMetadata.findOneAndUpdate(
 							{id: req.params.id},
-							{state: config.enums.BLOB_STATE.processed},
+							{state: config.enums.BLOB_STATE.processed, modificationTime},
 							{new: true, upsert: false, runValidators: true}
 						).then(result => queryHandler.updateOne(result, res, next, 'The blob does not exist')
 						).catch(err => mongoErrorHandler(err, res, next));
@@ -290,8 +290,15 @@ module.exports.deleteBlobById = function (req, res, next) {
 						.then(documents => queryHandler.removeOne(documents, res, next, 'The blob was removed'))
 						.catch(err => mongoErrorHandler(err, res, next));
 				});
+			} else if (documents.length === 0) {			
+				// Remove metadata
+				mongoose.models.BlobMetadata.findOneAndRemove()
+					.where('id', req.params.id)
+					.exec()
+					.then(documents => queryHandler.removeOne(documents, res, next, 'The blob was removed'))
+					.catch(err => mongoErrorHandler(err, res, next));
 			} else {
-				return next(serverErrors.getMissingContentError());
+				return next(serverErrors.getUnknownError());	
 			}
 		})
 		.catch(err => mongoErrorHandler(err, res, next));
@@ -331,7 +338,7 @@ module.exports.deleteBlobByIdContent = function (req, res, next) {
 		.then(documents => {
 			if (documents.length === 1) {
 				gFSB.delete(documents[0]._id, error => {
-					if (error) {
+					if (error) {						
 						return next(serverErrors.getUnknownError(error));
 					}
 

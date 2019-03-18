@@ -104,7 +104,17 @@
                         "name": "state",
                         "in": "query",
                         "schema": {
-                            "$ref": "#/components/schemas/BlobState"
+                            "anyOf": [
+                                {
+                                    "$ref": "#/components/schemas/BlobState"                                    
+                                },
+                                {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/BlobState"                                        
+                                    }
+                                }
+                            ]                            
                         }
                     },
                     {

@@ -51,6 +51,7 @@ const BlobMetadata = new Schema({
 	processingInfo: {
 		transformationError: {},
 		numberOfRecords: {type: Number, default: null},
+		failedRecords: [{}],
 		importResults: [new Schema({
 			status: {
 				type: String,
