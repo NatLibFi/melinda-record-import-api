@@ -1,0 +1,5 @@
+{
+    "op": "transformationDone",
+    "numberOfRecords": 5,
+    "failedRecords": [{},{},{},{},{}]
+}

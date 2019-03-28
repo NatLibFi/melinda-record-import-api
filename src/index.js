@@ -26,156 +26,83 @@
 *
 */
 
-/* eslint-disable no-unused-vars */
+import {Utils} from '@natlibfi/melinda-commons';
+import HttpStatus from 'http-status';
+import passport from 'passport';
+import express from 'express';
+import cors from 'cors';
+import Mongoose from 'mongoose';
+import ApiError from './error';
+import {createBlobsRouter, createProfilesRouter} from './routes';
+import AtlassianCrowdStrategy from '@natlibfi/passport-atlassian-crowd';
+import {
+	ENABLE_PROXY, HTTP_PORT,
+	MONGO_URI, MONGO_DEBUG,
+	CROWD_URL, CROWD_APP_NAME, CROWD_APP_PASSWORD,
+	USER_AGENT_LOGGING_BLACKLIST
+} from './config';
 
-'use strict';
+const {createLogger, createExpressLogger, handleInterrupt} = Utils;
 
-const {Utils} = require('@natlibfi/melinda-commons');
-const {createLogger, createExpressLogger} = Utils;
-const path = require('path');
-const express = require('express');
-const cors = require('cors');
-const mongoose = require('mongoose');
-const config = require('./config-general');
+run();
 
-let server = null;
-/*
-Let MANDATORY_ENV_VARIABLES = [
-	'HOSTNAME_API',
-	'PORT_API',
-	'URL_API',
-	'CONT_MAX_LENGTH',
-	'MONGODB_URI',
-	'MONGODB_DEBUG',
-	'CROWD_TOKENNAME',
-	'CROWD_SERVER',
-	'CROWD_APPNAME',
-	'CROWD_APPPASS'
-];
+async function run() {
+	Mongoose.set('debug', MONGO_DEBUG);
 
-// Checks that 'mandatory' variables are set etc
-if (process.env.NODE_ENV === config.enums.ENVIRONMENT.test + '_full') {
-	MANDATORY_ENV_VARIABLES = [
-		'CROWD_TOKENNAME',
-		'CROWD_SERVER',
-		'CROWD_APPNAME',
-		'CROWD_APPPASS',
-		'CROWD_USERNAME',
-		'CROWD_PASS'
-	];
-} else if (process.env.NODE_ENV === config.enums.ENVIRONMENT.testing) {
-	MANDATORY_ENV_VARIABLES = [];
-}
+	const Logger = createLogger();
+	const app = express();
 
-config.default(MANDATORY_ENV_VARIABLES); // Check that all values are set
-*/
-if (process.env.NODE_ENV === config.enums.ENVIRONMENT.testing) {
-	process.env.REQ_AUTH = false;
-}
+	await Mongoose.connect(MONGO_URI, {useNewUrlParser: true});
 
-const Logger = createLogger();
-const app = express();
+	passport.use(new AtlassianCrowdStrategy({
+		url: CROWD_URL, app: CROWD_APP_NAME, password: CROWD_APP_PASSWORD,
+		fetchGroupMembership: true
+	}));
 
-app.config = config; // If env variables are set, those are used, otherwise defaults
+	app.enable('trust proxy', ENABLE_PROXY);
 
-app.use(createExpressLogger({
-	// Do not log requests from automated processes ('Cause there'll be plenty)
-	skip: r => config.USER_AGENT_LOGGING_BLACKLIST.includes(r.get('User-Agent'))
-}));
+	app.use(createExpressLogger({
+		// Do not log requests from automated processes ('Cause there'll be plenty)
+		skip: r => USER_AGENT_LOGGING_BLACKLIST.includes(r.get('User-Agent'))
+	}));
 
-app.use(cors());
-app.use(require('method-override')());
+	app.use(passport.initialize());
 
-app.use(express.static(path.join(__dirname, '/public')));
+	app.use(cors());
 
-// Start mongo from configuration
-mongoose.connect(app.config.mongodb.uri, {useNewUrlParser: true}).then(() => { // Routes uses mongo connection to setup gridFS
-	mongoose.set('debug', app.config.mongoDebug);
+	app.use('/blobs', createBlobsRouter());
+	app.use('/profiles', createProfilesRouter());
 
-	// Setup routes
-	require('./routes')(app);
+	app.use(handleError);
 
-	// Swagger UI
-	const swaggerUi = require('swagger-ui-express');
-	const swaggerDocument = require('./api.json');
-	app.use('/', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
-
-	// Catch 404 and forward to error handler
-	app.use((req, res, next) => {
-		const err = new Error('Not Found');
-		err.status = 404;
-		next(err);
+	const server = app.listen(HTTP_PORT, () => {
+		Logger.log('info', 'Started melinda-record-import-api');
 	});
 
-	// General error, next required for overloading
-	app.use((err, req, res, next) => {
-		Logger.log('debug', `At error handling: ${err}`);
+	registerSignalHandlers();
 
-		switch (err.type) {
-			case config.enums.ERROR_TYPES.notObject:
-				return res.status(config.enums.HTTP_CODES.Malformed).send('Malformed content');
-			case config.enums.ERROR_TYPES.unauthorized:
-				return res.status(config.enums.HTTP_CODES.Unauthorized).send('Authentication failed');
-			case config.enums.ERROR_TYPES.forbidden:
-				return res.status(config.enums.HTTP_CODES.Forbidden).send('Not authorized');
-			case config.enums.ERROR_TYPES.badRequest:
-				return res.status(config.enums.HTTP_CODES.BadRequest).send('The profile does not exist or the user is not authorized to it');
-			case config.enums.ERROR_TYPES.missingProfile:
-				return res.status(config.enums.HTTP_CODES.BadRequest).send(err.message || 'Bad request');
-			case config.enums.ERROR_TYPES.missingContent:
-				return res.status(config.enums.HTTP_CODES.NotFound).send(err.message || 'Content not found');
-			case config.enums.ERROR_TYPES.missingContentType:
-				return res.status(config.enums.HTTP_CODES.Unsupported).send('Content type was not specified');
-			case config.enums.ERROR_TYPES.bodyTooLarge:
-				return res.status(config.enums.HTTP_CODES.PayloadTooLarge).send('Request body is too large');
-			case config.enums.ERROR_TYPES.validation:
-				return res.status(config.enums.HTTP_CODES.ValidationError).send('Invalid syntax');
-			case config.enums.ERROR_TYPES.idConflict:
-				return res.status(config.enums.HTTP_CODES.ValidationError).send('Invalid syntax');
-			case config.enums.ERROR_TYPES.stream:
-				return res.status(config.enums.HTTP_CODES.InternalServerError).send(err.message || 'Unspecified stream error');
-			case config.enums.ERROR_TYPES.unknown: {
-				console.error('Unkown error logged: ', err); // Log unkown errors by default, others are semi-normal usage errors
-				return res.status(config.enums.HTTP_CODES.InternalServerError).send('Unknown error');
-			}
-
-			default: {
-				console.error(err); // Log missed errors by default
-				res.status(err.status || 500);
-				res.json({
-					errors: {
-						message: err.message,
-						error: {}
-						// Error: err // will print stacktrace
-					}
-				});
-			}
+	function handleError(err, req, res, next) { // eslint-disable-line no-unused-vars
+		if (err instanceof ApiError || 'status' in err) {
+			res.sendStatus(err.status);
+		} else {
+			Logger.log('error', err instanceof Error ? err.stack : err);
+			res.sendStatus(HttpStatus.INTERNAL_SERVER_ERROR);
 		}
-	});
-
-	// Clear DB or use seed version
-	if (app.config.seedDB === true) {
-		require('./utils/database/db-seed')();
-	} else if (process.env.NODE_ENV === config.enums.ENVIRONMENT.testing || process.env.NODE_ENV === config.enums.ENVIRONMENT.test + '_full') { // Test version
-		require('./utils/database/db-test')();
 	}
 
-	// Finally, let's start our server...
-	server = app.listen(app.config.portAPI, () => {
-		Logger.log('info', 'Started melinda-record-import-api');
+	function registerSignalHandlers() {
+		process
+			.on('SIGINT', handle)
+			.on('uncaughtException', handle)
+			.on('unhandledRejection', handle)
+			// Nodemon
+			.on('SIGUSR2', handle);
 
-		// Inform any listeners (tests) that server is running (and mongo/gridFS has had enough time)
-		setTimeout(() => {
-			app.emit('app_started');
-		}, 3000);
-	});
-});
+		function handle(arg) {
+			server.close();
+			Mongoose.disconnect();
+			handleInterrupt(arg);
+		}
+	}
+}
 
-// Export app for testing
-module.exports = app;
-
-// Shut down app. (after tests)
-module.exports.close = function (callback) {
-	server.close();
-	callback();
-};

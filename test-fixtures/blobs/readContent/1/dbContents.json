@@ -1,0 +1,15 @@
+{
+    "profiles": [{
+        "id": "foo",
+        "auth": {
+            "groups": [
+                "foo"
+            ]
+        }
+    }],
+    "blobmetadatas": [{
+        "id": "foo",
+        "profile": "foo",
+        "contentType": "foo/bar"
+    }]
+}
