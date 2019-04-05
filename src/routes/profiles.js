@@ -36,11 +36,11 @@ import {profilesFactory} from '../interfaces';
 import {API_URL} from '../config';
 import validateContentType from '@natlibfi/express-validate-content-type';
 
-export default function () {
+export default function (passportMiddlewares) {
 	const profiles = profilesFactory({url: API_URL});
 
 	return new Router()
-		.use(passport.authenticate('atlassian-crowd', {session: false}))
+		.use(passportMiddlewares)
 		.get('/', query)
 		.get('/:id', read)
 		.delete('/:id', remove)

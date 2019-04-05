@@ -30,9 +30,11 @@ import {Utils} from '@natlibfi/melinda-commons';
 
 const {readEnvironmentVariable, parseBoolean} = Utils;
 
-export const CROWD_URL = readEnvironmentVariable('CROWD_URL');
-export const CROWD_APP_NAME = readEnvironmentVariable('CROWD_APP_NAME');
-export const CROWD_APP_PASSWORD = readEnvironmentVariable('CROWD_APP_PASSWORD');
+export const CROWD_URL = readEnvironmentVariable('CROWD_URL', {defaultValue: ''});
+export const CROWD_APP_NAME = readEnvironmentVariable('CROWD_APP_NAME', {defaultValue: ''});
+export const CROWD_APP_PASSWORD = readEnvironmentVariable('CROWD_APP_PASSWORD', {defaultValue: ''});
+
+export const PASSPORT_USERPASS = readEnvironmentVariable('PASSPORT_USERPASS', {defaultValue: '{}', format: JSON.parse});
 
 export const ENABLE_PROXY = readEnvironmentVariable('ENABLE_PROXY', {defaultValue: false, format: parseBoolean});
 

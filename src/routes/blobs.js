@@ -37,11 +37,11 @@ import {API_URL, CONTENT_MAX_LENGTH} from '../config';
 import validateContentType from '@natlibfi/express-validate-content-type';
 import {validateMax as validateContentLength} from 'express-content-length-validator';
 
-export default function () {
+export default function (passportMiddlewares) {
 	const blobs = blobsFactory({url: API_URL});
 
 	return new Router()
-		.use(passport.authenticate('atlassian-crowd', {session: false}))
+		.use(passportMiddlewares)
 		.get('/', query)
 		.post('/', getContentLengthMiddleware(), create)
 		.get('/:id', read)

@@ -34,11 +34,10 @@ import cors from 'cors';
 import Mongoose from 'mongoose';
 import ApiError from './error';
 import {createBlobsRouter, createProfilesRouter} from './routes';
-import AtlassianCrowdStrategy from '@natlibfi/passport-atlassian-crowd';
+import generatePassportMiddlewares from './passport';
 import {
 	ENABLE_PROXY, HTTP_PORT,
 	MONGO_URI, MONGO_DEBUG,
-	CROWD_URL, CROWD_APP_NAME, CROWD_APP_PASSWORD,
 	USER_AGENT_LOGGING_BLACKLIST
 } from './config';
 
@@ -49,15 +48,11 @@ run();
 async function run() {
 	Mongoose.set('debug', MONGO_DEBUG);
 
+	const passportMiddlewares = generatePassportMiddlewares();
 	const Logger = createLogger();
 	const app = express();
 
 	await Mongoose.connect(MONGO_URI, {useNewUrlParser: true});
-
-	passport.use(new AtlassianCrowdStrategy({
-		url: CROWD_URL, app: CROWD_APP_NAME, password: CROWD_APP_PASSWORD,
-		fetchGroupMembership: true
-	}));
 
 	app.enable('trust proxy', ENABLE_PROXY);
 
@@ -70,8 +65,8 @@ async function run() {
 
 	app.use(cors());
 
-	app.use('/blobs', createBlobsRouter());
-	app.use('/profiles', createProfilesRouter());
+	app.use('/blobs', createBlobsRouter(passportMiddlewares));
+	app.use('/profiles', createProfilesRouter(passportMiddlewares));
 
 	app.use(handleError);
 
