@@ -61,7 +61,7 @@ export const BlobMetadataModel = new Schema({
 		type: String,
 		required: true,
 		enum: Object.values(BLOB_STATE),
-		default: BLOB_STATE.pending
+		default: BLOB_STATE.PENDING_TRANSFORMATION
 	},
 	creationTime: {type: Date, default: Date.now},
 	modificationTime: {type: Date, default: Date.now},

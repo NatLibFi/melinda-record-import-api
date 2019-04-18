@@ -30,7 +30,7 @@ import {expect} from 'chai';
 import HttpStatus from 'http-status';
 import Mongoose from 'mongoose';
 import profilesFactory from './profiles';
-import ApiError from '../error';
+import {ApiError} from '@natlibfi/melinda-record-import-commons';
 import fixtureFactory, {READERS} from '@natlibfi/fixura';
 import mongoFixtureFactory from '@natlibfi/fixura-mongo';
 

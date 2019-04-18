@@ -27,12 +27,12 @@
 */
 
 import {Utils} from '@natlibfi/melinda-commons';
+import {ApiError} from '@natlibfi/melinda-record-import-commons';
 import HttpStatus from 'http-status';
 import passport from 'passport';
 import express from 'express';
 import cors from 'cors';
 import Mongoose from 'mongoose';
-import ApiError from './error';
 import {createBlobsRouter, createProfilesRouter} from './routes';
 import generatePassportMiddlewares from './passport';
 import {

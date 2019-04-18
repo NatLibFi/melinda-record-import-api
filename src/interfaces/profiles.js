@@ -28,7 +28,7 @@
 
 import HttpStatus from 'http-status';
 import Mongoose from 'mongoose';
-import ApiError from '../error';
+import {ApiError} from '@natlibfi/melinda-record-import-commons';
 import {ProfileModel} from './models';
 import {hasPermission, hasAdminPermission} from './utils';
 

@@ -28,11 +28,10 @@
 
 import HttpStatus from 'http-status';
 import Mongoose from 'mongoose';
+import moment from 'moment';
 import {GridFSBucket} from 'mongodb';
 import {v4 as uuid} from 'uuid';
-import {BLOB_UPDATE_OPERATIONS, BLOB_STATE} from '@natlibfi/melinda-record-import-commons';
-import moment from 'moment';
-import ApiError from '../error';
+import {BLOB_UPDATE_OPERATIONS, BLOB_STATE, ApiError} from '@natlibfi/melinda-record-import-commons';
 import {BlobMetadataModel, ProfileModel} from './models';
 import {hasPermission, hasAdminPermission} from './utils';
 
@@ -159,14 +158,11 @@ export default function ({url}) {
 
 					inputStream
 						.on('error', reject)
-						.on('data', chunk => {
-							outputStream.write(chunk);
-						})
-						.on('end', () => {
-							outputStream.end(undefined, undefined, () => {
-								resolve(id);
-							});
-						});
+						.on('data', chunk => outputStream.write(chunk))
+
+						.on('end', () => outputStream.end(undefined, undefined, () => {
+							resolve(id);
+						}));
 				});
 			}
 
@@ -240,15 +236,15 @@ export default function ({url}) {
 			switch (payload.op) {
 				case abort:
 					return {
-						state: BLOB_STATE.aborted
+						state: BLOB_STATE.ABORTED
 					};
 				case transformationStarted:
 					return {
-						state: BLOB_STATE.inProgress
+						state: BLOB_STATE.TRANSFORMATION_IN_PROGRESS
 					};
 				case transformationFailed:
 					return {
-						state: BLOB_STATE.failed,
+						state: BLOB_STATE.TRANSFORMATION_FAILED,
 						$set: {
 							'processingInfo.transformationError': payload.error
 						}
@@ -289,17 +285,17 @@ export default function ({url}) {
 				const {failedRecords, numberOfRecords} = payload;
 
 				if ((failedRecords === undefined ? 0 : failedRecords.length) === numberOfRecords) {
-					return BLOB_STATE.processed;
+					return BLOB_STATE.PROCESSED;
 				}
 
-				return BLOB_STATE.transformed;
+				return BLOB_STATE.TRANSFORMED;
 			}
 
 			function getRecordProcessedState() {
 				const {numberOfRecords, importResults, failedRecords} = blob.processingInfo;
 				const recordsProcessed = failedRecords.length + importResults.length + 1;
 
-				return numberOfRecords === recordsProcessed ? BLOB_STATE.processed : BLOB_STATE.transformed;
+				return numberOfRecords === recordsProcessed ? BLOB_STATE.PROCESSED : BLOB_STATE.TRANSFORMED;
 			}
 		}
 	}

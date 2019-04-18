@@ -30,7 +30,7 @@ import {expect} from 'chai';
 import HttpStatus from 'http-status';
 import Mongoose from 'mongoose';
 import blobsFactory, {__RewireAPI__ as RewireAPI} from './blobs'; // eslint-disable-line import/named
-import ApiError from '../error';
+import {ApiError} from '@natlibfi/melinda-record-import-commons';
 import fixtureFactory, {READERS} from '@natlibfi/fixura';
 import mongoFixturesFactory from '@natlibfi/fixura-mongo';
 
