@@ -20,7 +20,7 @@
     "node": ">=8"
   },
   "scripts": {
-    "start": "node ./dist/index",    
+    "start": "node ./dist/index",
     "check-deps": "npm-check;exit 0",
     "lint:base": "eslint --fix",
     "lint": "npm run lint:base -- src",
