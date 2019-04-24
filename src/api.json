@@ -1,14 +1,5 @@
 {
     "openapi": "3.0.0",
-    "info": {
-        "title": "Melinda record import system API",
-        "version": "1.0.0"
-    },
-    "servers": [
-        {
-            "url": "https://record-import.api.melinda.kansalliskirjasto.fi/v1"
-        }
-    ],
     "tags": [
         {
             "name": "blobs",
@@ -74,9 +65,6 @@
                     },
                     "413": {
                         "description": "Request body is too large"
-                    },
-                    "415": {
-                        "description": "Content type was not specified"
                     }
                 }
             },
@@ -90,28 +78,31 @@
                         "name": "profile",
                         "in": "query",
                         "schema": {
-                            "type": "string"
+                            "oneOf": [
+                                {"type": "string"},
+                                {"type": "array", "items": {"type": "string"}}
+                            ]                            
                         }
                     },
                     {
                         "name": "contentType",
                         "in": "query",
                         "schema": {
-                            "type": "string"
-                        }
+                            "oneOf": [
+                                {"type": "string"},
+                                {"type": "array", "items": {"type": "string"}}
+                            ]                            
+                        }                        
                     },
                     {
                         "name": "state",
                         "in": "query",
                         "schema": {
-                            "anyOf": [
+                            "oneOf": [
+                                {"$ref": "#/components/schemas/BlobState"},
                                 {
-                                    "$ref": "#/components/schemas/BlobState"                                    
-                                },
-                                {
-                                    "type": "array",
-                                    "items": {
-                                        "$ref": "#/components/schemas/BlobState"                                        
+                                    "type": "array", "items": {
+                                        "$ref": "#/components/schemas/BlobState"
                                     }
                                 }
                             ]                            
@@ -122,41 +113,55 @@
                         "description": "The query is done using a time range if the parameter is provided twice",
                         "in": "query",
                         "schema": {
-                            "type": "string",
-                            "format": "date-time"
-                        }
+                            "oneOf": [
+                                {"type": "string", "format": "date-time"},
+                                {
+                                    "type": "array", "items": {
+                                        "type": "string",
+                                        "format": "date-time"
+                                    }
+                                }
+                            ]                            
+                        }   
                     },
                     {
                         "name": "modificationTime",
                         "description": "The query is done using a time range if the parameter is provided twice",
                         "in": "query",
                         "schema": {
-                            "type": "string",
-                            "format": "date-time"
-                        }
+                            "oneOf": [
+                                {"type": "string", "format": "date-time"},
+                                {
+                                    "type": "array", "items": {
+                                        "type": "string",
+                                        "format": "date-time"
+                                    }
+                                }
+                            ]                            
+                        }  
                     }
                 ],
                 "responses": {
                     "200": {
-                        "description": "A list of URLs pointing to blob resources. Empty list if no resources were found",
+                        "description": "A list of blob urls and ids. Empty list if no resources were found",
                         "content": {
                             "application/json": {
                                 "schema": {
                                     "type": "array",
                                     "items": {
-                                        "type": "string",
-                                        "format": "uri"
+                                        "type": "object",
+                                        "properties": {
+                                            "id": {"type": "string"},
+                                            "url": {"type": "string", "format": "uri"}
+                                        }                                        
                                     },
                                     "example": [
-                                        "https://record-import.api.melinda.kansalliskirjasto.fi/v1/blob/1234",
-                                        "https://record-import.api.melinda.kansalliskirjasto.fi/v1/blob/5678"
+                                        {"url": "https://foo/blobs/1234", "id": "1234"},
+                                        {"url": "https://foo/blobs/4567", "id": "4567"}
                                     ]
                                 }
                             }
                         }
-                    },
-                    "400": {
-                        "description": "Invalid query"
                     },
                     "401": {
                         "description": "Authentication failed"
@@ -272,7 +277,7 @@
             },
             "delete": {
                 "summary": "Delete blob content",
-                "description": "The blob content is removed. If blob state is PENDING_TRANSFORMATION it is set to ABORTED",
+                "description": "The blob content is removed",
                 "tags": [
                     "blobs"
                 ],
@@ -314,17 +319,11 @@
                     "204": {
                         "description": "The profile was updated"
                     },
-                    "400": {
-                        "description": "Malformed content"
-                    },
                     "401": {
                         "description": "Authentication failed"
                     },
                     "403": {
                         "description": "Not authorized"
-                    },
-                    "404": {
-                        "description": "The profile does not exist"
                     },
                     "422": {
                         "description": "Invalid syntax"
@@ -386,8 +385,8 @@
                     "UPDATED",
                     "INVALID",
                     "DUPLICATE",
-                    "MULTIPLE_MATCHES",
-                    "ERROR"
+                    "ERROR",
+                    "SKIPPED"
                 ]
             },
             "RecordImportResult": {
@@ -404,6 +403,7 @@
             "Profile": {
                 "type": "object",
                 "properties": {
+                    "id": {"type": "string"},
                     "auth": {
                         "type": "object",
                         "properties": {
@@ -418,10 +418,6 @@
                     "transformation": {
                         "type": "object",
                         "properties": {
-                            "abortOnInvalidRecords": {
-                                "type": "boolean",
-                                "default": false
-                            },
                             "image": {
                                 "description": "Name of the transformer container image",
                                 "type": "string"
@@ -595,8 +591,11 @@
                                 "type": "string",
                                 "pattern": "^recordProcessed"
                             },
-                            "content": {
-                                "$ref": "#/components/schemas/RecordImportResult"
+                            "status": {
+                                "$ref": "#/components/schemas/RecordImportStatus"
+                            },
+                            "metadata": {
+                                "type": "object"
                             }
                         }
                     }
