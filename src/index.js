@@ -33,7 +33,7 @@ import passport from 'passport';
 import express from 'express';
 import cors from 'cors';
 import Mongoose from 'mongoose';
-import {createBlobsRouter, createProfilesRouter} from './routes';
+import {createBlobsRouter, createProfilesRouter, createApiDocRouter} from './routes';
 import generatePassportMiddlewares from './passport';
 import {
 	ENABLE_PROXY, HTTP_PORT,
@@ -65,6 +65,7 @@ async function run() {
 
 	app.use(cors());
 
+	app.use('/', createApiDocRouter());
 	app.use('/blobs', createBlobsRouter(passportMiddlewares));
 	app.use('/profiles', createProfilesRouter(passportMiddlewares));
 

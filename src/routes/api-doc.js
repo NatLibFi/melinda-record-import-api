@@ -1,4 +1,3 @@
-
 /**
 *
 * @licstart  The following is the entire license notice for the JavaScript code in this file.
@@ -27,6 +26,16 @@
 *
 */
 
-export {default as createBlobsRouter} from './blobs';
-export {default as createProfilesRouter} from './profiles';
-export {default as createApiDocRouter} from './api-doc';
+import fs from 'fs';
+import path from 'path';
+import {Router} from 'express';
+
+export default function () {
+	const apiDoc = fs.readFileSync(path.join(__dirname, '..', 'api.json'), 'utf8');
+
+	return new Router()
+		.get('/', (req, res) => {
+			res.set('Content-Type', 'application/json');
+			res.send(apiDoc);
+		});
+}
