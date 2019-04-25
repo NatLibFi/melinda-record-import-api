@@ -29,18 +29,13 @@
 import fs from 'fs';
 import path from 'path';
 import {Router} from 'express';
-import {SWAGGER_UI_URL} from '../config';
 
 export default function () {
 	const apiDoc = fs.readFileSync(path.join(__dirname, '..', 'api.json'), 'utf8');
 
 	return new Router()
 		.get('/', (req, res) => {
-			if (req.accepts('html') && SWAGGER_UI_URL) {
-				res.redirect(SWAGGER_UI_URL);
-			} else {
-				res.set('Content-Type', 'application/json');
-				res.send(apiDoc);
-			}
+			res.set('Content-Type', 'application/json');
+			res.send(apiDoc);
 		});
 }
