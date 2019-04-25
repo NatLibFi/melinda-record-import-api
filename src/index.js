@@ -65,7 +65,7 @@ async function run() {
 
 	app.use(cors());
 
-	app.use('/apidoc', createApiDocRouter());
+	app.use('/', createApiDocRouter());
 	app.use('/blobs', createBlobsRouter(passportMiddlewares));
 	app.use('/profiles', createProfilesRouter(passportMiddlewares));
 
