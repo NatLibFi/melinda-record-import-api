@@ -32,10 +32,14 @@ import moment from 'moment';
 import {GridFSBucket} from 'mongodb';
 import {v4 as uuid} from 'uuid';
 import {BLOB_UPDATE_OPERATIONS, BLOB_STATE, ApiError} from '@natlibfi/melinda-record-import-commons';
+import {Utils} from '@natlibfi/melinda-commons';
 import {BlobMetadataModel, ProfileModel} from './models';
 import {hasPermission, hasAdminPermission} from './utils';
 
+const {createLogger} = Utils;
+
 export default function ({url}) {
+	const Logger = createLogger();
 	const gridFSBucket = new GridFSBucket(Mongoose.connection.db, {bucketName: 'blobs'});
 
 	Mongoose.model('BlobMetadata', BlobMetadataModel);
@@ -55,11 +59,24 @@ export default function ({url}) {
 			}));
 
 		async function filterPermitted() {
+			const profileCache = {};
 			const filtered = await Promise.all(blobs.map(async blob => {
-				const profile = await getProfile(blob.profile);
+				const profile = await getProfileUsingCache();
 
 				if (hasPermission(profile, user)) {
 					return blob;
+				}
+
+				async function getProfileUsingCache() {
+					if ([blob.profile] in profileCache) {
+						Logger.log('debug', `Got profile ${blob.profile} from cache`);
+						return profileCache[blob.profile];
+					}
+
+					const profile = await getProfile(blob.profile);
+
+					profileCache[blob.profile] = profile;
+					return profile;
 				}
 			}));
 
