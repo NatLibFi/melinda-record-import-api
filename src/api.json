@@ -2,6 +2,10 @@
     "openapi": "3.0.0",
     "tags": [
         {
+            "name": "auth",
+            "description": "Get authentication token"
+        },
+        {
             "name": "blobs",
             "description": "Operate on blobs"
         },
@@ -12,13 +16,40 @@
     ],
     "security": [
         {
-            "httpBasic": []
+            "httpBasic": [],
+            "httpBearer": []
         }
     ],
     "paths": {
+        "/auth": {
+            "post": {
+                "summary": "Get a bearer token for authentication",
+                "security": ["httpBasic"],
+                "tags": [
+                    "auth"
+                ],                
+                "responses": {
+                    "204": {
+                        "description": "Authentication succeeded",
+                        "headers": {
+                            "Token": {
+                                "description": "Bearer token used in authenticating with other resources",
+                                "schema": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Authentication failed"
+                    }
+                }
+            }
+        },
         "/blobs": {
             "post": {
                 "summary": "Create a new blob",
+                "security": ["httpBearer"],
                 "tags": [
                     "blobs"
                 ],
@@ -70,6 +101,7 @@
             },
             "get": {
                 "summary": "Query for blobs",
+                "security": ["httpBearer"],
                 "tags": [
                     "blobs"
                 ],
@@ -172,6 +204,7 @@
         "/blobs/{id}": {
             "get": {
                 "summary": "Retrieve blob metadata",
+                "security": ["httpBearer"],
                 "tags": [
                     "blobs"
                 ],
@@ -199,6 +232,7 @@
             },
             "post": {
                 "summary": "Update blob metadata",
+                "security": ["httpBearer"],
                 "tags": [
                     "blobs"
                 ],
@@ -234,6 +268,7 @@
             },
             "delete": {
                 "summary": "Delete a blob",
+                "security": ["httpBearer"],
                 "description": "The blob is completely removed including all related records in the queue",
                 "tags": [
                     "blobs"
@@ -257,6 +292,7 @@
         "/blobs/{id}/content": {
             "get": {
                 "summary": "Retrieve blob content",
+                "security": ["httpBearer"],
                 "tags": [
                     "blobs"
                 ],
@@ -277,6 +313,7 @@
             },
             "delete": {
                 "summary": "Delete blob content",
+                "security": ["httpBearer"],
                 "description": "The blob content is removed",
                 "tags": [
                     "blobs"
@@ -300,6 +337,7 @@
         "/profiles/{name}": {
             "put": {
                 "summary": "Create or update a profile",
+                "security": ["httpBearer"],
                 "tags": [
                     "profiles"
                 ],
@@ -332,6 +370,7 @@
             },
             "get": {
                 "summary": "Retrieve a profile",
+                "security": ["httpBearer"],
                 "tags": [
                     "profiles"
                 ],
@@ -364,6 +403,10 @@
             "httpBasic": {
                 "type": "http",
                 "scheme": "basic"
+            },
+            "httpBearer": {
+                "type": "http",
+                "scheme": "bearer"
             }
         },
         "schemas": {

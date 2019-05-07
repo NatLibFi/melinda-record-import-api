@@ -34,9 +34,8 @@
   },
   "dependencies": {
     "@natlibfi/express-validate-content-type": "^1.0.1",
-    "@natlibfi/melinda-commons": "^5.0.0",
+    "@natlibfi/melinda-commons": "^6.0.0",
     "@natlibfi/melinda-record-import-commons": "^4.0.0",
-    "@natlibfi/passport-atlassian-crowd": "^1.0.0",
     "body-parser": "^1.18.3",
     "cors": "^2.8.5",
     "debug": "^4.1.1",
@@ -47,7 +46,6 @@
     "mongodb": "^3.2.2",
     "mongoose": "^5.4.19",
     "passport": "^0.4.0",
-    "passport-http": "^0.3.0",
     "uuid": "^3.3.2"
   },
   "devDependencies": {

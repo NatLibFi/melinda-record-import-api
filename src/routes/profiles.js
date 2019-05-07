@@ -26,21 +26,18 @@
 *
 */
 
-/* eslint-disable no-unused-vars */
-
 import HttpStatus from 'http-status';
 import {Router} from 'express';
-import passport from 'passport';
 import bodyParser from 'body-parser';
 import {profilesFactory} from '../interfaces';
 import {API_URL} from '../config';
 import validateContentType from '@natlibfi/express-validate-content-type';
 
-export default function (passportMiddlewares) {
+export default function (passportMiddleware) {
 	const profiles = profilesFactory({url: API_URL});
 
 	return new Router()
-		.use(passportMiddlewares)
+		.use(passportMiddleware)
 		.get('/', query)
 		.get('/:id', read)
 		.delete('/:id', remove)

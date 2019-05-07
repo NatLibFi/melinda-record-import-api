@@ -26,22 +26,19 @@
 *
 */
 
-/* eslint-disable no-unused-vars */
-
 import HttpStatus from 'http-status';
 import {Router} from 'express';
-import passport from 'passport';
 import bodyParser from 'body-parser';
 import {blobsFactory} from '../interfaces';
-import {API_URL, CONTENT_MAX_LENGTH} from '../config';
 import validateContentType from '@natlibfi/express-validate-content-type';
 import {validateMax as validateContentLength} from 'express-content-length-validator';
+import {API_URL, CONTENT_MAX_LENGTH} from '../config';
 
-export default function (passportMiddlewares) {
+export default function (passportMiddleware) {
 	const blobs = blobsFactory({url: API_URL});
 
 	return new Router()
-		.use(passportMiddlewares)
+		.use(passportMiddleware)
 		.get('/', query)
 		.post('/', getContentLengthMiddleware(), create)
 		.get('/:id', read)

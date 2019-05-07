@@ -26,21 +26,28 @@
 *
 */
 
-import {Utils} from '@natlibfi/melinda-commons';
+import {Utils, Authentication} from '@natlibfi/melinda-commons';
 import {ApiError} from '@natlibfi/melinda-record-import-commons';
 import HttpStatus from 'http-status';
 import passport from 'passport';
 import express from 'express';
 import cors from 'cors';
 import Mongoose from 'mongoose';
-import {createBlobsRouter, createProfilesRouter, createApiDocRouter} from './routes';
-import generatePassportMiddlewares from './passport';
+
+import {
+	createAuthRouter, createBlobsRouter,
+	createProfilesRouter, createApiDocRouter
+} from './routes';
+
 import {
 	ENABLE_PROXY, HTTP_PORT,
 	MONGO_URI, MONGO_DEBUG,
-	USER_AGENT_LOGGING_BLACKLIST
+	USER_AGENT_LOGGING_BLACKLIST,
+	CROWD_URL, CROWD_APP_NAME, CROWD_APP_PASSWORD,
+	PASSPORT_LOCAL_USERS
 } from './config';
 
+const {Crowd: {generatePassportMiddlewares}} = Authentication;
 const {createLogger, createExpressLogger, handleInterrupt} = Utils;
 
 run();
@@ -48,9 +55,15 @@ run();
 async function run() {
 	Mongoose.set('debug', MONGO_DEBUG);
 
-	const passportMiddlewares = generatePassportMiddlewares();
 	const Logger = createLogger();
 	const app = express();
+	const passportMiddlewares = generatePassportMiddlewares({
+		localUsers: PASSPORT_LOCAL_USERS,
+		crowd: {
+			appName: CROWD_APP_NAME, appPassword: CROWD_APP_PASSWORD,
+			url: CROWD_URL, useCache: true, fetchGroupMembership: true
+		}
+	});
 
 	await Mongoose.connect(MONGO_URI, {useNewUrlParser: true});
 
@@ -66,8 +79,9 @@ async function run() {
 	app.use(cors());
 
 	app.use('/', createApiDocRouter());
-	app.use('/blobs', createBlobsRouter(passportMiddlewares));
-	app.use('/profiles', createProfilesRouter(passportMiddlewares));
+	app.use('/auth', createAuthRouter(passportMiddlewares.credentials));
+	app.use('/blobs', createBlobsRouter(passportMiddlewares.token));
+	app.use('/profiles', createProfilesRouter(passportMiddlewares.token));
 
 	app.use(handleError);
 

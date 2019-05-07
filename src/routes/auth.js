@@ -1,4 +1,3 @@
-
 /**
 *
 * @licstart  The following is the entire license notice for the JavaScript code in this file.
@@ -27,7 +26,16 @@
 *
 */
 
-export {default as createAuthRouter} from './auth';
-export {default as createBlobsRouter} from './blobs';
-export {default as createProfilesRouter} from './profiles';
-export {default as createApiDocRouter} from './api-doc';
+import HttpStatus from 'http-status';
+import {Router} from 'express';
+
+export default function (passportMiddleware) {
+	return new Router()
+		.use(passportMiddleware)
+		.post('/', create);
+
+	async function create(req, res) {
+		res.set('Token', req.user);
+		res.sendStatus(HttpStatus.NO_CONTENT);
+	}
+}
