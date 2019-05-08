@@ -263,6 +263,9 @@
                     },
                     "422": {
                         "description": "Invalid syntax"
+                    },
+                    "409": {
+                        "description": "Attempted to set record status when all records have already been processed"
                     }
                 }
             },

@@ -281,6 +281,11 @@ export default function ({url}) {
 					throw new ApiError(HttpStatus.UNPROCESSABLE_ENTITY);
 				case recordProcessed:
 					if ('status' in payload) {
+						if (blob.processingInfo.numberOfRecords === blob.processingInfo.importResults.length) {
+							Logger.log('warn', `Attempted recordProcessed update when all records have already been processed: ${payload.status}:${JSON.stringify(payload.metadata)}`);
+							throw new ApiError(HttpStatus.CONFLICT);
+						}
+
 						return {
 							state: getRecordProcessedState(),
 							modificationTime: moment(),
