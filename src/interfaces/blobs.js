@@ -281,7 +281,9 @@ export default function ({url}) {
 					throw new ApiError(HttpStatus.UNPROCESSABLE_ENTITY);
 				case recordProcessed:
 					if ('status' in payload) {
-						if (blob.processingInfo.numberOfRecords === blob.processingInfo.importResults.length) {
+						const processedRecordsCount = blob.processingInfo.failedRecords.length + blob.processingInfo.importResults.length;
+
+						if (blob.processingInfo.numberOfRecords === processedRecordsCount) {
 							Logger.log('warn', `Attempted recordProcessed update when all records have already been processed: ${payload.status}:${JSON.stringify(payload.metadata)}`);
 							throw new ApiError(HttpStatus.CONFLICT);
 						}
@@ -317,7 +319,11 @@ export default function ({url}) {
 				const {numberOfRecords, importResults, failedRecords} = blob.processingInfo;
 				const recordsProcessed = failedRecords.length + importResults.length + 1;
 
-				return numberOfRecords === recordsProcessed ? BLOB_STATE.PROCESSED : BLOB_STATE.TRANSFORMED;
+				if (numberOfRecords === recordsProcessed) {
+					return BLOB_STATE.PROCESSED;
+				}
+
+				return blob.state === BLOB_STATE.ABORTED ? BLOB_STATE.ABORTED : BLOB_STATE.TRANSFORMED;
 			}
 		}
 	}

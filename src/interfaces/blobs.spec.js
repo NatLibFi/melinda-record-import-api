@@ -128,6 +128,7 @@ describe('interfaces/blobs', () => {
 		it('Should set the transformation done (All records failed)', async () => testUpdate('8'));
 		it('Should set record as processed', async () => testUpdate('9'));
 		it('Should set blob as processed (All records processed)', async () => testUpdate('10'));
+		it('Should set record as processed but the state should remain ABORTED', async () => testUpdate('11'));
 
 		async function testError({index, status}) {
 			const dbContents = getFixture(['update', index, 'dbContents.json']);
