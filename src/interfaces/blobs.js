@@ -147,7 +147,7 @@ export default function ({url}) {
 					const {_id: fileId} = await getFileMetadata(id);
 					await gridFSBucket.delete(fileId);
 				} catch (err) {
-					if (!(err instanceof ApiError && ApiError.status === HttpStatus.NOT_FOUND)) {
+					if (!(err instanceof ApiError && err.status === HttpStatus.NOT_FOUND)) {
 						throw err;
 					}
 				}
