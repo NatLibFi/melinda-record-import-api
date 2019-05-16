@@ -133,7 +133,8 @@
                             "oneOf": [
                                 {"$ref": "#/components/schemas/BlobState"},
                                 {
-                                    "type": "array", "items": {
+                                    "type": "array",
+                                    "items": {
                                         "$ref": "#/components/schemas/BlobState"
                                     }
                                 }
@@ -175,22 +176,14 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "A list of blob urls and ids. Empty list if no resources were found",
+                        "description": "A list of blob metadata objects. Empty list if no resources were found",
                         "content": {
                             "application/json": {
                                 "schema": {
                                     "type": "array",
                                     "items": {
-                                        "type": "object",
-                                        "properties": {
-                                            "id": {"type": "string"},
-                                            "url": {"type": "string", "format": "uri"}
-                                        }                                        
-                                    },
-                                    "example": [
-                                        {"url": "https://foo/blobs/1234", "id": "1234"},
-                                        {"url": "https://foo/blobs/4567", "id": "4567"}
-                                    ]
+                                        "$ref": "#/components/schemas/BlobQueryMetadata"
+                                    }                                    
                                 }
                             }
                         }
@@ -281,7 +274,7 @@
                         "description": "The blob was removed"
                     },
                     "400": {
-                        "description": "Blob content exists and must be removed first",
+                        "description": "Blob content exists and must be removed first"
                     },
                     "401": {
                         "description": "Authentication failed"
@@ -518,6 +511,39 @@
                     "transformation",
                     "import"
                 ]
+            },
+            "BlobQueryMetadata": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "string"
+                    },
+                    "profile": {
+                        "type": "string"
+                    },
+                    "contentType": {
+                        "type": "string"
+                    },
+                    "state": {
+                        "$ref": "#/components/schemas/BlobState"
+                    },
+                    "creationTime": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "modificationTime": {
+                        "type": "string",
+                        "format": "date-time"
+                    }
+                },
+                "example": {
+                    "id": 123456,
+                    "profile": "foobar",
+                    "contentType": "application/json",
+                    "state": "PENDING_TRANSFORMATION",
+                    "creationTime": "2018-01-01T00:00:00Z",
+                    "modificationTime": "2018-01-01T00:01:00Z"
+                }
             },
             "BlobMetadata": {
                 "type": "object",

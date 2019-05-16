@@ -53,10 +53,16 @@ export default function ({url}) {
 
 		return permittedBlobs
 			.filter(applyFilters)
-			.map(blob => ({
-				id: blob.id,
-				url: `${url}/blobs/${blob.id}`
-			}));
+			.map(doc => {
+				const blob = formatDocument(doc);
+
+				delete blob.processingInfo;
+
+				return {
+					...blob,
+					url: `${url}/blobs/${blob.id}`
+				};
+			});
 
 		async function filterPermitted() {
 			const profileCache = {};
@@ -117,25 +123,36 @@ export default function ({url}) {
 	}
 
 	async function read({id, user}) {
-		const blob = await Mongoose.models.BlobMetadata.findOne({id});
+		const doc = await Mongoose.models.BlobMetadata.findOne({id});
 
-		if (blob) {
+		if (doc) {
+			const blob = formatDocument(doc);
+
 			if (hasPermission(await getProfile(blob.profile), user)) {
-				return format(blob);
+				return blob;
 			}
 
 			throw new ApiError(HttpStatus.FORBIDDEN);
 		}
 
 		throw new ApiError(HttpStatus.NOT_FOUND);
+	}
 
-		function format(blob) {
-			const doc = blob._doc;
+	function formatDocument(doc) {
+		const blob = doc._doc;
 
-			return Object.keys(doc).reduce((acc, key) => {
-				return /^_+/.test(key) ? acc : {[key]: doc[key], ...acc};
-			}, {});
-		}
+		return Object.keys(blob).reduce((acc, key) => {
+			if (/^_+/.test(key)) {
+				return acc;
+			}
+
+			if (key === 'creationTime' || key === 'modificationTime') {
+				const value = moment(blob[key]).format();
+				return {...acc, [key]: value};
+			}
+
+			return {...acc, [key]: blob[key]};
+		}, {});
 	}
 
 	async function remove({id, user}) {

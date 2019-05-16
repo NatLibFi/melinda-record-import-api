@@ -256,7 +256,15 @@ describe('interfaces/blobs', () => {
 			await mongoFixtures.populate(dbContents);
 
 			const results = await blobs.query({user, ...params});
-			expect(results).to.eql(expectedResults);
+			expect(formatResults()).to.eql(expectedResults);
+
+			function formatResults() {
+				return results.map(result => {
+					delete result.modificationTime;
+					delete result.creationTime;
+					return result;
+				});
+			}
 		}
 	});
 

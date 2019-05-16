@@ -1,10 +1,16 @@
 [
     {
         "id": "foo",
-        "url": "https://api/blobs/foo"
+        "url": "https://api/blobs/foo",
+        "profile": "foo",
+        "contentType": "foo/bar",
+        "state": "PENDING_TRANSFORMATION"
     },
     {
         "id": "bar",
-        "url": "https://api/blobs/bar"
+        "url": "https://api/blobs/bar",
+        "profile": "foo",
+        "contentType": "foo/bar"    ,
+        "state": "PENDING_TRANSFORMATION"    
     }
 ]
