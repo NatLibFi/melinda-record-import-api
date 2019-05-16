@@ -144,8 +144,8 @@ export default function ({url}) {
 		if (blob) {
 			if (hasAdminPermission(user)) {
 				try {
-					const {_id: fileId} = await getFileMetadata(id);
-					await gridFSBucket.delete(fileId);
+					await getFileMetadata(id);
+					throw new ApiError(HttpStatus.BAD_REQUEST);
 				} catch (err) {
 					if (!(err instanceof ApiError && err.status === HttpStatus.NOT_FOUND)) {
 						throw err;
@@ -231,6 +231,10 @@ export default function ({url}) {
 			const profile = await getProfile(blob.profile);
 
 			if (hasPermission(profile, user)) {
+				if ([BLOB_STATE.TRANSFORMATION_FAILED, BLOB_STATE.ABORTED].includes(blob.state)) {
+					throw new ApiError(HttpStatus.CONFLICT);
+				}
+
 				if ('op' in payload) {
 					const doc = await getUpdateDoc();
 					await Mongoose.models.BlobMetadata.update({id}, doc);

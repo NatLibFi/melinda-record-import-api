@@ -128,7 +128,7 @@ describe('interfaces/blobs', () => {
 		it('Should set the transformation done (All records failed)', async () => testUpdate('8'));
 		it('Should set record as processed', async () => testUpdate('9'));
 		it('Should set blob as processed (All records processed)', async () => testUpdate('10'));
-		it('Should set record as processed but the state should remain ABORTED', async () => testUpdate('11'));
+		it('Should fail because current state doesn\'t allow updates', async () => testError({index: '11', status: HttpStatus.CONFLICT}));
 
 		async function testError({index, status}) {
 			const dbContents = getFixture(['update', index, 'dbContents.json']);
@@ -262,18 +262,16 @@ describe('interfaces/blobs', () => {
 
 	describe('#remove', () => {
 		it('Should succeed', async (index = '0') => {
-			const dbContents = getFixture(['removeContent', index, 'dbContents.json']);
-			const dbFiles = getFixture(['removeContent', index, 'dbFiles.json']);
-			const user = getFixture(['removeContent', index, 'user.json']);
+			const dbContents = getFixture(['remove', index, 'dbContents.json']);
+			const user = getFixture(['remove', index, 'user.json']);
 			const blobs = blobsFactory({url: 'https://api'});
 
 			await mongoFixtures.populate(dbContents);
-			await mongoFixtures.populateFiles(dbFiles);
 			await blobs.remove({id: 'foo', user});
 		});
 
 		it('Should fail because the blob doesn\'t exist', async (index = '1') => {
-			const user = getFixture(['removeContent', index, 'user.json']);
+			const user = getFixture(['remove', index, 'user.json']);
 			const blobs = blobsFactory({url: 'https://api'});
 
 			try {
@@ -286,8 +284,8 @@ describe('interfaces/blobs', () => {
 		});
 
 		it('Should fail because of invalid permissions', async (index = '2') => {
-			const dbContents = getFixture(['removeContent', index, 'dbContents.json']);
-			const user = getFixture(['removeContent', index, 'user.json']);
+			const dbContents = getFixture(['remove', index, 'dbContents.json']);
+			const user = getFixture(['remove', index, 'user.json']);
 			const blobs = blobsFactory({url: 'https://api'});
 
 			await mongoFixtures.populate(dbContents);
@@ -298,6 +296,22 @@ describe('interfaces/blobs', () => {
 			} catch (err) {
 				expect(err).to.be.instanceOf(ApiError);
 				expect(err.status).to.equal(HttpStatus.FORBIDDEN);
+			}
+		});
+
+		it('Should fail because content still exists', async (index = '3') => {
+			const dbContents = getFixture(['remove', index, 'dbContents.json']);
+			const user = getFixture(['remove', index, 'user.json']);
+			const blobs = blobsFactory({url: 'https://api'});
+
+			await mongoFixtures.populate(dbContents);
+
+			try {
+				await blobs.remove({id: 'foo', user});
+				throw new Error('Should not succeed');
+			} catch (err) {
+				expect(err).to.be.instanceOf(ApiError);
+				expect(err.status).to.equal(HttpStatus.BAD_REQUEST);
 			}
 		});
 	});

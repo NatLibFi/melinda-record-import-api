@@ -49,6 +49,7 @@ export const ProfileModel = new Schema({
 		type: Object,
 		required: true,
 		image: {type: String, required: true},
+		concurrency: {type: Number},
 		env: {type: Object}
 	}
 }, {strict: 'throw'});

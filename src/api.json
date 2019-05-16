@@ -280,6 +280,9 @@
                     "204": {
                         "description": "The blob was removed"
                     },
+                    "400": {
+                        "description": "Blob content exists and must be removed first",
+                    },
                     "401": {
                         "description": "Authentication failed"
                     },
@@ -287,7 +290,7 @@
                         "description": "Not authorized"
                     },
                     "404": {
-                        "description": "Content not found"
+                        "description": "The blob doesn't exist not found"
                     }
                 }
             }
@@ -489,6 +492,10 @@
                           "image": {
                               "description": "Name of the importer container image",
                               "type": "string"
+                          },
+                          "concurrency": {
+                            "description": "Maximum number of importers that can be run concurrently for this profile. This controls the total number of importers not by blob. The default is determined by the system if left undefined",
+                            "type": "number"
                           },
                           "env": {
                               "description": "Environment variables for the container",
