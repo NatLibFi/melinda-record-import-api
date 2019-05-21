@@ -32,14 +32,10 @@ import moment from 'moment';
 import {GridFSBucket} from 'mongodb';
 import {v4 as uuid} from 'uuid';
 import {BLOB_UPDATE_OPERATIONS, BLOB_STATE, ApiError} from '@natlibfi/melinda-record-import-commons';
-import {Utils} from '@natlibfi/melinda-commons';
 import {BlobMetadataModel, ProfileModel} from './models';
 import {hasPermission, hasAdminPermission} from './utils';
 
-const {createLogger} = Utils;
-
 export default function ({url}) {
-	const Logger = createLogger();
 	const gridFSBucket = new GridFSBucket(Mongoose.connection.db, {bucketName: 'blobs'});
 
 	Mongoose.model('BlobMetadata', BlobMetadataModel);
@@ -75,7 +71,6 @@ export default function ({url}) {
 
 				async function getProfileUsingCache() {
 					if ([blob.profile] in profileCache) {
-						Logger.log('debug', `Got profile ${blob.profile} from cache`);
 						return profileCache[blob.profile];
 					}
 
@@ -243,18 +238,47 @@ export default function ({url}) {
 
 	async function update({id, payload, user}) {
 		const blob = await Mongoose.models.BlobMetadata.findOne({id});
+		const {op} = payload;
 
 		if (blob) {
 			const profile = await getProfile(blob.profile);
-
 			if (hasPermission(profile, user)) {
-				if ([BLOB_STATE.TRANSFORMATION_FAILED, BLOB_STATE.ABORTED].includes(blob.state)) {
-					throw new ApiError(HttpStatus.CONFLICT);
-				}
-
-				if ('op' in payload) {
+				if (op) {
 					const doc = await getUpdateDoc();
-					await Mongoose.models.BlobMetadata.update({id}, doc);
+					const conditions = [
+						{id},
+						{
+							state: {
+								$nin: [
+									BLOB_STATE.TRANSFORMATION_FAILED,
+									BLOB_STATE.ABORTED,
+									BLOB_STATE.PROCESSED
+								]
+							}
+						}
+					];
+
+					if (op === BLOB_UPDATE_OPERATIONS.recordProcessed) {
+						conditions.push({
+							$expr: {
+								$gt: [
+									'$processingInfo.numberOfRecords',
+									{
+										$sum: [
+											{$size: '$processingInfo.failedRecords'},
+											{$size: '$processingInfo.importResults'}
+										]
+									}
+								]
+							}
+						});
+					}
+
+					const {nModified} = await Mongoose.models.BlobMetadata.updateOne({$and: conditions}, doc);
+
+					if (nModified === 0) {
+						throw new ApiError(HttpStatus.CONFLICT);
+					}
 				} else {
 					throw new ApiError(HttpStatus.UNPROCESSABLE_ENTITY);
 				}
@@ -267,18 +291,30 @@ export default function ({url}) {
 
 		async function getUpdateDoc() {
 			const {
-				abort, recordProcessed, transformationStarted,
-				transformationFailed, transformationDone
+				abort, recordProcessed, transformationFailed, transformationDone, updateState
 			} = BLOB_UPDATE_OPERATIONS;
 
-			switch (payload.op) {
+			switch (op) {
+				case updateState:
+					if (hasAdminPermission(user)) {
+						const {state} = payload;
+
+						if ([
+							BLOB_STATE.PROCESSED,
+							BLOB_STATE.PENDING_TRANSFORMATION,
+							BLOB_STATE.TRANSFORMATION_IN_PROGRESS,
+							BLOB_STATE.TRANSFORMED
+						].includes(state)) {
+							return {state};
+						}
+
+						throw new ApiError(HttpStatus.UNPROCESSABLE_ENTITY);
+					}
+
+					throw new ApiError(HttpStatus.FORBIDDEN);
 				case abort:
 					return {
 						state: BLOB_STATE.ABORTED
-					};
-				case transformationStarted:
-					return {
-						state: BLOB_STATE.TRANSFORMATION_IN_PROGRESS
 					};
 				case transformationFailed:
 					return {
@@ -290,7 +326,6 @@ export default function ({url}) {
 				case transformationDone:
 					if ('numberOfRecords' in payload) {
 						return {
-							state: getTransformedState(),
 							modificationTime: moment(),
 							$set: {
 								'processingInfo.numberOfRecords': payload.numberOfRecords,
@@ -302,15 +337,7 @@ export default function ({url}) {
 					throw new ApiError(HttpStatus.UNPROCESSABLE_ENTITY);
 				case recordProcessed:
 					if ('status' in payload) {
-						const processedRecordsCount = blob.processingInfo.failedRecords.length + blob.processingInfo.importResults.length;
-
-						if (blob.processingInfo.numberOfRecords === processedRecordsCount) {
-							Logger.log('warn', `Attempted recordProcessed update when all records have already been processed: ${payload.status}:${JSON.stringify(payload.metadata)}`);
-							throw new ApiError(HttpStatus.CONFLICT);
-						}
-
 						return {
-							state: getRecordProcessedState(),
 							modificationTime: moment(),
 							$push: {
 								'processingInfo.importResults': {
@@ -324,27 +351,6 @@ export default function ({url}) {
 					throw new ApiError(HttpStatus.UNPROCESSABLE_ENTITY);
 				default:
 					throw new ApiError(HttpStatus.UNPROCESSABLE_ENTITY);
-			}
-
-			function getTransformedState() {
-				const {failedRecords, numberOfRecords} = payload;
-
-				if ((failedRecords === undefined ? 0 : failedRecords.length) === numberOfRecords) {
-					return BLOB_STATE.PROCESSED;
-				}
-
-				return BLOB_STATE.TRANSFORMED;
-			}
-
-			function getRecordProcessedState() {
-				const {numberOfRecords, importResults, failedRecords} = blob.processingInfo;
-				const recordsProcessed = failedRecords.length + importResults.length + 1;
-
-				if (numberOfRecords === recordsProcessed) {
-					return BLOB_STATE.PROCESSED;
-				}
-
-				return blob.state === BLOB_STATE.ABORTED ? BLOB_STATE.ABORTED : BLOB_STATE.TRANSFORMED;
 			}
 		}
 	}

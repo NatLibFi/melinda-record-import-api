@@ -24,7 +24,7 @@
             {"status": "CREATED", "metadata": {"foo": "fubar"}}
         ]
     },
-    "state": "PROCESSED",
+    "state": "TRANSFORMED",
     "id": "foo",
     "profile": "foo",
     "contentType": "foo/bar"        

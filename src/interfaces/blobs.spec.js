@@ -129,6 +129,9 @@ describe('interfaces/blobs', () => {
 		it('Should set record as processed', async () => testUpdate('9'));
 		it('Should set blob as processed (All records processed)', async () => testUpdate('10'));
 		it('Should fail because current state doesn\'t allow updates', async () => testError({index: '11', status: HttpStatus.CONFLICT}));
+		it('Should fail because all records have been processed', async () => testError({index: '12', status: HttpStatus.CONFLICT}));
+		it('Should update blob state', async () => testUpdate('13'));
+		it('Should fail to update blob state because of invalid permissions', async () => testError({index: '14', status: HttpStatus.FORBIDDEN}));
 
 		async function testError({index, status}) {
 			const dbContents = getFixture(['update', index, 'dbContents.json']);

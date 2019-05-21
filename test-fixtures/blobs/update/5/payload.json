@@ -1,3 +1,4 @@
 {
-    "op": "transformationStarted"
+    "op": "updateState",
+    "state": "TRANSFORMATION_IN_PROGRESS"
 }

@@ -53,10 +53,13 @@ const {createLogger, createExpressLogger, handleInterrupt} = Utils;
 run();
 
 async function run() {
-	Mongoose.set('debug', MONGO_DEBUG);
+	let server;
 
-	const Logger = createLogger();
+	registerSignalHandlers();
+
+	const logger = createLogger();
 	const app = express();
+
 	const passportMiddlewares = generatePassportMiddlewares({
 		localUsers: PASSPORT_LOCAL_USERS,
 		crowd: {
@@ -65,7 +68,13 @@ async function run() {
 		}
 	});
 
-	await Mongoose.connect(MONGO_URI, {useNewUrlParser: true});
+	Mongoose.set('debug', MONGO_DEBUG);
+
+	try {
+		await Mongoose.connect(MONGO_URI, {useNewUrlParser: true});
+	} catch (err) {
+		throw new Error('Failed connecting to MongoDB');
+	}
 
 	app.enable('trust proxy', ENABLE_PROXY);
 
@@ -85,17 +94,15 @@ async function run() {
 
 	app.use(handleError);
 
-	const server = app.listen(HTTP_PORT, () => {
-		Logger.log('info', 'Started melinda-record-import-api');
+	server = app.listen(HTTP_PORT, () => {
+		logger.log('info', 'Started melinda-record-import-api');
 	});
-
-	registerSignalHandlers();
 
 	function handleError(err, req, res, next) { // eslint-disable-line no-unused-vars
 		if (err instanceof ApiError || 'status' in err) {
 			res.sendStatus(err.status);
 		} else {
-			Logger.log('error', err instanceof Error ? err.stack : err);
+			logger.log('error', err instanceof Error ? err.stack : err);
 			res.sendStatus(HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	}
@@ -109,7 +116,10 @@ async function run() {
 			.on('SIGUSR2', handle);
 
 		function handle(arg) {
-			server.close();
+			if (server) {
+				server.close();
+			}
+
 			Mongoose.disconnect();
 			handleInterrupt(arg);
 		}
