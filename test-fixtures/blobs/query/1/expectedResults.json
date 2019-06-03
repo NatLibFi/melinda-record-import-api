@@ -1,0 +1,9 @@
+[
+    {
+        "id": "foo",
+        "url": "https://api/blobs/foo",
+        "contentType": "foo/bar",
+        "profile": "foo",
+        "state": "PENDING_TRANSFORMATION"
+    }
+]

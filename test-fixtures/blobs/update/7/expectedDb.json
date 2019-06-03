@@ -1,0 +1,29 @@
+{
+  "profiles": [{
+      "id": "foo",
+      "auth": {
+          "groups": ["foo"]
+      },
+      "transformation": {
+          "image": "foo"
+      },
+      "import": {
+          "image": "bar"
+      }
+  }],
+  "blobs.chunks": [{}],
+  "blobs.files": [{
+      "filename": "foo"
+  }],
+  "blobmetadatas": [{
+      "processingInfo": {
+        "numberOfRecords": 10,
+        "failedRecords": [],
+        "importResults": []
+      },
+      "state": "TRANSFORMATION_IN_PROGRESS",      
+      "id": "foo",
+      "profile": "foo",
+      "contentType": "foo/bar"        
+    }]
+}

@@ -1,0 +1,14 @@
+{
+    "profiles": [{
+        "id": "foo",
+        "auth": {
+            "groups": ["foo"]
+        },
+        "transformation": {
+            "image": "foo"
+        },
+        "import": {
+            "image": "bar"
+        }
+    }]
+}

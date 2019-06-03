@@ -1,0 +1,7 @@
+{
+    "op": "recordProcessed",
+    "status": "CREATED",
+    "metadata": {
+        "foo": "bar"
+    }
+}

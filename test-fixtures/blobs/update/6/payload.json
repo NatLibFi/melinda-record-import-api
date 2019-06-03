@@ -1,0 +1,6 @@
+{
+    "op": "transformationFailed",
+    "error": {
+        "foo": "bar"
+    }
+}
