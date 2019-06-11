@@ -44,7 +44,7 @@ import {
 	MONGO_URI, MONGO_DEBUG,
 	USER_AGENT_LOGGING_BLACKLIST,
 	CROWD_URL, CROWD_APP_NAME, CROWD_APP_PASSWORD,
-	PASSPORT_LOCAL_USERS
+	PASSPORT_LOCAL_USERS, SOCKET_KEEP_ALIVE_TIMEOUT
 } from './config';
 
 const {Crowd: {generatePassportMiddlewares}} = Authentication;
@@ -98,12 +98,24 @@ async function run() {
 		logger.log('info', 'Started melinda-record-import-api');
 	});
 
+	setSocketKeepAlive();
+
 	function handleError(err, req, res, next) { // eslint-disable-line no-unused-vars
 		if (err instanceof ApiError || 'status' in err) {
 			res.sendStatus(err.status);
 		} else {
 			logger.log('error', err instanceof Error ? err.stack : err);
 			res.sendStatus(HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+	}
+
+	function setSocketKeepAlive() {
+		if (SOCKET_KEEP_ALIVE_TIMEOUT) {
+			server.keepAliveTimeout = SOCKET_KEEP_ALIVE_TIMEOUT;
+
+			server.on('connection', socket => {
+				socket.setTimeout(SOCKET_KEEP_ALIVE_TIMEOUT);
+			});
 		}
 	}
 
