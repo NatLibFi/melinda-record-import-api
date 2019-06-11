@@ -47,6 +47,8 @@ export const MONGO_DEBUG = readEnvironmentVariable('MONGO_DEBUG', {defaultValue:
 // 0 means unlimited
 export const CONTENT_MAX_LENGTH = readEnvironmentVariable('CONTENT_MAX_LENGTH', {defaultValue: 0, format: v => Number(v)});
 
+export const SOCKET_KEEP_ALIVE_TIMEOUT = readEnvironmentVariable('SOCKET_KEEP_ALIVE_TIMEOUT', {defaultValue: 0, format: v => Number(v)});
+
 export const USER_AGENT_LOGGING_BLACKLIST = readEnvironmentVariable('USER_AGENT_LOGGING_BLACKLIST', {
 	defaultValue: [
 		'_RECORD-IMPORT-CONTROLLER',
