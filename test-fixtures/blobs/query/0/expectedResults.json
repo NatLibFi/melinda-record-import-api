@@ -4,13 +4,19 @@
         "url": "https://api/blobs/foo",
         "profile": "foo",
         "contentType": "foo/bar",
-        "state": "PENDING_TRANSFORMATION"
+        "state": "PENDING_TRANSFORMATION",
+        "numberOfRecords": 0,
+        "failedRecords": 0,
+        "processedRecords": 0
     },
     {
         "id": "bar",
         "url": "https://api/blobs/bar",
         "profile": "foo",
         "contentType": "foo/bar"    ,
-        "state": "PENDING_TRANSFORMATION"    
+        "state": "PENDING_TRANSFORMATION",
+        "numberOfRecords": 0,
+        "failedRecords": 0,
+        "processedRecords": 0   
     }
 ]

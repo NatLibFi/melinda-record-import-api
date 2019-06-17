@@ -51,13 +51,24 @@ export default function ({url}) {
 			.filter(applyFilters)
 			.map(doc => {
 				const blob = formatDocument(doc);
+				const {numberOfRecords, failedRecords, processedRecords} = getRecordStats();
 
 				delete blob.processingInfo;
 
 				return {
 					...blob,
+					numberOfRecords, failedRecords, processedRecords,
 					url: `${url}/blobs/${blob.id}`
 				};
+
+				function getRecordStats() {
+					const {processingInfo: {numberOfRecords, failedRecords, importResults}} = blob;
+					return {
+						numberOfRecords,
+						failedRecords: failedRecords.length,
+						processedRecords: importResults.length
+					};
+				}
 			});
 
 		async function filterPermitted() {
