@@ -43,7 +43,17 @@ describe('interfaces/blobs', () => {
 
 	beforeEach(async () => {
 		RewireAPI.__Rewire__('uuid', () => 'foo');
-		mongoFixtures = await mongoFixturesFactory({gridFS: {bucketName: 'blobs'}});
+
+		mongoFixtures = await mongoFixturesFactory({
+			gridFS: {bucketName: 'blobs'},
+			format: {
+				blobmetadatas: {
+					creationTime: v => new Date(v),
+					modificationTime: v => new Date(v)
+				}
+			}
+		});
+
 		await Mongoose.connect(await mongoFixtures.getConnectionString(), {useNewUrlParser: true});
 	});
 
