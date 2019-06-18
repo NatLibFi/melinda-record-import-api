@@ -44,11 +44,10 @@ export default function ({url}) {
 	return {query, read, create, update, remove, removeContent, readContent};
 
 	async function query({profile, contentType, state, creationTime, modificationTime, user}) {
-		const blobs = await Mongoose.models.BlobMetadata.find();
+		const blobs = await Mongoose.models.BlobMetadata.find(generateQuery());
 		const permittedBlobs = await filterPermitted();
 
 		return permittedBlobs
-			.filter(applyFilters)
 			.map(doc => {
 				const blob = formatDocument(doc);
 				const {numberOfRecords, failedRecords, processedRecords} = getRecordStats();
@@ -95,35 +94,49 @@ export default function ({url}) {
 			return filtered.filter(v => v);
 		}
 
-		function applyFilters(blob) {
-			if (state && !state.includes(blob.state)) {
-				return false;
+		function generateQuery() {
+			const doc = {};
+
+			if (state) {
+				doc.state = {$in: state};
 			}
 
-			if (profile && !profile.includes(blob.profile)) {
-				return false;
+			if (profile) {
+				doc.profile = {$in: profile};
 			}
 
-			if (contentType && !contentType.includes(blob.contentType)) {
-				return false;
+			if (contentType) {
+				doc.contentType = {$in: contentType};
 			}
 
-			if (creationTime && !timeInRange(blob.creationTime, creationTime)) {
-				return false;
+			if (creationTime) {
+				if (creationTime.length === 1) {
+					doc.creationTime = formatTime(creationTime[0]);
+				} else {
+					doc.$and = [
+						{creationTime: {$gte: formatTime(creationTime[0])}},
+						{creationTime: {$lte: formatTime(creationTime[1])}}
+					];
+				}
 			}
 
-			if (modificationTime && !timeInRange(blob.modificationTime, modificationTime)) {
-				return false;
+			if (modificationTime) {
+				if (modificationTime.length === 1) {
+					doc.modificationTime = formatTime(modificationTime[0]);
+				} else {
+					doc.$and = [
+						{modificationTime: {$gte: formatTime(modificationTime[0])}},
+						{modificationTime: {$lte: formatTime(modificationTime[1])}}
+					];
+				}
 			}
 
-			return true;
+			return doc;
 
-			function timeInRange(contextStr, [startStr, endStr]) {
-				const context = moment(contextStr);
-				const start = moment(startStr);
-				const end = endStr ? moment(endStr) : start;
-
-				return context.isSameOrAfter(start) && context.isSameOrBefore(end);
+			function formatTime(timestamp) {
+				// Ditch the timezone
+				const time = moment.utc(timestamp);
+				return time.toDate();
 			}
 		}
 	}
