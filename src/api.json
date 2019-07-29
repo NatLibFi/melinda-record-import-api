@@ -107,6 +107,15 @@
                 ],
                 "parameters": [
                     {
+                        "name": "QueryOffset",
+                        "in": "header",
+                        "description": "Offset of the result set to return",
+                        "required": false,
+                        "schema": {
+                            "type": "number"
+                        }
+                    },                    
+                    {
                         "name": "profile",
                         "in": "query",
                         "schema": {
@@ -177,6 +186,14 @@
                 "responses": {
                     "200": {
                         "description": "A list of blob metadata objects. Empty list if no resources were found",
+                        "headers": {
+                            "NextOffset": {
+                                "description": "Offset of the next result set when the total number of results exceeds the limit",
+                                "schema": {
+                                    "type": "number"
+                                }
+                            }
+                        },
                         "content": {
                             "application/json": {
                                 "schema": {

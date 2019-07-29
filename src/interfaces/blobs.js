@@ -29,11 +29,12 @@
 import HttpStatus from 'http-status';
 import Mongoose from 'mongoose';
 import moment from 'moment';
-import {GridFSBucket} from 'mongodb';
+import {GridFSBucket, ObjectId} from 'mongodb';
 import {v4 as uuid} from 'uuid';
 import {BLOB_UPDATE_OPERATIONS, BLOB_STATE, ApiError} from '@natlibfi/melinda-record-import-commons';
 import {BlobMetadataModel, ProfileModel} from './models';
 import {hasPermission, hasAdminPermission} from './utils';
+import {BLOBS_QUERY_LIMIT} from '../config';
 
 export default function ({url}) {
 	const gridFSBucket = new GridFSBucket(Mongoose.connection.db, {bucketName: 'blobs'});
@@ -43,66 +44,49 @@ export default function ({url}) {
 
 	return {query, read, create, update, remove, removeContent, readContent};
 
-	async function query({profile, contentType, state, creationTime, modificationTime, user}) {
-		const blobs = await Mongoose.models.BlobMetadata.find(generateQuery());
-		const permittedBlobs = await filterPermitted();
+	async function query({profile, contentType, state, creationTime, modificationTime, user, offset}) {
+		const queryOpts = {
+			limit: BLOBS_QUERY_LIMIT
+		};
 
-		return permittedBlobs
-			.map(doc => {
-				const blob = formatDocument(doc);
-				const {numberOfRecords, failedRecords, processedRecords} = getRecordStats();
+		const blobs = await Mongoose.models.BlobMetadata.find(await generateQuery(), undefined, queryOpts);
 
-				delete blob.processingInfo;
-
-				return {
-					...blob,
-					numberOfRecords, failedRecords, processedRecords,
-					url: `${url}/blobs/${blob.id}`
-				};
-
-				function getRecordStats() {
-					const {processingInfo: {numberOfRecords, failedRecords, importResults}} = blob;
-					return {
-						numberOfRecords,
-						failedRecords: failedRecords.length,
-						processedRecords: importResults.length
-					};
-				}
-			});
-
-		async function filterPermitted() {
-			const profileCache = {};
-			const filtered = await Promise.all(blobs.map(async blob => {
-				const profile = await getProfileUsingCache();
-
-				if (hasPermission(profile, user)) {
-					return blob;
-				}
-
-				async function getProfileUsingCache() {
-					if ([blob.profile] in profileCache) {
-						return profileCache[blob.profile];
-					}
-
-					const profile = await getProfile(blob.profile);
-
-					profileCache[blob.profile] = profile;
-					return profile;
-				}
-			}));
-
-			return filtered.filter(v => v);
+		if (blobs.length < BLOBS_QUERY_LIMIT) {
+			return {results: blobs.map(format)};
 		}
 
-		function generateQuery() {
-			const doc = {};
+		return {
+			nextOffset: blobs.slice(-1).shift()._id.toString(),
+			results: blobs.map(format)
+		};
+
+		function format(doc) {
+			const blob = formatDocument(doc);
+			const {numberOfRecords, failedRecords, processedRecords} = getRecordStats();
+
+			delete blob.processingInfo;
+
+			return {
+				...blob,
+				numberOfRecords, failedRecords, processedRecords,
+				url: `${url}/blobs/${blob.id}`
+			};
+
+			function getRecordStats() {
+				const {processingInfo: {numberOfRecords, failedRecords, importResults}} = blob;
+				return {
+					numberOfRecords,
+					failedRecords: failedRecords.length,
+					processedRecords: importResults.length
+				};
+			}
+		}
+
+		async function generateQuery() {
+			const doc = await init();
 
 			if (state) {
 				doc.state = {$in: state};
-			}
-
-			if (profile) {
-				doc.profile = {$in: profile};
 			}
 
 			if (contentType) {
@@ -132,6 +116,35 @@ export default function ({url}) {
 			}
 
 			return doc;
+
+			async function init() {
+				const doc = {};
+				const permittedProfiles = await getPermittedProfiles();
+
+				if (offset) {
+					doc._id = {$gt: ObjectId(offset)}; // eslint-disable-line new-cap
+				}
+
+				if (profile) {
+					return {
+						...doc,
+						$and: [
+							{profile: {$in: permittedProfiles}},
+							{profile: {$in: profile}}
+						]
+					};
+				}
+
+				return {...doc, profile: {$in: permittedProfiles}};
+
+				async function getPermittedProfiles() {
+					const profiles = await Mongoose.models.Profile.find();
+
+					return profiles
+						.filter(profile => hasPermission(profile, user))
+						.map(({id}) => id);
+				}
+			}
 
 			function formatTime(timestamp) {
 				// Ditch the timezone

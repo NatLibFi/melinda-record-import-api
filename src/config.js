@@ -44,6 +44,8 @@ export const HTTP_PORT = readEnvironmentVariable('HTTP_PORT', {defaultValue: 808
 export const MONGO_URI = readEnvironmentVariable('MONGO_URI', {defaultValue: 'mongodb://127.0.0.1/db'});
 export const MONGO_DEBUG = readEnvironmentVariable('MONGO_DEBUG', {defaultValue: false, format: parseBoolean});
 
+export const BLOBS_QUERY_LIMIT = readEnvironmentVariable('BLOBS_QUERY_LIMIT', {defaultValue: 100, format: v => Number(v)});
+
 // 0 means unlimited
 export const CONTENT_MAX_LENGTH = readEnvironmentVariable('CONTENT_MAX_LENGTH', {defaultValue: 0, format: v => Number(v)});
 
