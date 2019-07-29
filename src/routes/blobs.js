@@ -50,8 +50,19 @@ export default function (passportMiddleware) {
 	async function query(req, res, next) {
 		try {
 			const queryParams = getQueryParams();
-			const result = await blobs.query({user: req.user, ...queryParams});
-			res.json(result);
+			const parameters = {user: req.user, ...queryParams};
+
+			if (req.get('QueryOffset')) {
+				parameters.offset = req.get('QueryOffset');
+			}
+
+			const {nextOffset, results} = await blobs.query(parameters);
+
+			if (nextOffset) {
+				res.set('NextOffset', nextOffset);
+			}
+
+			res.json(results);
 		} catch (err) {
 			next(err);
 		}

@@ -45,7 +45,9 @@ describe('interfaces/blobs', () => {
 		RewireAPI.__Rewire__('uuid', () => 'foo');
 
 		mongoFixtures = await mongoFixturesFactory({
+			rootPath: [__dirname, '..', '..', 'test-fixtures', 'blobs'],
 			gridFS: {bucketName: 'blobs'},
+			useObjectId: true,
 			format: {
 				blobmetadatas: {
 					creationTime: v => new Date(v),
@@ -222,6 +224,14 @@ describe('interfaces/blobs', () => {
 	});
 
 	describe('#query', () => {
+		beforeEach(() => {
+			RewireAPI.__Rewire__('BLOBS_QUERY_LIMIT', 3);
+		});
+
+		afterEach(async () => {
+			RewireAPI.__ResetDependency__('BLOBS_QUERY_LIMIT');
+		});
+
 		it('Should return all blobs', async () => test('0'));
 		it('Should return only blobs that the user has access to', async () => test('1'));
 		it('Should return blobs using state filter', async () => test('2', {state: ['ABORTED']}));
@@ -260,24 +270,54 @@ describe('interfaces/blobs', () => {
 			]
 		}));
 
-		async function test(index, params = {}) {
-			const dbContents = getFixture(['query', index, 'dbContents.json']);
+		it('Should return an incomplete set', async (index = '11') => {
 			const user = getFixture(['query', index, 'user.json']);
 			const expectedResults = getFixture(['query', index, 'expectedResults.json']);
+			const expectedNextOffset = getFixture({components: ['query', index, 'expectedNextOffset.txt'], reader: READERS.TEXT});
+
 			const blobs = blobsFactory({url: 'https://api'});
 
-			await mongoFixtures.populate(dbContents);
+			await mongoFixtures.populate(['query', index, 'dbContents.json']);
 
-			const results = await blobs.query({user, ...params});
-			expect(formatResults()).to.eql(expectedResults);
+			const {nextOffset, results} = await blobs.query({user});
 
-			function formatResults() {
-				return results.map(result => {
-					delete result.modificationTime;
-					delete result.creationTime;
-					return result;
-				});
-			}
+			expect(nextOffset).to.equal(expectedNextOffset);
+			expect(formatResults(results)).to.eql(expectedResults);
+		});
+
+		it('Should return the results from the specified offset', async (index = '12') => {
+			const user = getFixture(['query', index, 'user.json']);
+			const expectedResults = getFixture(['query', index, 'expectedResults.json']);
+			const queryOffset = getFixture({components: ['query', index, 'queryOffset.txt'], reader: READERS.TEXT});
+
+			const blobs = blobsFactory({url: 'https://api'});
+
+			await mongoFixtures.populate(['query', index, 'dbContents.json']);
+
+			const {nextOffset, results} = await blobs.query({user, offset: queryOffset});
+
+			expect(nextOffset).to.equal(undefined);
+			expect(formatResults(results)).to.eql(expectedResults);
+		});
+
+		function formatResults(results) {
+			return results.map(result => {
+				delete result.modificationTime;
+				delete result.creationTime;
+				return result;
+			});
+		}
+
+		async function test(index, params = {}) {
+			const user = getFixture(['query', index, 'user.json']);
+			const expectedResults = getFixture(['query', index, 'expectedResults.json']);
+
+			const blobs = blobsFactory({url: 'https://api'});
+
+			await mongoFixtures.populate(['query', index, 'dbContents.json']);
+
+			const {results} = await blobs.query({user, ...params});
+			expect(formatResults(results)).to.eql(expectedResults);
 		}
 	});
 
