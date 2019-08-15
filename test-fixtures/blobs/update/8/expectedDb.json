@@ -18,37 +18,7 @@
   "blobmetadatas": [{
       "processingInfo": {
         "numberOfRecords": 5,
-        "failedRecords": [ 
-            {
-                "messages": [],
-                "record": {
-                    "fields": []
-                }
-            },
-            {
-                "messages": [],
-                "record": {
-                    "fields": []
-                }
-            },
-            {
-                "messages": [],
-                "record": {
-                    "fields": []
-                }
-            },
-            {
-                "messages": [],
-                "record": {
-                    "fields": []
-                }
-            },
-            {
-                "messages": [],
-                "record": {
-                    "fields": []
-                }
-            } ],
+        "failedRecords": [{}, {}, {}, {}, {}],
         "importResults": []
       },
       "state": "TRANSFORMATION_IN_PROGRESS",      
