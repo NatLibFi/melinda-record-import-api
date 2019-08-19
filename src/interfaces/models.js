@@ -69,7 +69,7 @@ export const BlobMetadataModel = new Schema({
 	processingInfo: {
 		transformationError: {},
 		numberOfRecords: {type: Number, required: true, default: 0},
-		failedRecords: [new Schema({}, {_id: false})],
+		failedRecords: [],
 		importResults: [new Schema({
 			status: {
 				type: String,
