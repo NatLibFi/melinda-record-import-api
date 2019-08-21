@@ -141,7 +141,7 @@ export default function ({url}) {
 					const profiles = await Mongoose.models.Profile.find();
 
 					return profiles
-						.filter(profile => hasPermission('blobs', 'query', user, profile.auth.groups))
+						.filter(profile => hasPermission('blobs', 'query', user.groups, profile.auth.groups))
 						.map(({id}) => id);
 				}
 			}
@@ -160,7 +160,7 @@ export default function ({url}) {
 		if (doc) {
 			const blob = formatDocument(doc);
 			const bgroups = await getProfile(blob.profile);
-			if (hasPermission('blobs', 'read', user, bgroups.auth.groups)) {
+			if (hasPermission('blobs', 'read', user.groups, bgroups.auth.groups)) {
 				return blob;
 			}
 
@@ -191,7 +191,7 @@ export default function ({url}) {
 		const blob = await Mongoose.models.BlobMetadata.findOne({id});
 
 		if (blob) {
-			if (hasPermission('blobs', 'remove', user)) {
+			if (hasPermission('blobs', 'remove', user.groups)) {
 				try {
 					await getFileMetadata(id);
 					throw new ApiError(HttpStatus.BAD_REQUEST);
@@ -214,7 +214,7 @@ export default function ({url}) {
 		const profileContent = await getProfile(profile);
 
 		if (profileContent) {
-			if (hasPermission('blobs', 'create', user, profileContent.auth.groups)) {
+			if (hasPermission('blobs', 'create', user.groups, profileContent.auth.groups)) {
 				const id = uuid();
 
 				await Mongoose.models.BlobMetadata.create({id, profile, contentType});
@@ -243,7 +243,7 @@ export default function ({url}) {
 
 		if (blob) {
 			const bgroups = await getProfile(blob.profile);
-			if (hasPermission('blobs', 'readContent', user, bgroups.auth.groups)) {
+			if (hasPermission('blobs', 'readContent', user.groups, bgroups.auth.groups)) {
 				// Check if the file exists
 				await getFileMetadata(id);
 
@@ -263,7 +263,7 @@ export default function ({url}) {
 		const blob = await Mongoose.models.BlobMetadata.findOne({id});
 
 		if (blob) {
-			if (hasPermission('blobs', 'removeContent', user)) {
+			if (hasPermission('blobs', 'removeContent', user.groups)) {
 				const {_id: fileId} = await getFileMetadata(id);
 				await gridFSBucket.delete(fileId);
 			} else {
@@ -280,7 +280,7 @@ export default function ({url}) {
 
 		if (blob) {
 			const bgroups = await getProfile(blob.profile);
-			if (hasPermission('blobs', 'update', user, bgroups.auth.groups)) {
+			if (hasPermission('blobs', 'update', user.groups, bgroups.auth.groups)) {
 				if (op) {
 					const doc = await getUpdateDoc(bgroups);
 					const conditions = [
@@ -334,7 +334,7 @@ export default function ({url}) {
 
 			switch (op) {
 				case updateState:
-					if (hasPermission('blobs', 'update', user, bgroups.auth.groups)) {
+					if (hasPermission('blobs', 'update', user.groups, bgroups.auth.groups)) {
 						const {state} = payload;
 
 						if ([
