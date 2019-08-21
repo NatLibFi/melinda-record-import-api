@@ -44,14 +44,14 @@ const permissions = {
 	}
 };
 
-export function hasPermission(type, command, profile, bgroups = []) {
-	const permintted = profile.groups.some(
+export function hasPermission(type, command, user, permittedGroups = []) {
+	const permitted = user.groups.some(
 		group => permissions[type][command].includes(group) ||
 		permissions[type][command].includes('all')
 	);
-	if (profile.groups.includes('system') || bgroups === []) {
-		return permintted;
+	if (user.groups.includes('system') || permittedGroups === []) {
+		return permitted;
 	}
 
-	return profile.groups.some(group => bgroups.includes(group)) && permintted;
+	return permitted && user.groups.some(group => permittedGroups.includes(group));
 }
