@@ -25,14 +25,33 @@
 * for the JavaScript code in this file.
 *
 */
+const permissions = {
+	profiles: {
+		createOrUpdate: ['system'],
+		read: ['system', 'importer', 'transformer'],
+		query: ['system'],
+		remove: ['system']
+	},
+	blobs: {
+		query: ['all'],
+		read: ['all'],
+		create: ['system', 'creator'],
+		update: ['system', 'importer', 'transformer'],
+		abort: ['all'],
+		remove: ['system'],
+		removeContent: ['system'],
+		readContent: ['all']
+	}
+};
 
-export function hasPermission(profile, user) {
-	const permitted = profile.auth.groups.some(profileGroup => {
-		return user.groups.some(userGroup => userGroup === profileGroup || userGroup === 'admin');
-	});
-	return permitted;
-}
+export function hasPermission(type, command, profile, bgroups = []) {
+	const permintted = profile.groups.some(
+		group => permissions[type][command].includes(group) ||
+		permissions[type][command].includes('all')
+	);
+	if (profile.groups.includes('system') || bgroups === []) {
+		return permintted;
+	}
 
-export function hasAdminPermission(user) {
-	return hasPermission({auth: {groups: ['admin']}}, user);
+	return profile.groups.some(group => bgroups.includes(group)) && permintted;
 }

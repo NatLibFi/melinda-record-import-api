@@ -33,7 +33,7 @@ import {GridFSBucket, ObjectId} from 'mongodb';
 import {v4 as uuid} from 'uuid';
 import {BLOB_UPDATE_OPERATIONS, BLOB_STATE, ApiError} from '@natlibfi/melinda-record-import-commons';
 import {BlobMetadataModel, ProfileModel} from './models';
-import {hasPermission, hasAdminPermission} from './utils';
+import {hasPermission} from './utils';
 import {BLOBS_QUERY_LIMIT} from '../config';
 
 export default function ({url}) {
@@ -141,7 +141,7 @@ export default function ({url}) {
 					const profiles = await Mongoose.models.Profile.find();
 
 					return profiles
-						.filter(profile => hasPermission(profile, user))
+						.filter(profile => hasPermission('blobs', 'query', user, profile.auth.groups))
 						.map(({id}) => id);
 				}
 			}
@@ -159,8 +159,8 @@ export default function ({url}) {
 
 		if (doc) {
 			const blob = formatDocument(doc);
-
-			if (hasPermission(await getProfile(blob.profile), user)) {
+			const bgroups = await getProfile(blob.profile);
+			if (hasPermission('blobs', 'read', user, bgroups.auth.groups)) {
 				return blob;
 			}
 
@@ -191,7 +191,7 @@ export default function ({url}) {
 		const blob = await Mongoose.models.BlobMetadata.findOne({id});
 
 		if (blob) {
-			if (hasAdminPermission(user)) {
+			if (hasPermission('blobs', 'remove', user)) {
 				try {
 					await getFileMetadata(id);
 					throw new ApiError(HttpStatus.BAD_REQUEST);
@@ -214,7 +214,7 @@ export default function ({url}) {
 		const profileContent = await getProfile(profile);
 
 		if (profileContent) {
-			if (hasPermission(profileContent, user)) {
+			if (hasPermission('blobs', 'create', user, profileContent.auth.groups)) {
 				const id = uuid();
 
 				await Mongoose.models.BlobMetadata.create({id, profile, contentType});
@@ -242,7 +242,8 @@ export default function ({url}) {
 		const blob = await Mongoose.models.BlobMetadata.findOne({id});
 
 		if (blob) {
-			if (hasPermission(await getProfile(blob.profile), user)) {
+			const bgroups = await getProfile(blob.profile);
+			if (hasPermission('blobs', 'readContent', user, bgroups.auth.groups)) {
 				// Check if the file exists
 				await getFileMetadata(id);
 
@@ -262,7 +263,7 @@ export default function ({url}) {
 		const blob = await Mongoose.models.BlobMetadata.findOne({id});
 
 		if (blob) {
-			if (hasAdminPermission(user)) {
+			if (hasPermission('blobs', 'removeContent', user)) {
 				const {_id: fileId} = await getFileMetadata(id);
 				await gridFSBucket.delete(fileId);
 			} else {
@@ -278,10 +279,10 @@ export default function ({url}) {
 		const {op} = payload;
 
 		if (blob) {
-			const profile = await getProfile(blob.profile);
-			if (hasPermission(profile, user)) {
+			const bgroups = await getProfile(blob.profile);
+			if (hasPermission('blobs', 'update', user, bgroups.auth.groups)) {
 				if (op) {
-					const doc = await getUpdateDoc();
+					const doc = await getUpdateDoc(bgroups);
 					const conditions = [
 						{id},
 						{
@@ -326,14 +327,14 @@ export default function ({url}) {
 			throw new ApiError(HttpStatus.NOT_FOUND);
 		}
 
-		async function getUpdateDoc() {
+		async function getUpdateDoc(bgroups) {
 			const {
 				abort, recordProcessed, transformationFailed, transformationDone, updateState
 			} = BLOB_UPDATE_OPERATIONS;
 
 			switch (op) {
 				case updateState:
-					if (hasAdminPermission(user)) {
+					if (hasPermission('blobs', 'update', user, bgroups.auth.groups)) {
 						const {state} = payload;
 
 						if ([

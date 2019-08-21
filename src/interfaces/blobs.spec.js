@@ -132,7 +132,6 @@ describe('interfaces/blobs', () => {
 		it('Should fail because of invalid syntax', async () => testError({index: '1', status: HttpStatus.UNPROCESSABLE_ENTITY}));
 		it('Should fail because of invalid syntax (Missing op)', async () => testError({index: '2', status: HttpStatus.UNPROCESSABLE_ENTITY}));
 		it('Should fail because of invalid permissions', async () => testError({index: '3', status: HttpStatus.FORBIDDEN}));
-
 		it('Should abort the processing', async () => testUpdate('4'));
 		it('Should set the transformation in progress ', async () => testUpdate('5'));
 		it('Should set the transformation as failed ', async () => testUpdate('6'));
