@@ -280,8 +280,32 @@ export default function ({url}) {
 
 		if (blob) {
 			const bgroups = await getProfile(blob.profile);
-			if (hasPermission('blobs', 'update', user.groups, bgroups.auth.groups)) {
-				if (op) {
+			if (op && op === BLOB_UPDATE_OPERATIONS.abort) {
+				if (hasPermission('blobs', 'abort', user.groups, bgroups.auth.groups)) {
+					const doc = await getUpdateDoc(bgroups);
+					const conditions = [
+						{id},
+						{
+							state: {
+								$nin: [
+									BLOB_STATE.TRANSFORMATION_FAILED,
+									BLOB_STATE.ABORTED,
+									BLOB_STATE.PROCESSED
+								]
+							}
+						}
+					];
+
+					const {nModified} = await Mongoose.models.BlobMetadata.updateOne({$and: conditions}, doc);
+
+					if (nModified === 0) {
+						throw new ApiError(HttpStatus.CONFLICT);
+					}
+				} else {
+					throw new ApiError(HttpStatus.FORBIDDEN);
+				}
+			} else if (op) {
+				if (hasPermission('blobs', 'update', user.groups, bgroups.auth.groups)) {
 					const doc = await getUpdateDoc(bgroups);
 					const conditions = [
 						{id},
@@ -318,10 +342,10 @@ export default function ({url}) {
 						throw new ApiError(HttpStatus.CONFLICT);
 					}
 				} else {
-					throw new ApiError(HttpStatus.UNPROCESSABLE_ENTITY);
+					throw new ApiError(HttpStatus.FORBIDDEN);
 				}
 			} else {
-				throw new ApiError(HttpStatus.FORBIDDEN);
+				throw new ApiError(HttpStatus.UNPROCESSABLE_ENTITY);
 			}
 		} else {
 			throw new ApiError(HttpStatus.NOT_FOUND);
