@@ -280,75 +280,60 @@ export default function ({url}) {
 
 		if (blob) {
 			const bgroups = await getProfile(blob.profile);
-			if (op && op === BLOB_UPDATE_OPERATIONS.abort) {
-				if (hasPermission('blobs', 'abort', user.groups, bgroups.auth.groups)) {
-					const doc = await getUpdateDoc(bgroups);
-					const conditions = [
-						{id},
-						{
-							state: {
-								$nin: [
-									BLOB_STATE.TRANSFORMATION_FAILED,
-									BLOB_STATE.ABORTED,
-									BLOB_STATE.PROCESSED
-								]
-							}
+			const permission = await checkPermission(op, user, bgroups);
+			if (permission) {
+				const doc = await getUpdateDoc(bgroups);
+				const conditions = [
+					{id},
+					{
+						state: {
+							$nin: [
+								BLOB_STATE.TRANSFORMATION_FAILED,
+								BLOB_STATE.ABORTED,
+								BLOB_STATE.PROCESSED
+							]
 						}
-					];
-
-					const {nModified} = await Mongoose.models.BlobMetadata.updateOne({$and: conditions}, doc);
-
-					if (nModified === 0) {
-						throw new ApiError(HttpStatus.CONFLICT);
 					}
-				} else {
-					throw new ApiError(HttpStatus.FORBIDDEN);
+				];
+
+				if (op === BLOB_UPDATE_OPERATIONS.recordProcessed) {
+					conditions.push({
+						$expr: {
+							$gt: [
+								'$processingInfo.numberOfRecords',
+								{
+									$sum: [
+										{$size: '$processingInfo.failedRecords'},
+										{$size: '$processingInfo.importResults'}
+									]
+								}
+							]
+						}
+					});
 				}
-			} else if (op) {
-				if (hasPermission('blobs', 'update', user.groups, bgroups.auth.groups)) {
-					const doc = await getUpdateDoc(bgroups);
-					const conditions = [
-						{id},
-						{
-							state: {
-								$nin: [
-									BLOB_STATE.TRANSFORMATION_FAILED,
-									BLOB_STATE.ABORTED,
-									BLOB_STATE.PROCESSED
-								]
-							}
-						}
-					];
 
-					if (op === BLOB_UPDATE_OPERATIONS.recordProcessed) {
-						conditions.push({
-							$expr: {
-								$gt: [
-									'$processingInfo.numberOfRecords',
-									{
-										$sum: [
-											{$size: '$processingInfo.failedRecords'},
-											{$size: '$processingInfo.importResults'}
-										]
-									}
-								]
-							}
-						});
-					}
+				const {nModified} = await Mongoose.models.BlobMetadata.updateOne({$and: conditions}, doc);
 
-					const {nModified} = await Mongoose.models.BlobMetadata.updateOne({$and: conditions}, doc);
-
-					if (nModified === 0) {
-						throw new ApiError(HttpStatus.CONFLICT);
-					}
-				} else {
-					throw new ApiError(HttpStatus.FORBIDDEN);
+				if (nModified === 0) {
+					throw new ApiError(HttpStatus.CONFLICT);
 				}
 			} else {
-				throw new ApiError(HttpStatus.UNPROCESSABLE_ENTITY);
+				throw new ApiError(HttpStatus.FORBIDDEN);
 			}
 		} else {
 			throw new ApiError(HttpStatus.NOT_FOUND);
+		}
+
+		async function checkPermission(op, user, bgroups) {
+			if (op) {
+				if (op === BLOB_UPDATE_OPERATIONS.abort) {
+					return hasPermission('blobs', 'abort', user.groups, bgroups.auth.groups);
+				}
+
+				return hasPermission('blobs', 'update', user.groups, bgroups.auth.groups);
+			}
+
+			throw new ApiError(HttpStatus.UNPROCESSABLE_ENTITY);
 		}
 
 		async function getUpdateDoc(bgroups) {
