@@ -366,17 +366,22 @@ export default function ({url}) {
 				case transformationFailed:
 					return {
 						state: BLOB_STATE.TRANSFORMATION_FAILED,
+						modificationTime: moment(),
 						$set: {
 							'processingInfo.transformationError': payload.error
 						}
 					};
 				case transformationDone:
 					if ('numberOfRecords' in payload) {
+						if (payload.failedRecords) {
+							payload.failedRecords.push({failedrecordsTime: moment()});
+						}
+
 						return {
 							modificationTime: moment(),
 							$set: {
 								'processingInfo.numberOfRecords': payload.numberOfRecords,
-								'processingInfo.failedRecords': payload.failedRecords ? payload.failedRecords : []
+								'processingInfo.failedRecords':	payload.failedRecords ? payload.failedRecords : [{failedrecordsTime: moment()}]
 							}
 						};
 					}
@@ -389,6 +394,7 @@ export default function ({url}) {
 							$push: {
 								'processingInfo.importResults': {
 									status: payload.status,
+									importTime: moment(),
 									metadata: payload.metadata
 								}
 							}

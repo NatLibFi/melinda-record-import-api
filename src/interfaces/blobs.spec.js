@@ -539,7 +539,7 @@ describe('interfaces/blobs', () => {
 
 		function format(o) {
 			Object.keys(o).forEach(key => {
-				if (['_id', 'creationTime', 'modificationTime', 'creationTime'].includes(key)) {
+				if (['_id', 'creationTime', 'modificationTime', 'creationTime', 'failedrecordsTime', 'importTime'].includes(key)) {
 					delete o[key];
 				} else if (Array.isArray(o[key])) {
 					o[key].filter(v => typeof v === 'object').forEach(format);
