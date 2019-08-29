@@ -45,24 +45,20 @@ const permissions = {
 };
 
 export function hasPermission(type, command, userGroups, permittedGroups = []) {
+	const commandPermissions = permissions[type][command];
 	if (userGroups.includes('system')) {
 		return true;
 	}
 
-	let permitted = false;
-	userGroups.forEach(group => {
-		if (permissions[type][command].includes('all') && permittedGroups.includes(group)) {
-			permitted = true;
-		}
+	if (hasGroup(permittedGroups) === false) {
+		return false;
+	}
 
-		if (permissions[type][command].includes(group)) {
-			userGroups.forEach(group2 => {
-				if (permittedGroups.includes(group2)) {
-					permitted = true;
-				}
-			});
-		}
-	});
+	if (commandPermissions.includes('all') || hasGroup(commandPermissions)) {
+		return true;
+	}
 
-	return permitted;
+	function hasGroup(permitted) {
+		return userGroups.some(g => permitted.includes(g));
+	}
 }
