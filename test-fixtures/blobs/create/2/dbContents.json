@@ -2,7 +2,7 @@
     "profiles": [{
         "id": "foo",
         "auth": {
-            "groups": ["bar"]
+            "groups": ["creator", "foo"]
         },
         "transformation": {
             "image": "foo"

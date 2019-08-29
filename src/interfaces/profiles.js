@@ -30,7 +30,7 @@ import HttpStatus from 'http-status';
 import Mongoose from 'mongoose';
 import {ApiError} from '@natlibfi/melinda-record-import-commons';
 import {ProfileModel} from './models';
-import {hasPermission, hasAdminPermission} from './utils';
+import {hasPermission} from './utils';
 
 export default function ({url}) {
 	Mongoose.model('Profile', ProfileModel);
@@ -39,7 +39,7 @@ export default function ({url}) {
 
 	async function query({user}) {
 		const profiles = await Mongoose.models.Profile.find().exec();
-		return profiles.filter(p => hasPermission(p, user)).map(profile => {
+		return profiles.filter(p => hasPermission('profiles', 'query', user.groups, p.auth.groups)).map(profile => {
 			return {
 				id: profile.id,
 				url: `${url}/profiles/${profile.id}`
@@ -51,7 +51,7 @@ export default function ({url}) {
 		const profile = await Mongoose.models.Profile.findOne({id}).exec();
 
 		if (profile) {
-			if (hasPermission(profile, user)) {
+			if (hasPermission('profiles', 'read', user.groups, profile.auth.groups)) {
 				return format(profile);
 			}
 
@@ -70,7 +70,7 @@ export default function ({url}) {
 	}
 
 	async function remove({id, user}) {
-		if (hasAdminPermission(user)) {
+		if (hasPermission('profiles', 'remove', user.groups)) {
 			const profile = await Mongoose.models.Profile.findOne({id}).exec();
 
 			if (profile) {
@@ -84,7 +84,7 @@ export default function ({url}) {
 	}
 
 	async function createOrUpdate({id, payload, user}) {
-		if (hasAdminPermission(user)) {
+		if (hasPermission('profiles', 'createOrUpdate', user.groups)) {
 			const profile = await Mongoose.models.Profile.findOne({id}).exec();
 
 			if (profile) {

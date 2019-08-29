@@ -8,6 +8,7 @@
   "emails": [{"value": "foo@bar", "type": "work"}],
   "organization": [],
   "groups": [
-      "admin"
+      "creator",
+      "foo"
   ]
 }

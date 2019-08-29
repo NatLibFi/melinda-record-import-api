@@ -3,7 +3,7 @@
         {
             "id": "foo",
             "auth": {
-                "groups": ["foo"]
+                "groups": ["creator", "foo"]
             },
             "transformation": {
                 "image": "foo"
