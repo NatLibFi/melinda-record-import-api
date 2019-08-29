@@ -18,9 +18,7 @@
   "blobmetadatas": [{
       "processingInfo": {
         "numberOfRecords": 10,
-        "failedRecords": [
-            {}
-        ],
+        "failedRecords": [],
         "importResults": []
       },
       "state": "TRANSFORMATION_IN_PROGRESS",      

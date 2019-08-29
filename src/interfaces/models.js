@@ -69,16 +69,14 @@ export const BlobMetadataModel = new Schema({
 	processingInfo: {
 		transformationError: {},
 		numberOfRecords: {type: Number, required: true, default: 0},
-		failedRecords: [
-			{failedrecordsTime: {type: Date, default: Date.now}}
-		],
+		failedRecords: [],
 		importResults: [new Schema({
 			status: {
 				type: String,
 				enum: Object.values(RECORD_IMPORT_STATE),
 				required: true
 			},
-			importTime: {type: Date, default: Date.now},
+			timestamp: {type: Date, default: Date.now},
 			metadata: {}
 		}, {_id: false})]
 	}

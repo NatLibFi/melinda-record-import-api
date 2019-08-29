@@ -373,15 +373,11 @@ export default function ({url}) {
 					};
 				case transformationDone:
 					if ('numberOfRecords' in payload) {
-						if (payload.failedRecords) {
-							payload.failedRecords.push({failedrecordsTime: moment()});
-						}
-
 						return {
 							modificationTime: moment(),
 							$set: {
 								'processingInfo.numberOfRecords': payload.numberOfRecords,
-								'processingInfo.failedRecords':	payload.failedRecords ? payload.failedRecords : [{failedrecordsTime: moment()}]
+								'processingInfo.failedRecords':	payload.failedRecords ? payload.failedRecords : []
 							}
 						};
 					}
@@ -394,7 +390,7 @@ export default function ({url}) {
 							$push: {
 								'processingInfo.importResults': {
 									status: payload.status,
-									importTime: moment(),
+									timestamp: moment(),
 									metadata: payload.metadata
 								}
 							}
