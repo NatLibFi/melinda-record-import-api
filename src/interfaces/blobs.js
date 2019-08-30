@@ -390,7 +390,6 @@ export default function ({url}) {
 							$push: {
 								'processingInfo.importResults': {
 									status: payload.status,
-									timestamp: moment(),
 									metadata: payload.metadata
 								}
 							}
