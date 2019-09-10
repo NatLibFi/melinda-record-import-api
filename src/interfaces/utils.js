@@ -46,7 +46,6 @@ const permissions = {
 
 export function hasPermission(type, command, userGroups, permittedGroups = []) {
 	const commandPermissions = permissions[type][command];
-
 	if (userGroups.includes('system')) {
 		return true;
 	}

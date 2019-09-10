@@ -76,6 +76,7 @@ export const BlobMetadataModel = new Schema({
 				enum: Object.values(RECORD_IMPORT_STATE),
 				required: true
 			},
+			timestamp: {type: Date, default: Date.now},
 			metadata: {}
 		}, {_id: false})]
 	}
