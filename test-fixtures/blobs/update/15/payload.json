@@ -1,4 +1,4 @@
 {
     "op": "transformedRecordFailed",
-    "transformedRecord": {"record": "dummy"}
+    "transformedRecord": {}
 }
