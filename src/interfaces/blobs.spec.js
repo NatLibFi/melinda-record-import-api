@@ -143,6 +143,7 @@ describe('interfaces/blobs', () => {
 		it('Should fail because all records have been processed', async () => testError({index: '12', status: HttpStatus.CONFLICT}));
 		it('Should update blob state', async () => testUpdate('13'));
 		it('Should fail to update blob state because of invalid permissions', async () => testError({index: '14', status: HttpStatus.FORBIDDEN}));
+		it('Should add failed record to blobs failedRecords array', async () => testUpdate('15'));
 
 		async function testError({index, status}) {
 			const dbContents = getFixture(['update', index, 'dbContents.json']);
