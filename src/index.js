@@ -73,7 +73,7 @@ async function run() {
 	try {
 		await Mongoose.connect(MONGO_URI, {useNewUrlParser: true});
 	} catch (err) {
-		throw new Error('Failed connecting to MongoDB');
+		throw new Error(`Failed connecting to MongoDB: ${err}`);
 	}
 
 	app.enable('trust proxy', ENABLE_PROXY);

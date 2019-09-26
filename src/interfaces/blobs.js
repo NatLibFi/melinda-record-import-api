@@ -330,7 +330,7 @@ export default function ({url}) {
 
 		async function checkPermission(op, user, bgroups) {
 			if (op) {
-				logger.log('debug', `Update blob: ${op}`)
+				logger.log('debug', `Update blob: ${op}`);
 				if (op === BLOB_UPDATE_OPERATIONS.abort) {
 					return hasPermission('blobs', 'abort', user.groups, bgroups.auth.groups);
 				}
@@ -371,7 +371,7 @@ export default function ({url}) {
 						state: BLOB_STATE.ABORTED
 					};
 				case transformationFailed:
-					logger.log('debug', `case: ${op}, Error: ${payload.error}`)
+					logger.log('debug', `case: ${op}, Error: ${payload.error}`);
 					return {
 						state: BLOB_STATE.TRANSFORMATION_FAILED,
 						modificationTime: moment(),
