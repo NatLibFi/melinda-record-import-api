@@ -345,7 +345,7 @@ export default function ({url}) {
 			const {
 				abort, recordProcessed, transformationFailed,
 				transformationDone, updateState,
-				transformedRecordFailed
+				transformedRecord
 			} = BLOB_UPDATE_OPERATIONS;
 
 			switch (op) {
@@ -379,19 +379,28 @@ export default function ({url}) {
 							'processingInfo.transformationError': payload.error
 						}
 					};
-				case transformedRecordFailed:
+				case transformedRecord:
+					if (payload.transformedRecord !== null) {
+						return {
+							modificationTime: moment(),
+							$push: {
+								'processingInfo.failedRecords': payload.transformedRecord
+							},
+							$inc: {
+								'processingInfo.numberOfRecords': 1
+							}
+						};
+					}
+
 					return {
 						modificationTime: moment(),
-						$push: {
-							'processingInfo.failedRecords': payload.transformedRecord
+						$inc: {
+							'processingInfo.numberOfRecords': 1
 						}
 					};
 				case transformationDone:
 					return {
-						modificationTime: moment(),
-						$set: {
-							'processingInfo.numberOfRecords': payload.numberOfRecords
-						}
+						modificationTime: moment()
 					};
 				case recordProcessed:
 					if ('status' in payload) {
