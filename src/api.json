@@ -650,25 +650,6 @@
                         }
                     },
                     {
-                        "description": "Blob state is set to TRANSFORMED and numberOfRecords is set to the provided value",
-                        "type": "object",
-                        "properties": {
-                            "op": {
-                                "type": "string",
-                                "pattern": "^transformationDone$"
-                            },
-                            "numberOfRecords": {
-                                "type": "number"
-                            },
-                            "failedRecords": {
-                                "type": "array",
-                                "items": {
-                                    "type": "object"
-                                }
-                            }
-                        }
-                    },
-                    {
                         "description": "Blob state is set to TRANSFORMATION_FAILED and transformationError is set to the provided value",
                         "type": "object",
                         "properties": {

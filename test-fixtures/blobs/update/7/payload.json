@@ -1,4 +1,4 @@
 {
-    "op": "transformationDone",
-    "numberOfRecords": 10
+    "op": "updateState",
+    "state": "TRANSFORMED"
 }

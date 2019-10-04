@@ -330,7 +330,6 @@ export default function ({url}) {
 
 		async function checkPermission(op, user, bgroups) {
 			if (op) {
-				logger.log('debug', `Update blob: ${op}`);
 				if (op === BLOB_UPDATE_OPERATIONS.abort) {
 					return hasPermission('blobs', 'abort', user.groups, bgroups.auth.groups);
 				}
@@ -344,14 +343,15 @@ export default function ({url}) {
 		async function getUpdateDoc(bgroups) {
 			const {
 				abort, recordProcessed, transformationFailed,
-				transformationDone, updateState,
-				transformedRecord
+				updateState, transformedRecord
 			} = BLOB_UPDATE_OPERATIONS;
 
+			logger.log('debug', `Update blob: ${op}`);
 			switch (op) {
 				case updateState:
 					if (hasPermission('blobs', 'update', user.groups, bgroups.auth.groups)) {
 						const {state} = payload;
+						logger.log('debug', `State update to ${state}`);
 
 						if ([
 							BLOB_STATE.PROCESSED,
@@ -398,10 +398,6 @@ export default function ({url}) {
 							'processingInfo.numberOfRecords': 1
 						}
 					};
-				case transformationDone:
-					return {
-						modificationTime: moment()
-					};
 				case recordProcessed:
 					if ('status' in payload) {
 						return {
@@ -417,6 +413,7 @@ export default function ({url}) {
 
 					throw new ApiError(HttpStatus.UNPROCESSABLE_ENTITY);
 				default:
+					logger.log('debug', 'Blob update case was not found');
 					throw new ApiError(HttpStatus.UNPROCESSABLE_ENTITY);
 			}
 		}

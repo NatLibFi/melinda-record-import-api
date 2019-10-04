@@ -41,7 +41,7 @@ import {
 
 import {
 	ENABLE_PROXY, HTTP_PORT,
-	MONGO_URI, MONGO_DEBUG,
+	MONGO_URI, MONGO_POOLSIZE, MONGO_DEBUG,
 	USER_AGENT_LOGGING_BLACKLIST,
 	CROWD_URL, CROWD_APP_NAME, CROWD_APP_PASSWORD,
 	PASSPORT_LOCAL_USERS, SOCKET_KEEP_ALIVE_TIMEOUT
@@ -71,7 +71,7 @@ async function run() {
 	Mongoose.set('debug', MONGO_DEBUG);
 
 	try {
-		await Mongoose.connect(MONGO_URI, {useNewUrlParser: true});
+		await Mongoose.connect(MONGO_URI, {useNewUrlParser: true, poolSize: MONGO_POOLSIZE});
 	} catch (err) {
 		throw new Error(`Failed connecting to MongoDB: ${err instanceof Error ? err.stack : err}`);
 	}

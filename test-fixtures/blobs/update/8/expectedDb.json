@@ -21,7 +21,7 @@
         "failedRecords": [{}, {}, {}, {}, {}],
         "importResults": []
       },
-      "state": "TRANSFORMATION_IN_PROGRESS",      
+      "state": "TRANSFORMED",      
       "id": "foo",
       "profile": "foo",
       "contentType": "foo/bar"        
