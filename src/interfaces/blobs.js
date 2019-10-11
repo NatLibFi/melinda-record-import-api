@@ -380,11 +380,11 @@ export default function ({url}) {
 						}
 					};
 				case transformedRecord:
-					if (payload.transformedRecord !== null) {
+					if (payload.error) {
 						return {
 							modificationTime: moment(),
 							$push: {
-								'processingInfo.failedRecords': payload.transformedRecord
+								'processingInfo.failedRecords': payload.error
 							},
 							$inc: {
 								'processingInfo.numberOfRecords': 1

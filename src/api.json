@@ -24,10 +24,12 @@
         "/auth": {
             "post": {
                 "summary": "Get a bearer token for authentication",
-                "security": ["httpBasic"],
+                "security": [
+                    "httpBasic"
+                ],
                 "tags": [
                     "auth"
-                ],                
+                ],
                 "responses": {
                     "204": {
                         "description": "Authentication succeeded",
@@ -49,7 +51,9 @@
         "/blobs": {
             "post": {
                 "summary": "Create a new blob",
-                "security": ["httpBearer"],
+                "security": [
+                    "httpBearer"
+                ],
                 "tags": [
                     "blobs"
                 ],
@@ -101,7 +105,9 @@
             },
             "get": {
                 "summary": "Query for blobs",
-                "security": ["httpBearer"],
+                "security": [
+                    "httpBearer"
+                ],
                 "tags": [
                     "blobs"
                 ],
@@ -114,15 +120,22 @@
                         "schema": {
                             "type": "number"
                         }
-                    },                    
+                    },
                     {
                         "name": "profile",
                         "in": "query",
                         "schema": {
                             "oneOf": [
-                                {"type": "string"},
-                                {"type": "array", "items": {"type": "string"}}
-                            ]                            
+                                {
+                                    "type": "string"
+                                },
+                                {
+                                    "type": "array",
+                                    "items": {
+                                        "type": "string"
+                                    }
+                                }
+                            ]
                         }
                     },
                     {
@@ -130,24 +143,33 @@
                         "in": "query",
                         "schema": {
                             "oneOf": [
-                                {"type": "string"},
-                                {"type": "array", "items": {"type": "string"}}
-                            ]                            
-                        }                        
+                                {
+                                    "type": "string"
+                                },
+                                {
+                                    "type": "array",
+                                    "items": {
+                                        "type": "string"
+                                    }
+                                }
+                            ]
+                        }
                     },
                     {
                         "name": "state",
                         "in": "query",
                         "schema": {
                             "oneOf": [
-                                {"$ref": "#/components/schemas/BlobState"},
+                                {
+                                    "$ref": "#/components/schemas/BlobState"
+                                },
                                 {
                                     "type": "array",
                                     "items": {
                                         "$ref": "#/components/schemas/BlobState"
                                     }
                                 }
-                            ]                            
+                            ]
                         }
                     },
                     {
@@ -156,15 +178,19 @@
                         "in": "query",
                         "schema": {
                             "oneOf": [
-                                {"type": "string", "format": "date-time"},
                                 {
-                                    "type": "array", "items": {
+                                    "type": "string",
+                                    "format": "date-time"
+                                },
+                                {
+                                    "type": "array",
+                                    "items": {
                                         "type": "string",
                                         "format": "date-time"
                                     }
                                 }
-                            ]                            
-                        }   
+                            ]
+                        }
                     },
                     {
                         "name": "modificationTime",
@@ -172,15 +198,19 @@
                         "in": "query",
                         "schema": {
                             "oneOf": [
-                                {"type": "string", "format": "date-time"},
                                 {
-                                    "type": "array", "items": {
+                                    "type": "string",
+                                    "format": "date-time"
+                                },
+                                {
+                                    "type": "array",
+                                    "items": {
                                         "type": "string",
                                         "format": "date-time"
                                     }
                                 }
-                            ]                            
-                        }  
+                            ]
+                        }
                     }
                 ],
                 "responses": {
@@ -200,7 +230,7 @@
                                     "type": "array",
                                     "items": {
                                         "$ref": "#/components/schemas/BlobQueryMetadata"
-                                    }                                    
+                                    }
                                 }
                             }
                         }
@@ -214,7 +244,9 @@
         "/blobs/{id}": {
             "get": {
                 "summary": "Retrieve blob metadata",
-                "security": ["httpBearer"],
+                "security": [
+                    "httpBearer"
+                ],
                 "tags": [
                     "blobs"
                 ],
@@ -242,7 +274,9 @@
             },
             "post": {
                 "summary": "Update blob metadata",
-                "security": ["httpBearer"],
+                "security": [
+                    "httpBearer"
+                ],
                 "tags": [
                     "blobs"
                 ],
@@ -281,7 +315,9 @@
             },
             "delete": {
                 "summary": "Delete a blob",
-                "security": ["httpBearer"],
+                "security": [
+                    "httpBearer"
+                ],
                 "description": "The blob is completely removed including all related records in the queue",
                 "tags": [
                     "blobs"
@@ -308,7 +344,9 @@
         "/blobs/{id}/content": {
             "get": {
                 "summary": "Retrieve blob content",
-                "security": ["httpBearer"],
+                "security": [
+                    "httpBearer"
+                ],
                 "tags": [
                     "blobs"
                 ],
@@ -329,7 +367,9 @@
             },
             "delete": {
                 "summary": "Delete blob content",
-                "security": ["httpBearer"],
+                "security": [
+                    "httpBearer"
+                ],
                 "description": "The blob content is removed",
                 "tags": [
                     "blobs"
@@ -353,7 +393,9 @@
         "/profiles/{name}": {
             "put": {
                 "summary": "Create or update a profile",
-                "security": ["httpBearer"],
+                "security": [
+                    "httpBearer"
+                ],
                 "tags": [
                     "profiles"
                 ],
@@ -386,7 +428,9 @@
             },
             "get": {
                 "summary": "Retrieve a profile",
-                "security": ["httpBearer"],
+                "security": [
+                    "httpBearer"
+                ],
                 "tags": [
                     "profiles"
                 ],
@@ -448,6 +492,45 @@
                     "SKIPPED"
                 ]
             },
+            "FailedRecord": {
+                "type": "object",
+                "properties": {
+                    "_validationOptions": {
+                        "type": "object"
+                    },
+                    "leader": {
+                        "type": "string"
+                    },
+                    "fields": {
+                        "type": "array",
+                        "items": {
+                            "type": "object",
+                            "properties": {
+                                "tag": {
+                                    "type": "string"
+                                },
+                                "subfields": {
+                                    "type": "object",
+                                    "properties": {
+                                        "code": {
+                                            "type": "string"
+                                        },
+                                        "value": {
+                                            "type": "string"
+                                        }
+                                    }
+                                },
+                                "ind1": {
+                                    "type": "string"
+                                },
+                                "ind2": {
+                                    "type": " string"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
             "RecordImportResult": {
                 "type": "object",
                 "properties": {
@@ -462,7 +545,9 @@
             "Profile": {
                 "type": "object",
                 "properties": {
-                    "id": {"type": "string"},
+                    "id": {
+                        "type": "string"
+                    },
                     "auth": {
                         "type": "object",
                         "properties": {
@@ -486,9 +571,9 @@
                                 "type": "object",
                                 "additionalProperties": false,
                                 "patternProperties": {
-                                  "^[A-z0-9_]+$": {
-                                    "type": "string"
-                                  }
+                                    "^[A-z0-9_]+$": {
+                                        "type": "string"
+                                    }
                                 }
                             }
                         },
@@ -497,30 +582,30 @@
                         ]
                     },
                     "import": {
-                      "type": "object",
-                      "properties": {
-                          "image": {
-                              "description": "Name of the importer container image",
-                              "type": "string"
-                          },
-                          "concurrency": {
-                            "description": "Maximum number of importers that can be run concurrently for this profile. This controls the total number of importers not by blob. The default is determined by the system if left undefined",
-                            "type": "number"
-                          },
-                          "env": {
-                              "description": "Environment variables for the container",
-                              "type": "object",
-                              "additionalProperties": false,
-                              "patternProperties": {
-                                "^[A-z0-9_]+$": {
-                                  "type": "string"
+                        "type": "object",
+                        "properties": {
+                            "image": {
+                                "description": "Name of the importer container image",
+                                "type": "string"
+                            },
+                            "concurrency": {
+                                "description": "Maximum number of importers that can be run concurrently for this profile. This controls the total number of importers not by blob. The default is determined by the system if left undefined",
+                                "type": "number"
+                            },
+                            "env": {
+                                "description": "Environment variables for the container",
+                                "type": "object",
+                                "additionalProperties": false,
+                                "patternProperties": {
+                                    "^[A-z0-9_]+$": {
+                                        "type": "string"
+                                    }
                                 }
-                              }
-                          }
-                      },
-                      "required": [
-                          "image"
-                      ]
+                            }
+                        },
+                        "required": [
+                            "image"
+                        ]
                     }
                 },
                 "required": [
@@ -594,11 +679,24 @@
                             "numberOfRecords": {
                                 "type": "number"
                             },
+                            "failedRecords": {
+                                "type": "array",
+                                "items": {
+                                    "$ref": "#/components/schemas/FailedRecord"
+                                }
+                            },
                             "importResults": {
                                 "type": "array",
                                 "items": {
                                     "$ref": "#/components/schemas/RecordImportResult"
                                 }
+                            },
+                            "timeStamp": {
+                                "type": "string",
+                                "format": "date-time"
+                            },
+                            "metadata": {
+                                "type": "object"
                             }
                         }
                     }
@@ -612,6 +710,25 @@
                     "modificationTime": "2018-01-01T00:01:00Z",
                     "processingInfo": {
                         "numberOfRecords": 1000,
+                        "failedRecords": [
+                            {
+                                "_validationOptions": {},
+                                "leader": "00000ngm a22005774i 4500",
+                                "fields": [
+                                    {
+                                        "tag": "000",
+                                        "subfields": [
+                                            {
+                                                "code": "a",
+                                                "value": "0000000"
+                                            }
+                                        ],
+                                        "ind1": " ",
+                                        "ind2": " "
+                                    }
+                                ]
+                            }
+                        ],
                         "importResults": [
                             {
                                 "metadata": {
@@ -625,8 +742,8 @@
             },
             "BlobMetadataUpdate": {
                 "example": {
-                    "op": "transformationResult",
-                    "numberOfRecords": 1000
+                    "op": "updateState",
+                    "state": "TRANSFORMED"
                 },
                 "anyOf": [
                     {
@@ -640,12 +757,16 @@
                         }
                     },
                     {
-                        "description": "Blob transformation is started. State is set to TRANSFORMATION_IN_PROGRESS",
+                        "description": "Blob state needs to be updated",
                         "type": "object",
                         "properties": {
                             "op": {
                                 "type": "string",
-                                "pattern": "^transformationStarted$"
+                                "pattern": "^updateState$"
+                            },
+                            "state": {
+                                "type": "string",
+                                "pattern": "$ref: #/components/schemas/BlobState"
                             }
                         }
                     },
@@ -658,6 +779,19 @@
                                 "pattern": "^transformationFailed$"
                             },
                             "error": {}
+                        }
+                    },
+                    {
+                        "description": "Blob state updated by each transformed record. If record failed it is sent as error",
+                        "type": "object",
+                        "properties": {
+                            "op": {
+                                "type": "string",
+                                "pattern": "^transformedRecord$"
+                            },
+                            "error": {
+                                "$ref": "#/components/schemas/FailedRecord"
+                            }
                         }
                     },
                     {
