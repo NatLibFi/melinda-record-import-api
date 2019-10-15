@@ -524,11 +524,69 @@
                                     "type": "string"
                                 },
                                 "ind2": {
-                                    "type": " string"
+                                    "type": "string"
                                 }
                             }
                         }
+                    },
+                    "messages": {
+                        "type": "array",
+                        "items": {
+                            "type": "object",
+                            "properties": {
+                                "description": {
+                                    "type": "string"
+                                },
+                                "state": {
+                                    "type": "string"
+                                },
+                                "messages": {
+                                    "type": "array",
+                                    "items": {
+                                        "type": "string"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "timestamp": {
+                        "type": "string",
+                        "format": "date-time"
                     }
+                },
+                "example": {
+                    "failedRecords": [
+                        {
+                          "record": {
+                            "_validationOptions": {},
+                            "leader": "00000nam a22003974i 4500",
+                            "fields": [
+                              {
+                                "tag": "020",
+                                "ind1": "3",
+                                "ind2": " ",
+                                "subfields": [
+                                  {
+                                    "code": "z",
+                                    "value": "7340112745189"
+                                  }
+                                ]
+                              }
+                            ]
+                          },
+                          "failed": true,
+                          "messages": [
+                            {
+                              "description": "Checks whether the configured fields are present in the record",
+                              "state": "invalid",
+                              "messages": [
+                                "The following tag patterns are not present in the record tag field:    /^338$/"
+                              ]
+                            }
+                        ],
+                          "timestamp": "2019-10-15T09:24:01.000+03:00"
+                        }
+                      ]
                 }
             },
             "RecordImportResult": {

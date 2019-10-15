@@ -381,7 +381,7 @@ export default function ({url}) {
 					};
 				case transformedRecord:
 					if (payload.error) {
-						payload.error.timestamp = moment();
+						payload.error.timestamp = moment().format();
 						return {
 							modificationTime: moment(),
 							$push: {
