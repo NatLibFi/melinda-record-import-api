@@ -17,7 +17,7 @@
     }],
     "blobmetadatas": [{
         "processingInfo": {
-          "numberOfRecords": 0,
+          "numberOfRecords": 10,
           "failedRecords": [],
           "importResults": []
         },

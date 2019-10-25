@@ -35,9 +35,13 @@ import {BLOB_UPDATE_OPERATIONS, BLOB_STATE, ApiError} from '@natlibfi/melinda-re
 import {BlobMetadataModel, ProfileModel} from './models';
 import {hasPermission} from './utils';
 import {BLOBS_QUERY_LIMIT} from '../config';
+import {Utils} from '@natlibfi/melinda-commons';
+
+const {createLogger} = Utils;
 
 export default function ({url}) {
 	const gridFSBucket = new GridFSBucket(Mongoose.connection.db, {bucketName: 'blobs'});
+	const logger = createLogger();
 
 	Mongoose.model('BlobMetadata', BlobMetadataModel);
 	Mongoose.model('Profile', ProfileModel);
@@ -338,13 +342,16 @@ export default function ({url}) {
 
 		async function getUpdateDoc(bgroups) {
 			const {
-				abort, recordProcessed, transformationFailed, transformationDone, updateState
+				abort, recordProcessed, transformationFailed,
+				updateState, transformedRecord
 			} = BLOB_UPDATE_OPERATIONS;
 
+			logger.log('debug', `Update blob: ${op}`);
 			switch (op) {
 				case updateState:
 					if (hasPermission('blobs', 'update', user.groups, bgroups.auth.groups)) {
 						const {state} = payload;
+						logger.log('debug', `State update to ${state}`);
 
 						if ([
 							BLOB_STATE.PROCESSED,
@@ -364,6 +371,7 @@ export default function ({url}) {
 						state: BLOB_STATE.ABORTED
 					};
 				case transformationFailed:
+					logger.log('debug', `case: ${op}, Error: ${payload.error}`);
 					return {
 						state: BLOB_STATE.TRANSFORMATION_FAILED,
 						modificationTime: moment(),
@@ -371,18 +379,26 @@ export default function ({url}) {
 							'processingInfo.transformationError': payload.error
 						}
 					};
-				case transformationDone:
-					if ('numberOfRecords' in payload) {
+				case transformedRecord:
+					if (payload.error) {
+						payload.error.timestamp = moment().format();
 						return {
 							modificationTime: moment(),
-							$set: {
-								'processingInfo.numberOfRecords': payload.numberOfRecords,
-								'processingInfo.failedRecords':	payload.failedRecords ? payload.failedRecords : []
+							$push: {
+								'processingInfo.failedRecords': payload.error
+							},
+							$inc: {
+								'processingInfo.numberOfRecords': 1
 							}
 						};
 					}
 
-					throw new ApiError(HttpStatus.UNPROCESSABLE_ENTITY);
+					return {
+						modificationTime: moment(),
+						$inc: {
+							'processingInfo.numberOfRecords': 1
+						}
+					};
 				case recordProcessed:
 					if ('status' in payload) {
 						return {
@@ -398,6 +414,7 @@ export default function ({url}) {
 
 					throw new ApiError(HttpStatus.UNPROCESSABLE_ENTITY);
 				default:
+					logger.log('debug', 'Blob update case was not found');
 					throw new ApiError(HttpStatus.UNPROCESSABLE_ENTITY);
 			}
 		}
