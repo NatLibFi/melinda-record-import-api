@@ -35,16 +35,16 @@ import cors from 'cors';
 import Mongoose from 'mongoose';
 
 import {
-	createAuthRouter, createBlobsRouter,
-	createProfilesRouter, createApiDocRouter
+  createAuthRouter, createBlobsRouter,
+  createProfilesRouter, createApiDocRouter
 } from './routes';
 
 import {
-	ENABLE_PROXY, HTTP_PORT,
-	MONGO_URI, MONGO_POOLSIZE, MONGO_DEBUG,
-	USER_AGENT_LOGGING_BLACKLIST,
-	CROWD_URL, CROWD_APP_NAME, CROWD_APP_PASSWORD,
-	PASSPORT_LOCAL_USERS, SOCKET_KEEP_ALIVE_TIMEOUT
+  ENABLE_PROXY, HTTP_PORT,
+  MONGO_URI, MONGO_POOLSIZE, MONGO_DEBUG,
+  USER_AGENT_LOGGING_BLACKLIST,
+  CROWD_URL, CROWD_APP_NAME, CROWD_APP_PASSWORD,
+  PASSPORT_LOCAL_USERS, SOCKET_KEEP_ALIVE_TIMEOUT
 } from './config';
 
 const {Crowd: {generatePassportMiddlewares}} = Authentication;
@@ -53,88 +53,88 @@ const {createLogger, createExpressLogger, handleInterrupt} = Utils;
 run();
 
 async function run() {
-	let server;
+  let server; // eslint-disable-line functional/no-let
 
-	registerSignalHandlers();
+  registerSignalHandlers();
 
-	const logger = createLogger();
-	const app = express();
+  const logger = createLogger();
+  const app = express();
 
-	const passportMiddlewares = generatePassportMiddlewares({
-		localUsers: PASSPORT_LOCAL_USERS,
-		crowd: {
-			appName: CROWD_APP_NAME, appPassword: CROWD_APP_PASSWORD,
-			url: CROWD_URL, useCache: true, fetchGroupMembership: true
-		}
-	});
+  const passportMiddlewares = generatePassportMiddlewares({
+    localUsers: PASSPORT_LOCAL_USERS,
+    crowd: {
+      appName: CROWD_APP_NAME, appPassword: CROWD_APP_PASSWORD,
+      url: CROWD_URL, useCache: true, fetchGroupMembership: true
+    }
+  });
 
-	Mongoose.set('debug', MONGO_DEBUG);
+  Mongoose.set('debug', MONGO_DEBUG);
 
-	try {
-		await Mongoose.connect(MONGO_URI, {useNewUrlParser: true, poolSize: MONGO_POOLSIZE});
-	} catch (err) {
-		throw new Error(`Failed connecting to MongoDB: ${err instanceof Error ? err.stack : err}`);
-	}
+  try {
+    await Mongoose.connect(MONGO_URI, {useNewUrlParser: true, poolSize: MONGO_POOLSIZE});
+  } catch (err) {
+    throw new Error(`Failed connecting to MongoDB: ${err instanceof Error ? err.stack : err}`);
+  }
 
-	app.enable('trust proxy', ENABLE_PROXY);
+  app.enable('trust proxy', ENABLE_PROXY);
 
-	app.use(createExpressLogger({
-		// Do not log requests from automated processes ('Cause there'll be plenty)
-		skip: r => USER_AGENT_LOGGING_BLACKLIST.includes(r.get('User-Agent'))
-	}));
+  app.use(createExpressLogger({
+    // Do not log requests from automated processes ('Cause there'll be plenty)
+    skip: r => USER_AGENT_LOGGING_BLACKLIST.includes(r.get('User-Agent'))
+  }));
 
-	app.use(passport.initialize());
+  app.use(passport.initialize());
 
-	app.use(cors());
+  app.use(cors());
 
-	app.use('/', createApiDocRouter());
-	app.use('/auth', createAuthRouter(passportMiddlewares.credentials));
-	app.use('/blobs', createBlobsRouter(passportMiddlewares.token));
-	app.use('/profiles', createProfilesRouter(passportMiddlewares.token));
+  app.use('/', createApiDocRouter());
+  app.use('/auth', createAuthRouter(passportMiddlewares.credentials));
+  app.use('/blobs', createBlobsRouter(passportMiddlewares.token));
+  app.use('/profiles', createProfilesRouter(passportMiddlewares.token));
 
-	app.use(handleError);
+  app.use(handleError);
 
-	server = app.listen(HTTP_PORT, () => {
-		logger.log('info', 'Started melinda-record-import-api');
-	});
+  server = app.listen(HTTP_PORT, () => { // eslint-disable-line prefer-const
+    logger.log('info', 'Started melinda-record-import-api');
+  });
 
-	setSocketKeepAlive();
+  setSocketKeepAlive();
 
-	function handleError(err, req, res, next) { // eslint-disable-line no-unused-vars
-		if (err instanceof ApiError || 'status' in err) {
-			res.sendStatus(err.status);
-		} else {
-			logger.log('error', err instanceof Error ? err.stack : err);
-			res.sendStatus(HttpStatus.INTERNAL_SERVER_ERROR);
-		}
-	}
+  function handleError(err, req, res, next) { // eslint-disable-line no-unused-vars
+    if (err instanceof ApiError || 'status' in err) {
+      return res.sendStatus(err.status);
+    }
 
-	function setSocketKeepAlive() {
-		if (SOCKET_KEEP_ALIVE_TIMEOUT) {
-			server.keepAliveTimeout = SOCKET_KEEP_ALIVE_TIMEOUT;
+    logger.log('error', err instanceof Error ? err.stack : err);
+    return res.sendStatus(HttpStatus.INTERNAL_SERVER_ERROR);
+  }
 
-			server.on('connection', socket => {
-				socket.setTimeout(SOCKET_KEEP_ALIVE_TIMEOUT);
-			});
-		}
-	}
+  function setSocketKeepAlive() {
+    if (SOCKET_KEEP_ALIVE_TIMEOUT) { // eslint-disable-line functional/no-conditional-statement
+      server.keepAliveTimeout = SOCKET_KEEP_ALIVE_TIMEOUT; // eslint-disable-line functional/immutable-data
 
-	function registerSignalHandlers() {
-		process
-			.on('SIGINT', handle)
-			.on('uncaughtException', handle)
-			.on('unhandledRejection', handle)
-			// Nodemon
-			.on('SIGUSR2', handle);
+      server.on('connection', socket => {
+        socket.setTimeout(SOCKET_KEEP_ALIVE_TIMEOUT);
+      });
+    }
+  }
 
-		function handle(arg) {
-			if (server) {
-				server.close();
-			}
+  function registerSignalHandlers() {
+    process
+      .on('SIGINT', handle)
+      .on('uncaughtException', handle)
+      .on('unhandledRejection', handle)
+      // Nodemon
+      .on('SIGUSR2', handle);
 
-			Mongoose.disconnect();
-			handleInterrupt(arg);
-		}
-	}
+    function handle(arg) {
+      if (server) { // eslint-disable-line functional/no-conditional-statement
+        server.close();
+      }
+
+      Mongoose.disconnect();
+      handleInterrupt(arg);
+    }
+  }
 }
 

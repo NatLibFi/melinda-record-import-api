@@ -33,85 +33,78 @@ import {ProfileModel} from './models';
 import {hasPermission} from './utils';
 
 export default function ({url}) {
-	Mongoose.model('Profile', ProfileModel);
+  Mongoose.model('Profile', ProfileModel);
 
-	return {query, read, createOrUpdate, remove};
+  return {query, read, createOrUpdate, remove};
 
-	async function query({user}) {
-		const profiles = await Mongoose.models.Profile.find().exec();
-		return profiles.filter(p => hasPermission('profiles', 'query', user.groups, p.auth.groups)).map(profile => {
-			return {
-				id: profile.id,
-				url: `${url}/profiles/${profile.id}`
-			};
-		});
-	}
+  async function query({user}) {
+    const profiles = await Mongoose.models.Profile.find().exec();
+    return profiles.filter(p => hasPermission('profiles', 'query', user.groups, p.auth.groups)).map(profile => ({id: profile.id, url: `${url}/profiles/${profile.id}`}));
+  }
 
-	async function read({id, user}) {
-		const profile = await Mongoose.models.Profile.findOne({id}).exec();
+  async function read({id, user}) {
+    const profile = await Mongoose.models.Profile.findOne({id}).exec();
 
-		if (profile) {
-			if (hasPermission('profiles', 'read', user.groups, profile.auth.groups)) {
-				return format(profile);
-			}
+    if (profile) {
+      if (hasPermission('profiles', 'read', user.groups, profile.auth.groups)) {
+        return format(profile);
+      }
 
-			throw new ApiError(HttpStatus.FORBIDDEN);
-		}
+      throw new ApiError(HttpStatus.FORBIDDEN);
+    }
 
-		throw new ApiError(HttpStatus.NOT_FOUND);
+    throw new ApiError(HttpStatus.NOT_FOUND);
 
-		function format(profile) {
-			const doc = profile._doc;
+    function format(profile) {
+      const doc = profile._doc;
 
-			return Object.keys(doc).reduce((acc, key) => {
-				return /^_+/.test(key) ? acc : {[key]: doc[key], ...acc};
-			}, {});
-		}
-	}
+      return Object.keys(doc).reduce((acc, key) => (/^_+/u).test(key) ? acc : {[key]: doc[key], ...acc}, {});
+    }
+  }
 
-	async function remove({id, user}) {
-		if (hasPermission('profiles', 'remove', user.groups)) {
-			const profile = await Mongoose.models.Profile.findOne({id}).exec();
+  async function remove({id, user}) {
+    if (hasPermission('profiles', 'remove', user.groups)) {
+      const profile = await Mongoose.models.Profile.findOne({id}).exec();
 
-			if (profile) {
-				await Mongoose.models.Profile.deleteOne({id}).exec();
-			} else {
-				throw new ApiError(HttpStatus.NOT_FOUND);
-			}
-		} else {
-			throw new ApiError(HttpStatus.FORBIDDEN);
-		}
-	}
+      if (profile) {
+        return Mongoose.models.Profile.deleteOne({id}).exec();
+      }
 
-	async function createOrUpdate({id, payload, user}) {
-		if (hasPermission('profiles', 'createOrUpdate', user.groups)) {
-			const profile = await Mongoose.models.Profile.findOne({id}).exec();
+      throw new ApiError(HttpStatus.NOT_FOUND);
+    }
 
-			if (profile) {
-				return execute(true);
-			}
+    throw new ApiError(HttpStatus.FORBIDDEN);
+  }
 
-			return execute();
-		}
+  async function createOrUpdate({id, payload, user}) {
+    if (hasPermission('profiles', 'createOrUpdate', user.groups)) {
+      const profile = await Mongoose.models.Profile.findOne({id}).exec();
 
-		throw new ApiError(HttpStatus.FORBIDDEN);
+      if (profile) {
+        return execute(true);
+      }
 
-		async function execute(update = false) {
-			try {
-				if (update) {
-					await Mongoose.models.Profile.updateOne({id}, {...payload, id});
-					return {updated: true};
-				}
+      return execute();
+    }
 
-				await Mongoose.models.Profile.create({...payload, id});
-				return {created: true};
-			} catch (err) {
-				if (err instanceof Mongoose.Error && (err.name === 'ValidationError' || err.name === 'StrictModeError')) {
-					throw new ApiError(HttpStatus.UNPROCESSABLE_ENTITY);
-				} else {
-					throw err;
-				}
-			}
-		}
-	}
+    throw new ApiError(HttpStatus.FORBIDDEN);
+
+    async function execute(update = false) {
+      try {
+        if (update) {
+          await Mongoose.models.Profile.updateOne({id}, {...payload, id});
+          return {updated: true};
+        }
+
+        await Mongoose.models.Profile.create({...payload, id});
+        return {created: true};
+      } catch (err) {
+        if (err instanceof Mongoose.Error && (err.name === 'ValidationError' || err.name === 'StrictModeError')) { // eslint-disable-line functional/no-conditional-statement
+          throw new ApiError(HttpStatus.UNPROCESSABLE_ENTITY);
+        }
+
+        throw err;
+      }
+    }
+  }
 }

@@ -21,9 +21,9 @@
         "failedRecords": [],
         "importResults": []
       },
-      "state": "TRANSFORMATION_IN_PROGRESS",      
+      "state": "TRANSFORMATION_IN_PROGRESS",
       "id": "foo",
       "profile": "foo",
-      "contentType": "foo/bar"        
+      "contentType": "foo/bar"
     }]
 }

@@ -26,39 +26,39 @@
 *
 */
 const permissions = {
-	profiles: {
-		createOrUpdate: ['system'],
-		read: ['system', 'importer', 'transformer'],
-		query: ['system'],
-		remove: ['system']
-	},
-	blobs: {
-		query: ['all'],
-		read: ['all'],
-		create: ['system', 'creator'],
-		update: ['system', 'importer', 'transformer'],
-		abort: ['all'],
-		remove: ['system'],
-		removeContent: ['system'],
-		readContent: ['all']
-	}
+  profiles: {
+    createOrUpdate: ['system'],
+    read: ['system', 'importer', 'transformer'],
+    query: ['system'],
+    remove: ['system']
+  },
+  blobs: {
+    query: ['all'],
+    read: ['all'],
+    create: ['system', 'creator'],
+    update: ['system', 'importer', 'transformer'],
+    abort: ['all'],
+    remove: ['system'],
+    removeContent: ['system'],
+    readContent: ['all']
+  }
 };
 
 export function hasPermission(type, command, userGroups, permittedGroups = []) {
-	const commandPermissions = permissions[type][command];
-	if (userGroups.includes('system')) {
-		return true;
-	}
+  const commandPermissions = permissions[type][command];
+  if (userGroups.includes('system')) {
+    return true;
+  }
 
-	if (hasGroup(permittedGroups) === false) {
-		return false;
-	}
+  if (hasGroup(permittedGroups) === false) {
+    return false;
+  }
 
-	if (commandPermissions.includes('all') || hasGroup(commandPermissions)) {
-		return true;
-	}
+  if (commandPermissions.includes('all') || hasGroup(commandPermissions)) {
+    return true;
+  }
 
-	function hasGroup(permitted) {
-		return userGroups.some(g => permitted.includes(g));
-	}
+  function hasGroup(permitted) {
+    return userGroups.some(g => permitted.includes(g));
+  }
 }

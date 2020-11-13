@@ -30,12 +30,12 @@ import HttpStatus from 'http-status';
 import {Router} from 'express';
 
 export default function (passportMiddleware) {
-	return new Router()
-		.use(passportMiddleware)
-		.post('/', create);
+  return new Router()
+    .use(passportMiddleware)
+    .post('/', create);
 
-	async function create(req, res) {
-		res.set('Token', req.user);
-		res.sendStatus(HttpStatus.NO_CONTENT);
-	}
+  function create(req, res) {
+    res.set('Token', req.user);
+    res.sendStatus(HttpStatus.NO_CONTENT);
+  }
 }

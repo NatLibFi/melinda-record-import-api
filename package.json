@@ -36,7 +36,7 @@
   "dependencies": {
     "@natlibfi/express-validate-content-type": "^1.0.1",
     "@natlibfi/melinda-commons": "^7.0.0",
-    "@natlibfi/melinda-record-import-commons": "^7.0.0",
+    "@natlibfi/melinda-record-import-commons": "^9.1.0",
     "body-parser": "^1.18.3",
     "cors": "^2.8.5",
     "debug": "^4.1.1",
@@ -62,8 +62,8 @@
     "babel-plugin-rewire": "^1.2.0",
     "chai": "^4.2.0",
     "cross-env": "^6.0.0",
-    "eslint": "^6.1.0",
-    "eslint-config-xo": ">=0.25.0 <1.0.0",
+    "eslint": "^7.13.0",
+    "@natlibfi/eslint-config-melinda-backend": "^1.0.5",
     "eslint-plugin-import": "^2.18.2",
     "istanbul": ">=0.4.5 <1.0.0",
     "mocha": "^6.2.0",
@@ -73,22 +73,7 @@
     "nyc": "^14.1.1"
   },
   "eslintConfig": {
-    "parser": "babel-eslint",
-    "plugins": [
-      "import"
-    ],
-    "extends": [
-      "xo",
-      "plugin:import/errors"
-    ],
-    "rules": {
-      "prefer-arrow-callback": [
-        "error"
-      ]
-    },
-    "env": {
-      "mocha": true
-    }
+    "extends": "@natlibfi/melinda-backend"
   },
   "babel": {
     "presets": [
