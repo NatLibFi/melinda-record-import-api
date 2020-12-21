@@ -59,7 +59,8 @@ export default function (passportMiddleware) {
       const {nextOffset, results} = await blobs.query(parameters);
 
       if (nextOffset) {
-        return res.set('NextOffset', nextOffset);
+        res.set('NextOffset', nextOffset);
+        return res.json(results);
       }
 
       res.json(results);

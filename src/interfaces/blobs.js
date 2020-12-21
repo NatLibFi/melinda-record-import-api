@@ -54,6 +54,9 @@ export default function ({url}) {
     };
 
     const blobs = await Mongoose.models.BlobMetadata.find(await generateQuery(), undefined, queryOpts);
+    logger.log('debug', 'Interface/blobs/');
+    logger.log('debug', `Query state: ${state}`);
+    logger.log('debug', `Found ${blobs.length} blobs`);
 
     if (blobs.length < BLOBS_QUERY_LIMIT) {
       return {results: blobs.map(format)};
@@ -426,7 +429,7 @@ export default function ({url}) {
         throw new ApiError(HttpStatus.UNPROCESSABLE_ENTITY);
       }
 
-      logger.log('debug', 'Blob update case was not found');
+      logger.log('error', 'Blob update case was not found');
       throw new ApiError(HttpStatus.UNPROCESSABLE_ENTITY);
     }
   }

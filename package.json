@@ -17,7 +17,7 @@
   "version": "1.0.0",
   "main": "./dist/index.js",
   "engines": {
-    "node": ">=8"
+    "node": ">=10"
   },
   "scripts": {
     "start": "node ./dist/index",
@@ -34,6 +34,7 @@
     "watch:dev": "cross-env DEBUG=1 nodemon -w src --exec 'babel-node src/index.js'"
   },
   "dependencies": {
+    "@babel/runtime": "^7.12.5",
     "@natlibfi/express-validate-content-type": "^1.0.1",
     "@natlibfi/melinda-commons": "^7.0.0",
     "@natlibfi/melinda-record-import-commons": "^9.1.0",
@@ -73,7 +74,9 @@
     "nyc": "^14.1.1"
   },
   "eslintConfig": {
-    "ignorePatterns": ["node_modules/"],
+    "ignorePatterns": [
+      "node_modules/"
+    ],
     "extends": "@natlibfi/melinda-backend"
   },
   "babel": {
@@ -82,7 +85,7 @@
         "@babel/preset-env",
         {
           "targets": {
-            "node": "8"
+            "node": "10"
           }
         }
       ]
