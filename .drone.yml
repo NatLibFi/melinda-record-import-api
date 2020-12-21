@@ -1,3 +1,4 @@
+---
 
 kind: pipeline
 name: default
@@ -7,9 +8,9 @@ steps:
 - name: test-init
   image: busybox
   commands:
-  - chmod o+w /drone/src
+  - chmod -R o+w /drone/src
 - name: test
-  image: node:10
+  image: node:12
   user: node
   commands:
   - npm install
@@ -17,12 +18,22 @@ steps:
 - name: docker
   image: plugins/docker
   settings:
-    repo: quay.io/natlibfi/melinda-record-import-api
+    repo: quay.io/natlibfi/melinda-record-import-controller
     registry: quay.io
     username:
       from_secret: docker_username
     password:
       from_secret: docker_password
-  when:
-    branch: [master, test]
-event: [push, tag]
+---
+kind: secret
+name: docker_username
+data: I1HjanmdJMXM7fmhYK8/hreMegej48Lxu49lQfMqhCqYh3CfnmZM0Mzk79E4A7deZ3k=
+---
+kind: secret
+name: docker_password
+data: t6JlYm9oVATVNrcLL8RiXUFYhc2tX9Vd0ysELZtw4FkYUsh8qBGczx2YrM869JHHZMm25uH8Tb4UlxQiU5bYBhgpFCuL/YvL5MPlah6OkETyyq1T42mmA8YrqFM=
+---
+kind: signature
+hmac: 179aade8a5f99c9b2665260d75ecf0364aa003cd822e93a30c38cce1304f9176
+
+...
