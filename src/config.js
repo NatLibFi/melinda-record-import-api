@@ -26,9 +26,8 @@
 *
 */
 
-import {Utils} from '@natlibfi/melinda-commons';
-
-const {readEnvironmentVariable, parseBoolean} = Utils;
+import {parseBoolean} from '@natlibfi/melinda-commons';
+import {readEnvironmentVariable} from '@natlibfi/melinda-backend-commons';
 
 export const CROWD_URL = readEnvironmentVariable('CROWD_URL', {defaultValue: ''});
 export const CROWD_APP_NAME = readEnvironmentVariable('CROWD_APP_NAME', {defaultValue: ''});

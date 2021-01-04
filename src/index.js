@@ -26,7 +26,8 @@
 *
 */
 
-import {Utils, Authentication} from '@natlibfi/melinda-commons';
+import {createLogger, createExpressLogger, handleInterrupt} from '@natlibfi/melinda-backend-commons';
+import {generatePassportMiddlewares} from '@natlibfi/passport-melinda-crowd';
 import {ApiError} from '@natlibfi/melinda-record-import-commons';
 import HttpStatus from 'http-status';
 import passport from 'passport';
@@ -46,9 +47,6 @@ import {
   CROWD_URL, CROWD_APP_NAME, CROWD_APP_PASSWORD,
   PASSPORT_LOCAL_USERS, SOCKET_KEEP_ALIVE_TIMEOUT
 } from './config';
-
-const {Crowd: {generatePassportMiddlewares}} = Authentication;
-const {createLogger, createExpressLogger, handleInterrupt} = Utils;
 
 run();
 

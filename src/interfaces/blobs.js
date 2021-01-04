@@ -35,9 +35,7 @@ import {BLOB_UPDATE_OPERATIONS, BLOB_STATE, ApiError} from '@natlibfi/melinda-re
 import {BlobMetadataModel, ProfileModel} from './models';
 import {hasPermission} from './utils';
 import {BLOBS_QUERY_LIMIT} from '../config';
-import {Utils} from '@natlibfi/melinda-commons';
-
-const {createLogger} = Utils;
+import {createLogger} from '@natlibfi/melinda-backend-commons';
 
 export default function ({url}) {
   const gridFSBucket = new GridFSBucket(Mongoose.connection.db, {bucketName: 'blobs'});
