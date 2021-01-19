@@ -363,7 +363,7 @@ export default function ({url}) {
             BLOB_STATE.TRANSFORMATION_IN_PROGRESS,
             BLOB_STATE.TRANSFORMED
           ].includes(state)) {
-          return {state, modificationTime: moment()};
+            return {state, modificationTime: moment()};
           }
 
           throw new ApiError(HttpStatus.UNPROCESSABLE_ENTITY);
