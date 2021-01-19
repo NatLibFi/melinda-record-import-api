@@ -363,18 +363,19 @@ export default function ({url}) {
             BLOB_STATE.TRANSFORMATION_IN_PROGRESS,
             BLOB_STATE.TRANSFORMED
           ].includes(state)) {
-            return {state};
+          return {state, modificationTime: moment()};
           }
 
           throw new ApiError(HttpStatus.UNPROCESSABLE_ENTITY);
         }
-        console.log('test'); // eslint-disable-line
+
         throw new ApiError(HttpStatus.FORBIDDEN);
       }
 
       if (op === abort) {
         return {
-          state: BLOB_STATE.ABORTED
+          state: BLOB_STATE.ABORTED,
+          modificationTime: moment()
         };
       }
 
