@@ -26,58 +26,60 @@
 *
 */
 
+/* eslint-disable array-bracket-newline */
+
 import {Schema} from 'mongoose';
 import {BLOB_STATE, RECORD_IMPORT_STATE} from '@natlibfi/melinda-record-import-commons';
 
 export const ProfileModel = new Schema({
-	id: {type: String, required: true, unique: true},
-	auth: {
-		type: Object,
-		required: true,
-		groups: [{
-			type: String,
-			required: true
-		}]
-	},
-	transformation: {
-		type: Object,
-		required: true,
-		image: {type: String, required: true},
-		env: {type: Object}
-	},
-	import: {
-		type: Object,
-		required: true,
-		image: {type: String, required: true},
-		concurrency: {type: Number},
-		env: {type: Object}
-	}
+  id: {type: String, required: true, unique: true},
+  auth: {
+    type: Object,
+    required: true,
+    groups: [{
+      type: String,
+      required: true
+    }]
+  },
+  transformation: {
+    type: Object,
+    required: true,
+    image: {type: String, required: true},
+    env: {type: Object}
+  },
+  import: {
+    type: Object,
+    required: true,
+    image: {type: String, required: true},
+    concurrency: {type: Number},
+    env: {type: Object}
+  }
 }, {strict: 'throw'});
 
 export const BlobMetadataModel = new Schema({
-	id: {type: String, required: true, unique: true},
-	profile: {type: String, required: true},
-	contentType: {type: String, required: true},
-	state: {
-		type: String,
-		required: true,
-		enum: Object.values(BLOB_STATE),
-		default: BLOB_STATE.PENDING_TRANSFORMATION
-	},
-	creationTime: {type: Date, default: Date.now},
-	modificationTime: {type: Date, default: Date.now},
-	processingInfo: {
-		transformationError: {},
-		numberOfRecords: {type: Number, required: true, default: 0},
-		failedRecords: [],
-		importResults: [new Schema({
-			status: {
-				type: String,
-				enum: Object.values(RECORD_IMPORT_STATE),
-				required: true
-			},
-			timestamp: {type: Date, default: Date.now},
-			metadata: {}
-		}, {_id: false})]
-	}
+  id: {type: String, required: true, unique: true},
+  profile: {type: String, required: true},
+  contentType: {type: String, required: true},
+  state: {
+    type: String,
+    required: true,
+    enum: Object.values(BLOB_STATE),
+    default: BLOB_STATE.PENDING_TRANSFORMATION
+  },
+  creationTime: {type: Date, default: Date.now},
+  modificationTime: {type: Date, default: Date.now},
+  processingInfo: {
+    transformationError: {},
+    numberOfRecords: {type: Number, required: true, default: 0},
+    failedRecords: [],
+    importResults: [new Schema({
+      status: {
+        type: String,
+        enum: Object.values(RECORD_IMPORT_STATE),
+        required: true
+      },
+      timestamp: {type: Date, default: Date.now},
+      metadata: {}
+    }, {_id: false})]
+  }
 }, {strict: 'throw'});

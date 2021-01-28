@@ -35,128 +35,129 @@ import {validateMax as validateContentLength} from 'express-content-length-valid
 import {API_URL, CONTENT_MAX_LENGTH} from '../config';
 
 export default function (passportMiddleware) {
-	const blobs = blobsFactory({url: API_URL});
+  const blobs = blobsFactory({url: API_URL});
 
-	return new Router()
-		.use(passportMiddleware)
-		.get('/', query)
-		.post('/', getContentLengthMiddleware(), create)
-		.get('/:id', read)
-		.delete('/:id', remove)
-		.post('/:id', validateContentType({type: 'application/json'}), bodyParser.json({type: 'application/json'}), update)
-		.get('/:id/content', readContent)
-		.delete('/:id/content', removeContent);
+  return new Router()
+    .use(passportMiddleware)
+    .get('/', query)
+    .post('/', getContentLengthMiddleware(), create)
+    .get('/:id', read)
+    .delete('/:id', remove)
+    .post('/:id', validateContentType({type: 'application/json'}), bodyParser.json({type: 'application/json'}), update)
+    .get('/:id/content', readContent)
+    .delete('/:id/content', removeContent);
 
-	async function query(req, res, next) {
-		try {
-			const queryParams = getQueryParams();
-			const parameters = {user: req.user, ...queryParams};
+  async function query(req, res, next) {
+    try {
+      const queryParams = getQueryParams();
+      const parameters = {user: req.user, ...queryParams};
 
-			if (req.get('QueryOffset')) {
-				parameters.offset = req.get('QueryOffset');
-			}
+      if (req.get('QueryOffset')) { // eslint-disable-line functional/no-conditional-statement
+        parameters.offset = req.get('QueryOffset'); // eslint-disable-line functional/immutable-data
+      }
 
-			const {nextOffset, results} = await blobs.query(parameters);
+      const {nextOffset, results} = await blobs.query(parameters);
 
-			if (nextOffset) {
-				res.set('NextOffset', nextOffset);
-			}
+      if (nextOffset) {
+        res.set('NextOffset', nextOffset);
+        return res.json(results);
+      }
 
-			res.json(results);
-		} catch (err) {
-			next(err);
-		}
+      res.json(results);
+    } catch (err) {
+      return next(err);
+    }
 
-		function getQueryParams() {
-			const KEYS = ['state', 'profile', 'contentType', 'creationTime', 'modificationTime'];
+    function getQueryParams() {
+      const KEYS = ['state', 'profile', 'contentType', 'creationTime', 'modificationTime'];
 
-			return Object.keys(req.query)
-				.filter(k => KEYS.includes(k))
-				.reduce((acc, k) => {
-					const value = req.query[k];
-					return {...acc, [k]: Array.isArray(value) ? value : [value]};
-				}, {});
-		}
-	}
+      return Object.keys(req.query)
+        .filter(k => KEYS.includes(k))
+        .reduce((acc, k) => {
+          const value = req.query[k];
+          return {...acc, [k]: Array.isArray(value) ? value : [value]};
+        }, {});
+    }
+  }
 
-	async function read(req, res, next) {
-		try {
-			const result = await blobs.read({id: req.params.id, user: req.user});
-			res.json(result);
-		} catch (err) {
-			next(err);
-		}
-	}
+  async function read(req, res, next) {
+    try {
+      const result = await blobs.read({id: req.params.id, user: req.user});
+      res.json(result);
+    } catch (err) {
+      return next(err);
+    }
+  }
 
-	async function remove(req, res, next) {
-		try {
-			await blobs.remove({id: req.params.id, user: req.user});
-			res.sendStatus(HttpStatus.NO_CONTENT);
-		} catch (err) {
-			next(err);
-		}
-	}
+  async function remove(req, res, next) {
+    try {
+      await blobs.remove({id: req.params.id, user: req.user});
+      res.sendStatus(HttpStatus.NO_CONTENT);
+    } catch (err) {
+      return next(err);
+    }
+  }
 
-	async function create(req, res, next) {
-		if ('content-type' in req.headers && 'import-profile' in req.headers) {
-			try {
-				const id = await blobs.create({
-					inputStream: req, user: req.user,
-					profile: req.headers['import-profile'],
-					contentType: req.headers['content-type']
-				});
+  async function create(req, res, next) {
+    if ('content-type' in req.headers && 'import-profile' in req.headers) { // eslint-disable-line functional/no-conditional-statement
+      try {
+        const id = await blobs.create({
+          inputStream: req, user: req.user,
+          profile: req.headers['import-profile'],
+          contentType: req.headers['content-type']
+        });
 
-				res.set('Location', `${API_URL}/blobs/${id}`);
-				res.sendStatus(HttpStatus.CREATED);
-			} catch (err) {
-				next(err);
-			}
-		} else {
-			res.sendStatus(400);
-		}
-	}
+        res.set('Location', `${API_URL}/blobs/${id}`);
+        return res.sendStatus(HttpStatus.CREATED);
+      } catch (err) {
+        return next(err);
+      }
+    }
 
-	async function update(req, res, next) {
-		try {
-			await blobs.update({
-				id: req.params.id, user: req.user,
-				payload: req.body
-			});
+    res.sendStatus(400);
+  }
 
-			res.sendStatus(HttpStatus.NO_CONTENT);
-		} catch (err) {
-			next(err);
-		}
-	}
+  async function update(req, res, next) {
+    try {
+      await blobs.update({
+        id: req.params.id, user: req.user,
+        payload: req.body
+      });
 
-	async function readContent(req, res, next) {
-		try {
-			const {contentType, readStream} = await blobs.readContent({id: req.params.id, user: req.user});
-			res.set('Content-Type', contentType);
-			readStream.pipe(res);
-		} catch (err) {
-			next(err);
-		}
-	}
+      res.sendStatus(HttpStatus.NO_CONTENT);
+    } catch (err) {
+      return next(err);
+    }
+  }
 
-	async function removeContent(req, res, next) {
-		try {
-			await blobs.removeContent({id: req.params.id, user: req.user});
-			res.sendStatus(HttpStatus.NO_CONTENT);
-		} catch (err) {
-			next(err);
-		}
-	}
+  async function readContent(req, res, next) {
+    try {
+      const {contentType, readStream} = await blobs.readContent({id: req.params.id, user: req.user});
+      res.set('Content-Type', contentType);
+      readStream.pipe(res);
+    } catch (err) {
+      return next(err);
+    }
+  }
 
-	function getContentLengthMiddleware() {
-		if (CONTENT_MAX_LENGTH > 0) {
-			return validateContentLength({
-				max: CONTENT_MAX_LENGTH,
-				status: HttpStatus.REQUEST_ENTITY_TOO_LARGE,
-				message: `Content length must no exceed ${CONTENT_MAX_LENGTH}`
-			});
-		}
+  async function removeContent(req, res, next) {
+    try {
+      await blobs.removeContent({id: req.params.id, user: req.user});
+      res.sendStatus(HttpStatus.NO_CONTENT);
+    } catch (err) {
+      return next(err);
+    }
+  }
 
-		return (req, res, next) => next();
-	}
+  function getContentLengthMiddleware() {
+    if (CONTENT_MAX_LENGTH > 0) {
+      return validateContentLength({
+        max: CONTENT_MAX_LENGTH,
+        status: HttpStatus.REQUEST_ENTITY_TOO_LARGE,
+        message: `Content length must no exceed ${CONTENT_MAX_LENGTH}`
+      });
+    }
+
+    return (req, res, next) => next();
+  }
 }

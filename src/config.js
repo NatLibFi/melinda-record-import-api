@@ -26,9 +26,8 @@
 *
 */
 
-import {Utils} from '@natlibfi/melinda-commons';
-
-const {readEnvironmentVariable, parseBoolean} = Utils;
+import {parseBoolean} from '@natlibfi/melinda-commons';
+import {readEnvironmentVariable} from '@natlibfi/melinda-backend-commons';
 
 export const CROWD_URL = readEnvironmentVariable('CROWD_URL', {defaultValue: ''});
 export const CROWD_APP_NAME = readEnvironmentVariable('CROWD_APP_NAME', {defaultValue: ''});
@@ -53,12 +52,12 @@ export const CONTENT_MAX_LENGTH = readEnvironmentVariable('CONTENT_MAX_LENGTH', 
 export const SOCKET_KEEP_ALIVE_TIMEOUT = readEnvironmentVariable('SOCKET_KEEP_ALIVE_TIMEOUT', {defaultValue: 0, format: v => Number(v)});
 
 export const USER_AGENT_LOGGING_BLACKLIST = readEnvironmentVariable('USER_AGENT_LOGGING_BLACKLIST', {
-	defaultValue: [
-		'_RECORD-IMPORT-CONTROLLER',
-		'_RECORD-IMPORT-IMPORTER',
-		'_RECORD-IMPORT-TRANSFORMER',
-		'_RECORD-IMPORT-HARVESTER'
-	],
-	format: JSON.parse
+  defaultValue: [
+    '_RECORD-IMPORT-CONTROLLER',
+    '_RECORD-IMPORT-IMPORTER',
+    '_RECORD-IMPORT-TRANSFORMER',
+    '_RECORD-IMPORT-HARVESTER'
+  ],
+  format: JSON.parse
 });
 

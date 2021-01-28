@@ -17,7 +17,7 @@
   "version": "1.0.0",
   "main": "./dist/index.js",
   "engines": {
-    "node": ">=8"
+    "node": ">=12"
   },
   "scripts": {
     "start": "node ./dist/index",
@@ -28,15 +28,18 @@
     "test": "npm run lint && npm run test:base -- src/**/*.spec.js && npm run coverage",
     "test:dev": "npm run lint:dev && npm run test:base -- src/**/*.spec.js && npm run coverage",
     "coverage": "nyc check-coverage --per-file",
-    "build": "babel src --source-maps --copy-files --delete-dir-on-start --out-dir=dist --minified",
+    "build": "babel src --source-maps --copy-files --delete-dir-on-start --out-dir=dist",
     "build:dev": "npm run build:transpile && npm run check-deps",
     "watch:test": "cross-env DEBUG=1 NODE_ENV=test nodemon -w src --exec 'npm run test:dev'",
     "watch:dev": "cross-env DEBUG=1 nodemon -w src --exec 'babel-node src/index.js'"
   },
   "dependencies": {
+    "@babel/runtime": "^7.12.5",
     "@natlibfi/express-validate-content-type": "^1.0.1",
-    "@natlibfi/melinda-commons": "^7.0.0",
-    "@natlibfi/melinda-record-import-commons": "^7.0.0",
+    "@natlibfi/melinda-commons": "^11.1.1",
+    "@natlibfi/melinda-backend-commons": "^2.0.2",
+    "@natlibfi/melinda-record-import-commons": "^9.1.0",
+    "@natlibfi/passport-melinda-crowd": "^1.0.0",
     "body-parser": "^1.18.3",
     "cors": "^2.8.5",
     "debug": "^4.1.1",
@@ -50,20 +53,20 @@
     "uuid": "^3.3.2"
   },
   "devDependencies": {
-    "@babel/cli": "^7.5.5",
-    "@babel/core": "^7.5.5",
-    "@babel/node": "^7.5.5",
-    "@babel/preset-env": "^7.5.5",
-    "@babel/register": "^7.5.5",
+    "@babel/cli": "^7.12.10",
+    "@babel/core": "^7.12.10",
+    "@babel/node": "^7.12.10",
+    "@babel/preset-env": "^7.12.11",
+    "@babel/register": "^7.12.10",
     "@natlibfi/fixura": "^1.0.0",
     "@natlibfi/fixura-mongo": "^1.2.0",
-    "babel-eslint": "^10.0.2",
-    "babel-plugin-istanbul": "^5.2.0",
+    "babel-eslint": "^10.1.0",
+    "babel-plugin-istanbul": "^6.0.0",
     "babel-plugin-rewire": "^1.2.0",
     "chai": "^4.2.0",
     "cross-env": "^6.0.0",
-    "eslint": "^6.1.0",
-    "eslint-config-xo": ">=0.25.0 <1.0.0",
+    "eslint": "^7.13.0",
+    "@natlibfi/eslint-config-melinda-backend": "^1.0.5",
     "eslint-plugin-import": "^2.18.2",
     "istanbul": ">=0.4.5 <1.0.0",
     "mocha": "^6.2.0",
@@ -73,22 +76,7 @@
     "nyc": "^14.1.1"
   },
   "eslintConfig": {
-    "parser": "babel-eslint",
-    "plugins": [
-      "import"
-    ],
-    "extends": [
-      "xo",
-      "plugin:import/errors"
-    ],
-    "rules": {
-      "prefer-arrow-callback": [
-        "error"
-      ]
-    },
-    "env": {
-      "mocha": true
-    }
+    "extends": "@natlibfi/melinda-backend"
   },
   "babel": {
     "presets": [
@@ -96,7 +84,7 @@
         "@babel/preset-env",
         {
           "targets": {
-            "node": "8"
+            "node": "12"
           }
         }
       ]
