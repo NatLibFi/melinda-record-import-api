@@ -72,13 +72,14 @@ export default function (passportMiddleware) {
 
   async function createOrUpdate(req, res, next) {
     try {
+      const sanitazedId = sanitaze(req.params.id);
       const result = await profiles.createOrUpdate({
-        id: req.params.id, user: req.user,
+        id: sanitazedId, user: req.user,
         payload: req.body
       });
 
       if (result.created) {
-        res.set('Location', `${API_URL}/profiles/${req.params.id}`);
+        res.set('Location', `${API_URL}/profiles/${sanitazedId}`);
         return res.sendStatus(HttpStatus.CREATED);
       }
 
@@ -86,5 +87,15 @@ export default function (passportMiddleware) {
     } catch (err) {
       return next(err);
     }
+  }
+
+  function sanitaze(value) {
+    return value
+      .replace(/\r/gu, '')
+      .replace(/%0d/gu, '')
+      .replace(/%0D/gu, '')
+      .replace(/\n/gu, '')
+      .replace(/%0a/gu, '')
+      .replace(/%0A/gu, '');
   }
 }
