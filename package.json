@@ -28,7 +28,7 @@
     "test": "npm run lint && npm run test:base -- src/**/*.spec.js && npm run coverage",
     "test:dev": "npm run lint:dev && npm run test:base -- src/**/*.spec.js && npm run coverage",
     "coverage": "nyc check-coverage --per-file",
-    "build": "babel src --source-maps --copy-files --delete-dir-on-start --out-dir=dist --minified",
+    "build": "babel src --source-maps --copy-files --delete-dir-on-start --out-dir=dist",
     "build:dev": "npm run build:transpile && npm run check-deps",
     "watch:test": "cross-env DEBUG=1 NODE_ENV=test nodemon -w src --exec 'npm run test:dev'",
     "watch:dev": "cross-env DEBUG=1 nodemon -w src --exec 'babel-node src/index.js'"
