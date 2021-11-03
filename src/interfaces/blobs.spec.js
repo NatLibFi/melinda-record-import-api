@@ -67,10 +67,10 @@ describe('interfaces/blobs', () => {
 
   describe('#create', () => {
     it('Should create a new blob', async (index = '0') => {
-      const dbContents = getFixture(['create', index, 'dbContents.json']);
-      const expectedDb = getFixture(['create', index, 'expectedDb.json']);
+      const dbContents = getFixture({components: ['create', index, 'dbContents.json']});
+      const expectedDb = getFixture({components: ['create', index, 'expectedDb.json']});
       const inputStream = getFixture({components: ['create', index, 'payload.txt'], reader: READERS.STREAM});
-      const user = getFixture(['create', index, 'user.json']);
+      const user = getFixture({components: ['create', index, 'user.json']});
       const blobs = blobsFactory({url: 'https://api'});
 
       await mongoFixtures.populate(dbContents);
@@ -84,7 +84,7 @@ describe('interfaces/blobs', () => {
 
     it('Should fail to create a new blob because of invalid profile', async (index = '1') => {
       const inputStream = getFixture({components: ['create', index, 'payload.txt'], reader: READERS.STREAM});
-      const user = getFixture(['create', index, 'user.json']);
+      const user = getFixture({components: ['create', index, 'user.json']});
       const blobs = blobsFactory({url: 'https://api'});
 
       try {
@@ -97,9 +97,9 @@ describe('interfaces/blobs', () => {
     });
 
     it('Should fail to create a new blob because of invalid permissions', async (index = '2') => {
-      const dbContents = getFixture(['create', index, 'dbContents.json']);
+      const dbContents = getFixture({components: ['create', index, 'dbContents.json']});
       const inputStream = getFixture({components: ['create', index, 'payload.txt'], reader: READERS.STREAM});
-      const user = getFixture(['create', index, 'user.json']);
+      const user = getFixture({components: ['create', index, 'user.json']});
       const blobs = blobsFactory({url: 'https://api'});
 
       await mongoFixtures.populate(dbContents);
@@ -116,8 +116,8 @@ describe('interfaces/blobs', () => {
 
   describe('#update', () => {
     it('Should fail because the blob doesn\'t exist', async (index = '0') => {
-      const payload = getFixture(['update', index, 'payload.json']);
-      const user = getFixture(['update', index, 'user.json']);
+      const payload = getFixture({components: ['update', index, 'payload.json']});
+      const user = getFixture({components: ['update', index, 'user.json']});
       const blobs = blobsFactory({url: 'https://api'});
 
       try {
@@ -147,9 +147,9 @@ describe('interfaces/blobs', () => {
     it('Should increase numberOfRecords to blobs on succesfull record handling', () => testUpdate('15'));
 
     async function testError({index, status}) {
-      const dbContents = getFixture(['update', index, 'dbContents.json']);
-      const payload = getFixture(['update', index, 'payload.json']);
-      const user = getFixture(['update', index, 'user.json']);
+      const dbContents = getFixture({components: ['update', index, 'dbContents.json']});
+      const payload = getFixture({components: ['update', index, 'payload.json']});
+      const user = getFixture({components: ['update', index, 'user.json']});
       const blobs = blobsFactory({url: 'https://api'});
 
       await mongoFixtures.populate(dbContents);
@@ -164,10 +164,10 @@ describe('interfaces/blobs', () => {
     }
 
     async function testUpdate(index) {
-      const dbContents = getFixture(['update', index, 'dbContents.json']);
-      const expectedDb = getFixture(['update', index, 'expectedDb.json']);
-      const payload = getFixture(['update', index, 'payload.json']);
-      const user = getFixture(['update', index, 'user.json']);
+      const dbContents = getFixture({components: ['update', index, 'dbContents.json']});
+      const expectedDb = getFixture({components: ['update', index, 'expectedDb.json']});
+      const payload = getFixture({components: ['update', index, 'payload.json']});
+      const user = getFixture({components: ['update', index, 'user.json']});
       const blobs = blobsFactory({url: 'https://api'});
 
       await mongoFixtures.populate(dbContents);
@@ -180,9 +180,9 @@ describe('interfaces/blobs', () => {
 
   describe('#read', () => {
     it('Should succeed', async (index = '0') => {
-      const dbContents = getFixture(['read', index, 'dbContents.json']);
-      const user = getFixture(['read', index, 'user.json']);
-      const expectedResults = getFixture(['read', index, 'expectedResults.json']);
+      const dbContents = getFixture({components: ['read', index, 'dbContents.json']});
+      const user = getFixture({components: ['read', index, 'user.json']});
+      const expectedResults = getFixture({components: ['read', index, 'expectedResults.json']});
       const blobs = blobsFactory({url: 'https://api'});
 
       await mongoFixtures.populate(dbContents);
@@ -192,8 +192,8 @@ describe('interfaces/blobs', () => {
     });
 
     it('Should fail because the blob doesn\'t exist', async (index = '1') => {
-      const dbContents = getFixture(['read', index, 'dbContents.json']);
-      const user = getFixture(['read', index, 'user.json']);
+      const dbContents = getFixture({components: ['read', index, 'dbContents.json']});
+      const user = getFixture({components: ['read', index, 'user.json']});
       const blobs = blobsFactory({url: 'https://api'});
 
       await mongoFixtures.populate(dbContents);
@@ -208,8 +208,8 @@ describe('interfaces/blobs', () => {
     });
 
     it('Should fail because of invalid permissions', async (index = '2') => {
-      const dbContents = getFixture(['read', index, 'dbContents.json']);
-      const user = getFixture(['read', index, 'user.json']);
+      const dbContents = getFixture({components: ['read', index, 'dbContents.json']});
+      const user = getFixture({components: ['read', index, 'user.json']});
       const blobs = blobsFactory({url: 'https://api'});
 
       await mongoFixtures.populate(dbContents);
@@ -272,8 +272,8 @@ describe('interfaces/blobs', () => {
     }));
 
     it('Should return an incomplete set', async (index = '11') => {
-      const user = getFixture(['query', index, 'user.json']);
-      const expectedResults = getFixture(['query', index, 'expectedResults.json']);
+      const user = getFixture({components: ['query', index, 'user.json']});
+      const expectedResults = getFixture({components: ['query', index, 'expectedResults.json']});
       const expectedNextOffset = getFixture({components: ['query', index, 'expectedNextOffset.txt'], reader: READERS.TEXT});
 
       const blobs = blobsFactory({url: 'https://api'});
@@ -287,8 +287,8 @@ describe('interfaces/blobs', () => {
     });
 
     it('Should return the results from the specified offset', async (index = '12') => {
-      const user = getFixture(['query', index, 'user.json']);
-      const expectedResults = getFixture(['query', index, 'expectedResults.json']);
+      const user = getFixture({components: ['query', index, 'user.json']});
+      const expectedResults = getFixture({components: ['query', index, 'expectedResults.json']});
       const queryOffset = getFixture({components: ['query', index, 'queryOffset.txt'], reader: READERS.TEXT});
 
       const blobs = blobsFactory({url: 'https://api'});
@@ -310,8 +310,8 @@ describe('interfaces/blobs', () => {
     }
 
     async function test(index, params = {}) {
-      const user = getFixture(['query', index, 'user.json']);
-      const expectedResults = getFixture(['query', index, 'expectedResults.json']);
+      const user = getFixture({components: ['query', index, 'user.json']});
+      const expectedResults = getFixture({components: ['query', index, 'expectedResults.json']});
 
       const blobs = blobsFactory({url: 'https://api'});
 
@@ -324,8 +324,8 @@ describe('interfaces/blobs', () => {
 
   describe('#remove', () => {
     it('Should succeed', async (index = '0') => {
-      const dbContents = getFixture(['remove', index, 'dbContents.json']);
-      const user = getFixture(['remove', index, 'user.json']);
+      const dbContents = getFixture({components: ['remove', index, 'dbContents.json']});
+      const user = getFixture({components: ['remove', index, 'user.json']});
       const blobs = blobsFactory({url: 'https://api'});
 
       await mongoFixtures.populate(dbContents);
@@ -333,7 +333,7 @@ describe('interfaces/blobs', () => {
     });
 
     it('Should fail because the blob doesn\'t exist', async (index = '1') => {
-      const user = getFixture(['remove', index, 'user.json']);
+      const user = getFixture({components: ['remove', index, 'user.json']});
       const blobs = blobsFactory({url: 'https://api'});
 
       try {
@@ -346,8 +346,8 @@ describe('interfaces/blobs', () => {
     });
 
     it('Should fail because of invalid permissions', async (index = '2') => {
-      const dbContents = getFixture(['remove', index, 'dbContents.json']);
-      const user = getFixture(['remove', index, 'user.json']);
+      const dbContents = getFixture({components: ['remove', index, 'dbContents.json']});
+      const user = getFixture({components: ['remove', index, 'user.json']});
       const blobs = blobsFactory({url: 'https://api'});
 
       await mongoFixtures.populate(dbContents);
@@ -362,8 +362,8 @@ describe('interfaces/blobs', () => {
     });
 
     it('Should fail because content still exists', async (index = '3') => {
-      const dbContents = getFixture(['remove', index, 'dbContents.json']);
-      const user = getFixture(['remove', index, 'user.json']);
+      const dbContents = getFixture({components: ['remove', index, 'dbContents.json']});
+      const user = getFixture({components: ['remove', index, 'user.json']});
       const blobs = blobsFactory({url: 'https://api'});
 
       await mongoFixtures.populate(dbContents);
@@ -380,9 +380,9 @@ describe('interfaces/blobs', () => {
 
   describe('#removeContent', () => {
     it('Should succeed', async (index = '0') => {
-      const dbContents = getFixture(['removeContent', index, 'dbContents.json']);
-      const dbFiles = getFixture(['removeContent', index, 'dbFiles.json']);
-      const user = getFixture(['removeContent', index, 'user.json']);
+      const dbContents = getFixture({components: ['removeContent', index, 'dbContents.json']});
+      const dbFiles = getFixture({components: ['removeContent', index, 'dbFiles.json']});
+      const user = getFixture({components: ['removeContent', index, 'user.json']});
       const blobs = blobsFactory({url: 'https://api'});
 
       await mongoFixtures.populate(dbContents);
@@ -395,7 +395,7 @@ describe('interfaces/blobs', () => {
     });
 
     it('Should fail because the blob doesn\'t exist', async (index = '1') => {
-      const user = getFixture(['removeContent', index, 'user.json']);
+      const user = getFixture({components: ['removeContent', index, 'user.json']});
       const blobs = blobsFactory({url: 'https://api'});
 
       try {
@@ -408,8 +408,8 @@ describe('interfaces/blobs', () => {
     });
 
     it('Should fail because of invalid permissions', async (index = '2') => {
-      const dbContents = getFixture(['removeContent', index, 'dbContents.json']);
-      const user = getFixture(['removeContent', index, 'user.json']);
+      const dbContents = getFixture({components: ['removeContent', index, 'dbContents.json']});
+      const user = getFixture({components: ['removeContent', index, 'user.json']});
       const blobs = blobsFactory({url: 'https://api'});
 
       await mongoFixtures.populate(dbContents);
@@ -424,8 +424,8 @@ describe('interfaces/blobs', () => {
     });
 
     it('Should fail because the blob content has already been removed', async (index = '3') => {
-      const dbContents = getFixture(['removeContent', index, 'dbContents.json']);
-      const user = getFixture(['removeContent', index, 'user.json']);
+      const dbContents = getFixture({components: ['removeContent', index, 'dbContents.json']});
+      const user = getFixture({components: ['removeContent', index, 'user.json']});
       const blobs = blobsFactory({url: 'https://api'});
 
       await mongoFixtures.populate(dbContents);
@@ -443,9 +443,9 @@ describe('interfaces/blobs', () => {
 
   describe('#readContent', () => {
     it('Should succeed', async (index = '0') => {
-      const dbContents = getFixture(['readContent', index, 'dbContents.json']);
-      const dbFiles = getFixture(['readContent', index, 'dbFiles.json']);
-      const user = getFixture(['readContent', index, 'user.json']);
+      const dbContents = getFixture({components: ['readContent', index, 'dbContents.json']});
+      const dbFiles = getFixture({components: ['readContent', index, 'dbFiles.json']});
+      const user = getFixture({components: ['readContent', index, 'user.json']});
       const expectedContent = getFixture({components: ['readContent', index, 'expectedContent.txt'], reader: READERS.TEXT});
       const blobs = blobsFactory({url: 'https://api'});
 
@@ -471,7 +471,7 @@ describe('interfaces/blobs', () => {
     });
 
     it('Should fail because the blob doesn\'t exist', async (index = '1') => {
-      const user = getFixture(['readContent', index, 'user.json']);
+      const user = getFixture({components: ['readContent', index, 'user.json']});
       const blobs = blobsFactory({url: 'https://api'});
 
       try {
@@ -484,8 +484,8 @@ describe('interfaces/blobs', () => {
     });
 
     it('Should fail because of invalid permissions', async (index = '2') => {
-      const dbContents = getFixture(['readContent', index, 'dbContents.json']);
-      const user = getFixture(['readContent', index, 'user.json']);
+      const dbContents = getFixture({components: ['readContent', index, 'dbContents.json']});
+      const user = getFixture({components: ['readContent', index, 'user.json']});
       const blobs = blobsFactory({url: 'https://api'});
 
       await mongoFixtures.populate(dbContents);
@@ -500,8 +500,8 @@ describe('interfaces/blobs', () => {
     });
 
     it('Should fail because the blob content has been removed', async (index = '3') => {
-      const dbContents = getFixture(['readContent', index, 'dbContents.json']);
-      const user = getFixture(['readContent', index, 'user.json']);
+      const dbContents = getFixture({components: ['readContent', index, 'dbContents.json']});
+      const user = getFixture({components: ['readContent', index, 'user.json']});
       const blobs = blobsFactory({url: 'https://api'});
 
       await mongoFixtures.populate(dbContents);

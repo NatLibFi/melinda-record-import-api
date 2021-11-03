@@ -93,7 +93,7 @@ async function run() {
   app.use(handleError);
 
   server = app.listen(HTTP_PORT, () => { // eslint-disable-line prefer-const
-    logger.log('info', 'Started melinda-record-import-api');
+    logger.info('Started melinda-record-import-api');
   });
 
   setSocketKeepAlive();
@@ -103,7 +103,7 @@ async function run() {
       return res.sendStatus(err.status);
     }
 
-    logger.log('error', err instanceof Error ? err.stack : err);
+    logger.error(err instanceof Error ? err.stack : err);
     return res.sendStatus(HttpStatus.INTERNAL_SERVER_ERROR);
   }
 

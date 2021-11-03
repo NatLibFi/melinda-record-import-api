@@ -23,9 +23,9 @@
             "status": "CREATED", "metadata": {"foo": "bar"}
         }]
       },
-      "state": "ABORTED",      
+      "state": "ABORTED",
       "id": "foo",
       "profile": "foo",
-      "contentType": "foo/bar"        
+      "contentType": "foo/bar"
     }]
 }

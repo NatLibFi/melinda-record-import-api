@@ -43,7 +43,7 @@ describe('interfaces/profiles', () => {
 
   beforeEach(async () => {
     mongoFixtures = await mongoFixtureFactory();
-    Mongoose.connect(await mongoFixtures.getConnectionString(), {useNewUrlParser: true});
+    await Mongoose.connect(await mongoFixtures.getConnectionString(), {useNewUrlParser: true});
   });
 
   afterEach(async () => {
@@ -53,9 +53,9 @@ describe('interfaces/profiles', () => {
 
   describe('#createOrUpdate', () => {
     it('Should create a new profile', async (index = '0') => {
-      const payload = getFixture(['createOrUpdate', index, 'payload.json']);
-      const user = getFixture(['createOrUpdate', index, 'user.json']);
-      const expectedDb = getFixture(['createOrUpdate', index, 'expectedDb.json']);
+      const payload = getFixture({components: ['createOrUpdate', index, 'payload.json']});
+      const user = getFixture({components: ['createOrUpdate', index, 'user.json']});
+      const expectedDb = getFixture({components: ['createOrUpdate', index, 'expectedDb.json']});
       const profiles = profilesFactory({url: 'https://api'});
 
       await profiles.createOrUpdate({id: 'foo', payload, user});
@@ -65,8 +65,8 @@ describe('interfaces/profiles', () => {
     });
 
     it('Should fail to create a new because of invalid permissions', async (index = '1') => {
-      const payload = getFixture(['createOrUpdate', index, 'payload.json']);
-      const user = getFixture(['createOrUpdate', index, 'user.json']);
+      const payload = getFixture({components: ['createOrUpdate', index, 'payload.json']});
+      const user = getFixture({components: ['createOrUpdate', index, 'user.json']});
 
       const profiles = profilesFactory({url: 'https://api'});
       try {
@@ -79,8 +79,8 @@ describe('interfaces/profiles', () => {
     });
 
     it('Should fail to create a new profile because of invalid syntax', async (index = '2') => {
-      const payload = getFixture(['createOrUpdate', index, 'payload.json']);
-      const user = getFixture(['createOrUpdate', index, 'user.json']);
+      const payload = getFixture({components: ['createOrUpdate', index, 'payload.json']});
+      const user = getFixture({components: ['createOrUpdate', index, 'user.json']});
       const profiles = profilesFactory({url: 'https://api'});
 
       try {
@@ -93,10 +93,10 @@ describe('interfaces/profiles', () => {
     });
 
     it('Should update a profile', async (index = '3') => {
-      const createPayload = getFixture(['createOrUpdate', index, 'createPayload.json']);
-      const updatePayload = getFixture(['createOrUpdate', index, 'updatePayload.json']);
-      const user = getFixture(['createOrUpdate', index, 'user.json']);
-      const expectedDb = getFixture(['createOrUpdate', index, 'expectedDb.json']);
+      const createPayload = getFixture({components: ['createOrUpdate', index, 'createPayload.json']});
+      const updatePayload = getFixture({components: ['createOrUpdate', index, 'updatePayload.json']});
+      const user = getFixture({components: ['createOrUpdate', index, 'user.json']});
+      const expectedDb = getFixture({components: ['createOrUpdate', index, 'expectedDb.json']});
 
       const profiles = profilesFactory({url: 'https://api'});
 
@@ -110,9 +110,9 @@ describe('interfaces/profiles', () => {
 
   describe('#read', () => {
     it('Should read a profile', async (index = '0') => {
-      const dbContents = getFixture(['read', index, 'dbContents.json']);
-      const expectedProfile = getFixture(['read', index, 'expectedProfile.json']);
-      const user = getFixture(['read', index, 'user.json']);
+      const dbContents = getFixture({components: ['read', index, 'dbContents.json']});
+      const expectedProfile = getFixture({components: ['read', index, 'expectedProfile.json']});
+      const user = getFixture({components: ['read', index, 'user.json']});
       const profiles = profilesFactory({url: 'https://api'});
 
       await mongoFixtures.populate(dbContents);
@@ -122,7 +122,7 @@ describe('interfaces/profiles', () => {
     });
 
     it('Should fail to read a profile because it doesn\'t exist', async (index = '1') => {
-      const user = getFixture(['read', index, 'user.json']);
+      const user = getFixture({components: ['read', index, 'user.json']});
       const profiles = profilesFactory({url: 'https://api'});
 
       try {
@@ -135,8 +135,8 @@ describe('interfaces/profiles', () => {
     });
 
     it('Should fail to read a profile because of invalid permissions', async (index = '2') => {
-      const dbContents = getFixture(['read', index, 'dbContents.json']);
-      const user = getFixture(['read', index, 'user.json']);
+      const dbContents = getFixture({components: ['read', index, 'dbContents.json']});
+      const user = getFixture({components: ['read', index, 'user.json']});
       const profiles = profilesFactory({url: 'https://api'});
 
       await mongoFixtures.populate(dbContents);
@@ -153,9 +153,9 @@ describe('interfaces/profiles', () => {
 
   describe('#remove', () => {
     it('Should remove a profile', async (index = '0') => {
-      const dbContents = getFixture(['remove', index, 'dbContents.json']);
-      const expectedDb = getFixture(['remove', index, 'expectedDb.json']);
-      const user = getFixture(['remove', index, 'user.json']);
+      const dbContents = getFixture({components: ['remove', index, 'dbContents.json']});
+      const expectedDb = getFixture({components: ['remove', index, 'expectedDb.json']});
+      const user = getFixture({components: ['remove', index, 'user.json']});
       const profiles = profilesFactory({url: 'https://api'});
 
       await mongoFixtures.populate(dbContents);
@@ -167,7 +167,7 @@ describe('interfaces/profiles', () => {
     });
 
     it('Should fail to remove a profile because it doesn\'t exist', async (index = '1') => {
-      const user = getFixture(['remove', index, 'user.json']);
+      const user = getFixture({components: ['remove', index, 'user.json']});
       const profiles = profilesFactory({url: 'https://api'});
 
       try {
@@ -180,8 +180,8 @@ describe('interfaces/profiles', () => {
     });
 
     it('Should fail to remove a profile because of invalid permissions', async (index = '2') => {
-      const dbContents = getFixture(['remove', index, 'dbContents.json']);
-      const user = getFixture(['remove', index, 'user.json']);
+      const dbContents = getFixture({components: ['remove', index, 'dbContents.json']});
+      const user = getFixture({components: ['remove', index, 'user.json']});
       const profiles = profilesFactory({url: 'https://api'});
 
       await mongoFixtures.populate(dbContents);
@@ -198,16 +198,16 @@ describe('interfaces/profiles', () => {
 
   describe('#query', () => {
     it('Should return an empty list', async (index = '0') => {
-      const expectedResults = getFixture(['query', index, 'results.json']);
+      const expectedResults = getFixture({components: ['query', index, 'results.json']});
       const profiles = profilesFactory({url: 'https://api'});
       const results = await profiles.query({user: {}});
       expect(results).to.eql(expectedResults);
     });
 
     it('Should return a list of profiles', async (index = '1') => {
-      const dbContents = getFixture(['query', index, 'dbContents.json']);
-      const user = getFixture(['query', index, 'user.json']);
-      const expectedResults = getFixture(['query', index, 'results.json']);
+      const dbContents = getFixture({components: ['query', index, 'dbContents.json']});
+      const user = getFixture({components: ['query', index, 'user.json']});
+      const expectedResults = getFixture({components: ['query', index, 'results.json']});
       const profiles = profilesFactory({url: 'https://api'});
 
       await mongoFixtures.populate(dbContents);
@@ -217,9 +217,9 @@ describe('interfaces/profiles', () => {
     });
 
     it('Should return an empty list because of no permissions to read profiles', async (index = '2') => {
-      const dbContents = getFixture(['query', index, 'dbContents.json']);
-      const user = getFixture(['query', index, 'user.json']);
-      const expectedResults = getFixture(['query', index, 'results.json']);
+      const dbContents = getFixture({components: ['query', index, 'dbContents.json']});
+      const user = getFixture({components: ['query', index, 'user.json']});
+      const expectedResults = getFixture({components: ['query', index, 'results.json']});
       const profiles = profilesFactory({url: 'https://api'});
 
       await mongoFixtures.populate(dbContents);

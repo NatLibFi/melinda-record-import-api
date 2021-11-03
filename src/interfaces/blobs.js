@@ -52,9 +52,9 @@ export default function ({url}) {
     };
 
     const blobs = await Mongoose.models.BlobMetadata.find(await generateQuery(), undefined, queryOpts);
-    logger.log('debug', 'Interface/blobs/');
-    logger.log('debug', `Query state: ${state}`);
-    logger.log('debug', `Found ${blobs.length} blobs`);
+    logger.debug('Interface/blobs/');
+    logger.debug(`Query state: ${state}`);
+    logger.debug(`Found ${blobs.length} blobs`);
 
     if (blobs.length < BLOBS_QUERY_LIMIT) {
       return {results: blobs.map(format)};
@@ -206,6 +206,7 @@ export default function ({url}) {
           }
         }
 
+        logger.debug('Removing blob!');
         return Mongoose.models.BlobMetadata.deleteOne({id});
       }
 
@@ -279,7 +280,7 @@ export default function ({url}) {
     throw new ApiError(HttpStatus.NOT_FOUND);
   }
 
-  async function update({id, payload, user}) {
+  async function update({id, payload, user}) { // Updated 20211103
     const blob = await Mongoose.models.BlobMetadata.findOne({id});
     const {op} = payload;
 
@@ -288,38 +289,20 @@ export default function ({url}) {
       const permission = await checkPermission(op, user, bgroups);
       if (permission) {
         const doc = await getUpdateDoc(bgroups);
-        const conditions = [
-          {id},
-          {
-            state: {
-              $nin: [
-                BLOB_STATE.TRANSFORMATION_FAILED,
-                BLOB_STATE.ABORTED,
-                BLOB_STATE.PROCESSED
-              ]
-            }
-          }
-        ];
 
-        if (op === BLOB_UPDATE_OPERATIONS.recordProcessed) { // eslint-disable-line functional/no-conditional-statement
-          conditions.push({ // eslint-disable-line new-cap, functional/immutable-data
-            $expr: {
-              $gt: [
-                '$processingInfo.numberOfRecords',
-                {
-                  $sum: [
-                    {$size: '$processingInfo.failedRecords'},
-                    {$size: '$processingInfo.importResults'}
-                  ]
-                }
-              ]
-            }
-          });
+        const updateIfNotInStates = [BLOB_STATE.TRANSFORMATION_FAILED, BLOB_STATE.ABORTED, BLOB_STATE.PROCESSED];
+        if (updateIfNotInStates.includes(blob.state)) {
+          throw new ApiError(HttpStatus.CONFLICT);
         }
 
-        const {nModified} = await Mongoose.models.BlobMetadata.updateOne({$and: conditions}, doc);
+        const {numberOfRecords, failedRecords, importResults} = blob.processingInfo;
+        if (op === BLOB_UPDATE_OPERATIONS.recordProcessed && numberOfRecords <= failedRecords.length + importResults.length) { // eslint-disable-line functional/no-conditional-statement
+          throw new ApiError(HttpStatus.CONFLICT);
+        }
 
-        if (nModified === 0) { // eslint-disable-line functional/no-conditional-statement
+        const {modifiedCount} = await Mongoose.models.BlobMetadata.updateOne({id}, doc);
+
+        if (modifiedCount === 0) { // eslint-disable-line functional/no-conditional-statement
           throw new ApiError(HttpStatus.CONFLICT);
         }
 
@@ -349,12 +332,12 @@ export default function ({url}) {
         updateState, transformedRecord
       } = BLOB_UPDATE_OPERATIONS;
 
-      logger.log('debug', `Update blob: ${op}`);
+      logger.debug(`Update blob: ${op}`);
 
       if (op === updateState) {
         if (hasPermission('blobs', 'update', user.groups, bgroups.auth.groups)) {
           const {state} = payload;
-          logger.log('debug', `State update to ${state}`);
+          logger.debug(`State update to ${state}`);
 
           if ([
             BLOB_STATE.PROCESSING,
@@ -380,7 +363,7 @@ export default function ({url}) {
       }
 
       if (op === transformationFailed) {
-        logger.log('debug', `case: ${op}, Error: ${payload.error}`);
+        logger.debug(`case: ${op}, Error: ${payload.error}`);
         return {
           state: BLOB_STATE.TRANSFORMATION_FAILED,
           modificationTime: moment(),
@@ -428,7 +411,7 @@ export default function ({url}) {
         throw new ApiError(HttpStatus.UNPROCESSABLE_ENTITY);
       }
 
-      logger.log('error', 'Blob update case was not found');
+      logger.error('Blob update case was not found');
       throw new ApiError(HttpStatus.UNPROCESSABLE_ENTITY);
     }
   }
@@ -441,12 +424,15 @@ export default function ({url}) {
     }
   }
 
-  function getFileMetadata(filename) {
-    return new Promise((resolve, reject) => {
-      gridFSBucket.find({filename})
-        .on('error', reject)
-        .on('data', resolve)
-        .on('end', () => reject(new ApiError(HttpStatus.NOT_FOUND)));
-    });
+  async function getFileMetadata(filename) {
+    logger.debug('Getting file metadata!');
+    const files = await gridFSBucket.find({filename}).toArray();
+    if (files.length === 0) {
+      logger.debug('No file metadata found!');
+      throw new ApiError(HttpStatus.NOT_FOUND);
+    }
+
+    logger.debug('Returning file metadata!');
+    return files[0];
   }
 }
