@@ -69,7 +69,7 @@ async function run() {
   Mongoose.set('debug', MONGO_DEBUG);
 
   try {
-    await Mongoose.connect(MONGO_URI, {useNewUrlParser: true, poolSize: MONGO_POOLSIZE, useUnifiedTopology: true});
+    await Mongoose.connect(MONGO_URI, {useNewUrlParser: true, maxPoolSize: MONGO_POOLSIZE, useUnifiedTopology: true});
   } catch (err) {
     throw new Error(`Failed connecting to MongoDB: ${err instanceof Error ? err.stack : err}`);
   }
