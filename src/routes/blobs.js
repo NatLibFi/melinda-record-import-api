@@ -33,6 +33,7 @@ import {blobsFactory} from '../interfaces';
 import validateContentType from '@natlibfi/express-validate-content-type';
 import {validateMax as validateContentLength} from 'express-content-length-validator';
 import {API_URL, CONTENT_MAX_LENGTH} from '../config';
+import sanitize from 'mongo-sanitize';
 
 export default function (passportMiddleware) {
   const blobs = blobsFactory({url: API_URL});
@@ -74,8 +75,9 @@ export default function (passportMiddleware) {
       return Object.keys(req.query)
         .filter(k => KEYS.includes(k))
         .reduce((acc, k) => {
-          const value = req.query[k];
-          return {...acc, [k]: Array.isArray(value) ? value : [value]};
+          const cleanedK = sanitize(k);
+          const value = sanitize(req.query[k]);
+          return {...acc, [cleanedK]: Array.isArray(value) ? value : [value]};
         }, {});
     }
   }
