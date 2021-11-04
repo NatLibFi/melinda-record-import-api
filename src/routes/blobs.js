@@ -54,10 +54,10 @@ export default function (passportMiddleware) {
       const parameters = {user: req.user, ...queryParams};
 
       if (req.get('QueryOffset')) { // eslint-disable-line functional/no-conditional-statement
-        parameters.offset = req.get('QueryOffset'); // eslint-disable-line functional/immutable-data
+        parameters.offset = sanitize(req.get('QueryOffset')); // eslint-disable-line functional/immutable-data
       }
 
-      const {nextOffset, results} = await blobs.query(parameters);
+      const {nextOffset, results} = await blobs.query(parameters); // njsscan-ignore: node_sqli_injection
 
       if (nextOffset) {
         res.set('NextOffset', nextOffset);
