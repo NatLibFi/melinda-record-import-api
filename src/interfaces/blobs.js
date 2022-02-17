@@ -329,7 +329,7 @@ export default function ({url}) {
     function getUpdateDoc(bgroups) {
       const {
         abort, recordProcessed, transformationFailed,
-        updateState, transformedRecord
+        updateState, transformedRecord, addCorrelationId
       } = BLOB_UPDATE_OPERATIONS;
 
       logger.debug(`Update blob: ${op}`);
@@ -340,8 +340,9 @@ export default function ({url}) {
           logger.debug(`State update to ${state}`);
 
           if ([
-            BLOB_STATE.PROCESSING,
             BLOB_STATE.PROCESSED,
+            BLOB_STATE.PROCESSING,
+            BLOB_STATE.PROCESSING_BULK,
             BLOB_STATE.PENDING_TRANSFORMATION,
             BLOB_STATE.TRANSFORMATION_IN_PROGRESS,
             BLOB_STATE.TRANSFORMED
@@ -409,6 +410,14 @@ export default function ({url}) {
         }
 
         throw new ApiError(HttpStatus.UNPROCESSABLE_ENTITY);
+      }
+
+      if (op === addCorrelationId) {
+        logger.debug(`case: ${op}, Error: ${payload.error}`);
+        return {
+          modificationTime: moment(),
+          correlationId: payload.correlationId
+        };
       }
 
       logger.error('Blob update case was not found');
