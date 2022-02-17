@@ -7,7 +7,8 @@
         "state": "PENDING_TRANSFORMATION",
         "numberOfRecords": 0,
         "failedRecords": 0,
-        "processedRecords": 0
+        "processedRecords": 0,
+        "correlationId": ""
     },
     {
         "id": "2",
@@ -17,7 +18,8 @@
         "state": "PENDING_TRANSFORMATION",
         "numberOfRecords": 0,
         "failedRecords": 0,
-        "processedRecords": 0   
+        "processedRecords": 0,
+        "correlationId": ""
     },
     {
         "id": "3",
@@ -27,6 +29,7 @@
         "state": "PENDING_TRANSFORMATION",
         "numberOfRecords": 0,
         "failedRecords": 0,
-        "processedRecords": 0   
-    }    
+        "processedRecords": 0,
+        "correlationId": ""
+    }
 ]

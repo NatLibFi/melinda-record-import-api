@@ -413,7 +413,7 @@ export default function ({url}) {
       }
 
       if (op === addCorrelationId) {
-        logger.debug(`case: ${op}, Error: ${payload.error}`);
+        logger.debug(`case: ${op}, CorrelationId: ${payload.correlationId}`);
         return {
           modificationTime: moment(),
           correlationId: payload.correlationId

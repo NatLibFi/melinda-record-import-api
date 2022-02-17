@@ -144,7 +144,8 @@ describe('interfaces/blobs', () => {
     it('Should update blob state', () => testUpdate('13'));
     it('Should fail to update blob state because of invalid permissions', () => testError({index: '14', status: HttpStatus.FORBIDDEN}));
     it('Should add failed record to blobs failedRecords array', () => testUpdate('15'));
-    it('Should increase numberOfRecords to blobs on succesfull record handling', () => testUpdate('15'));
+    it('Should increase numberOfRecords to blobs on succesfull record handling', () => testUpdate('16'));
+    it('Should set CorrelationId', () => testUpdate('17'));
 
     async function testError({index, status}) {
       const dbContents = getFixture({components: ['update', index, 'dbContents.json']});

@@ -7,5 +7,6 @@
     "profile": "foo",
     "id": "foo",
     "state": "PENDING_TRANSFORMATION",
-    "contentType": "foo/bar"        
+    "contentType": "foo/bar",
+    "correlationId": ""
 }
