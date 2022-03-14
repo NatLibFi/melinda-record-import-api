@@ -2,7 +2,8 @@
     "processingInfo": {
         "numberOfRecords": 0,
         "failedRecords": [],
-        "importResults": []
+        "importResults": [],
+        "queuedRecords": []
     },
     "profile": "foo",
     "id": "foo",

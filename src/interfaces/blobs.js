@@ -328,7 +328,7 @@ export default function ({url}) {
 
     function getUpdateDoc(bgroups) {
       const {
-        abort, recordProcessed, transformationFailed,
+        abort, recordProcessed, recordQueued, transformationFailed,
         updateState, transformedRecord, addCorrelationId
       } = BLOB_UPDATE_OPERATIONS;
 
@@ -410,6 +410,20 @@ export default function ({url}) {
         }
 
         throw new ApiError(HttpStatus.UNPROCESSABLE_ENTITY);
+      }
+
+      logger.debug(`recordQueued: ${recordQueued}`);
+      if (op === recordQueued) {
+        logger.debug('recordQueued');
+        return {
+          modificationTime: moment(),
+          $push: {
+            'processingInfo.queuedRecords': {
+              title: payload.title,
+              standardIdentifiers: payload.standardIdentifiers
+            }
+          }
+        };
       }
 
       if (op === addCorrelationId) {

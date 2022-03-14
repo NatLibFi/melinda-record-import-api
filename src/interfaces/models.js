@@ -58,7 +58,7 @@ export const ProfileModel = new Schema({
 
 export const BlobMetadataModel = new Schema({
   id: {type: String, required: true, unique: true},
-  correlationId: {type: String, unique: true, default: ''},
+  correlationId: {type: String, default: ''},
   profile: {type: String, required: true},
   contentType: {type: String, required: true},
   state: {
@@ -73,6 +73,11 @@ export const BlobMetadataModel = new Schema({
     transformationError: {},
     numberOfRecords: {type: Number, required: true, default: 0},
     failedRecords: [],
+    queuedRecords: [new Schema({
+      title: {type: String, required: true},
+      standardIdentifiers: [],
+      timestamp: {type: Date, default: Date.now}
+    }, {_id: false})],
     importResults: [new Schema({
       status: {
         type: String,
