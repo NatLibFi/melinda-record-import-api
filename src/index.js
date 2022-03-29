@@ -47,7 +47,6 @@ import {
   CROWD_URL, CROWD_APP_NAME, CROWD_APP_PASSWORD,
   PASSPORT_LOCAL_USERS, SOCKET_KEEP_ALIVE_TIMEOUT
 } from './config';
-import httpStatus from 'http-status';
 
 run();
 
@@ -104,7 +103,7 @@ async function run() {
   function pathValidator(req, res, next) {
     if (req.path.startsWith(/^\/\//u)) {
       logger.debug(`path: ${req.path}`);
-      res.status(httpStatus.BAD_REQUEST).send('Invalid URL: extra /');
+      return res.status(HttpStatus.BAD_REQUEST).send('Invalid URL: extra /');
     }
     next();
   }
