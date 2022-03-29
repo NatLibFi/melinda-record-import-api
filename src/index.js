@@ -86,6 +86,7 @@ async function run() {
 
   app.use(cors());
 
+  app.use(pathLogger);
   app.use('/', createApiDocRouter());
   app.use('/auth', createAuthRouter(passportMiddlewares.credentials));
   app.use('/blobs', createBlobsRouter(passportMiddlewares.token));
@@ -98,6 +99,11 @@ async function run() {
   });
 
   setSocketKeepAlive();
+
+  function pathLogger(req, res, next) {
+    logger.debug(`Path: ${req.path()}`);
+    next();
+  }
 
   function handleError(err, req, res, next) { // eslint-disable-line no-unused-vars
     if (err instanceof ApiError || 'status' in err) {
