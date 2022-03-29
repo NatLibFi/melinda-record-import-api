@@ -101,7 +101,10 @@ async function run() {
   setSocketKeepAlive();
 
   function pathLogger(req, res, next) {
-    logger.debug(`Path: ${req.path()}`);
+    logger.debug(`host: ${req.host}`);
+    logger.debug(`baseUrl: ${req.baseUrl}`);
+    logger.debug(`path: ${req.path}`);
+    logger.debug(`ip: ${req.ip}`);
     next();
   }
 
