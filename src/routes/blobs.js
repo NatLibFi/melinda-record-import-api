@@ -34,9 +34,11 @@ import validateContentType from '@natlibfi/express-validate-content-type';
 import {validateMax as validateContentLength} from 'express-content-length-validator';
 import {API_URL, CONTENT_MAX_LENGTH} from '../config';
 import sanitize from 'mongo-sanitize';
+import createDebugLogger from 'debug';
 
 export default function (passportMiddleware) {
   const blobs = blobsFactory({url: API_URL});
+  const debug = createDebugLogger('@natlibfi/melinda-record-import-api:route/blobs');
 
   return new Router()
     .use(passportMiddleware)
@@ -101,6 +103,8 @@ export default function (passportMiddleware) {
   }
 
   async function create(req, res, next) {
+    debug('Creating Blob');
+
     if ('content-type' in req.headers && 'import-profile' in req.headers) { // eslint-disable-line functional/no-conditional-statement
       try {
         const id = await blobs.create({

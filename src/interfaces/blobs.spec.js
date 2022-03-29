@@ -30,11 +30,13 @@ import {expect} from 'chai';
 import HttpStatus from 'http-status';
 import Mongoose from 'mongoose';
 import blobsFactory, {__RewireAPI__ as RewireAPI} from './blobs';
-import {ApiError} from '@natlibfi/melinda-record-import-commons';
 import fixtureFactory, {READERS} from '@natlibfi/fixura';
 import mongoFixturesFactory from '@natlibfi/fixura-mongo';
+import {Error as ApiError} from '@natlibfi/melinda-commons';
+import createDebugLogger from 'debug';
 
 describe('interfaces/blobs', () => {
+  const debug = createDebugLogger('@natlibfi/melinda-record-import-api:interface/blobs.SPEC');
   let mongoFixtures; // eslint-disable-line functional/no-let
   const {getFixture} = fixtureFactory({
     root: [__dirname, '..', '..', 'test-fixtures', 'blobs'],
@@ -91,6 +93,7 @@ describe('interfaces/blobs', () => {
         await blobs.create({contentType: 'foo/bar', profile: 'foo', inputStream, user});
         throw new Error('Should not succeed');
       } catch (err) {
+        debug(err);
         expect(err).to.be.instanceOf(ApiError);
         expect(err.status).to.equal(HttpStatus.BAD_REQUEST);
       }

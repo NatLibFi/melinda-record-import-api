@@ -31,15 +31,18 @@ import Mongoose from 'mongoose';
 import moment from 'moment';
 import {GridFSBucket, ObjectId} from 'mongodb';
 import {v4 as uuid} from 'uuid';
-import {BLOB_UPDATE_OPERATIONS, BLOB_STATE, ApiError} from '@natlibfi/melinda-record-import-commons';
+import {BLOB_UPDATE_OPERATIONS, BLOB_STATE} from '@natlibfi/melinda-record-import-commons';
 import {BlobMetadataModel, ProfileModel} from './models';
 import {hasPermission} from './utils';
 import {BLOBS_QUERY_LIMIT} from '../config';
 import {createLogger} from '@natlibfi/melinda-backend-commons';
+import {Error as ApiError} from '@natlibfi/melinda-commons';
+import createDebugLogger from 'debug';
 
 export default function ({url}) {
   const gridFSBucket = new GridFSBucket(Mongoose.connection.db, {bucketName: 'blobs'});
   const logger = createLogger();
+  const debug = createDebugLogger('@natlibfi/melinda-record-import-api:route/blobs');
 
   Mongoose.model('BlobMetadata', BlobMetadataModel);
   Mongoose.model('Profile', ProfileModel);
@@ -67,22 +70,23 @@ export default function ({url}) {
 
     function format(doc) {
       const blob = formatDocument(doc);
-      const {numberOfRecords, failedRecords, processedRecords} = getRecordStats();
+      const {numberOfRecords, failedRecords, processedRecords, queuedRecords} = getRecordStats();
 
       delete blob.processingInfo; // eslint-disable-line functional/immutable-data
 
       return {
         ...blob,
-        numberOfRecords, failedRecords, processedRecords,
+        numberOfRecords, failedRecords, processedRecords, queuedRecords,
         url: `${url}/blobs/${blob.id}`
       };
 
       function getRecordStats() {
-        const {processingInfo: {numberOfRecords, failedRecords, importResults}} = blob;
+        const {processingInfo: {numberOfRecords, failedRecords, importResults, queuedRecords}} = blob;
         return {
           numberOfRecords,
           failedRecords: failedRecords.length,
-          processedRecords: importResults.length
+          processedRecords: importResults.length,
+          queuedRecords: queuedRecords.length
         };
       }
     }
@@ -169,10 +173,10 @@ export default function ({url}) {
         return blob;
       }
 
-      throw new ApiError(HttpStatus.FORBIDDEN);
+      throw new ApiError(HttpStatus.FORBIDDEN, 'Blob read permission error');
     }
 
-    throw new ApiError(HttpStatus.NOT_FOUND);
+    throw new ApiError(HttpStatus.NOT_FOUND, 'Blob not found');
   }
 
   function formatDocument(doc) {
@@ -199,7 +203,7 @@ export default function ({url}) {
       if (hasPermission('blobs', 'remove', user.groups)) {
         try {
           await getFileMetadata(id);
-          throw new ApiError(HttpStatus.BAD_REQUEST);
+          throw new ApiError(HttpStatus.BAD_REQUEST, 'Request error');
         } catch (err) {
           if (!(err instanceof ApiError && err.status === HttpStatus.NOT_FOUND)) { // eslint-disable-line functional/no-conditional-statement
             throw err;
@@ -210,10 +214,10 @@ export default function ({url}) {
         return Mongoose.models.BlobMetadata.deleteOne({id});
       }
 
-      throw new ApiError(HttpStatus.FORBIDDEN);
+      throw new ApiError(HttpStatus.FORBIDDEN, 'Blob removal permission error');
     }
 
-    throw new ApiError(HttpStatus.NOT_FOUND);
+    throw new ApiError(HttpStatus.NOT_FOUND, 'Blob not found');
   }
 
   async function create({inputStream, profile, contentType, user}) {
@@ -238,10 +242,11 @@ export default function ({url}) {
         });
       }
 
-      throw new ApiError(HttpStatus.FORBIDDEN);
+      throw new ApiError(HttpStatus.FORBIDDEN, 'Blob creation permission error');
     }
 
-    throw new ApiError(HttpStatus.BAD_REQUEST);
+    debug('Blob create invalid profile');
+    throw new ApiError(HttpStatus.BAD_REQUEST, 'Blob create profile not found');
   }
 
   async function readContent({id, user}) {
@@ -259,10 +264,10 @@ export default function ({url}) {
         };
       }
 
-      throw new ApiError(HttpStatus.FORBIDDEN);
+      throw new ApiError(HttpStatus.FORBIDDEN, 'Blob readContent permission error');
     }
 
-    throw new ApiError(HttpStatus.NOT_FOUND);
+    throw new ApiError(HttpStatus.NOT_FOUND, 'Blob not found');
   }
 
   async function removeContent({id, user}) {
@@ -274,10 +279,10 @@ export default function ({url}) {
         return gridFSBucket.delete(fileId);
       }
 
-      throw new ApiError(HttpStatus.FORBIDDEN);
+      throw new ApiError(HttpStatus.FORBIDDEN, 'Blob removeContent permission error');
     }
 
-    throw new ApiError(HttpStatus.NOT_FOUND);
+    throw new ApiError(HttpStatus.NOT_FOUND, 'Blob not found');
   }
 
   async function update({id, payload, user}) { // Updated 20211103
@@ -309,10 +314,10 @@ export default function ({url}) {
         return;
       }
 
-      throw new ApiError(HttpStatus.FORBIDDEN);
+      throw new ApiError(HttpStatus.FORBIDDEN, 'Blob update/abort permission error');
     }
 
-    throw new ApiError(HttpStatus.NOT_FOUND);
+    throw new ApiError(HttpStatus.NOT_FOUND, 'Blob not found');
 
     function checkPermission(op, user, bgroups) {
       if (op) {
@@ -323,10 +328,10 @@ export default function ({url}) {
         return hasPermission('blobs', 'update', user.groups, bgroups.auth.groups);
       }
 
-      throw new ApiError(HttpStatus.UNPROCESSABLE_ENTITY);
+      throw new ApiError(HttpStatus.UNPROCESSABLE_ENTITY, 'Blob update operation error');
     }
 
-    function getUpdateDoc(bgroups) {
+    function getUpdateDoc() {
       const {
         abort, recordProcessed, recordQueued, transformationFailed,
         updateState, transformedRecord, addCorrelationId
@@ -335,29 +340,35 @@ export default function ({url}) {
       logger.debug(`Update blob: ${op}`);
 
       if (op === updateState) {
-        if (hasPermission('blobs', 'update', user.groups, bgroups.auth.groups)) {
-          const {state} = payload;
-          logger.debug(`State update to ${state}`);
+        const {state} = payload;
+        logger.debug(`State update to ${state}`);
 
-          if ([
-            BLOB_STATE.PROCESSED,
-            BLOB_STATE.PROCESSING,
-            BLOB_STATE.PROCESSING_BULK,
-            BLOB_STATE.PENDING_TRANSFORMATION,
-            BLOB_STATE.TRANSFORMATION_IN_PROGRESS,
-            BLOB_STATE.TRANSFORMED
-          ].includes(state)) {
-            return {state, modificationTime: moment()};
-          }
-
-          throw new ApiError(HttpStatus.UNPROCESSABLE_ENTITY);
+        if ([
+          BLOB_STATE.PROCESSED,
+          BLOB_STATE.PROCESSING,
+          BLOB_STATE.PROCESSING_BULK,
+          BLOB_STATE.PENDING_TRANSFORMATION,
+          BLOB_STATE.TRANSFORMATION_IN_PROGRESS,
+          BLOB_STATE.TRANSFORMED
+        ].includes(state)) {
+          return {state, modificationTime: moment()};
         }
 
-        throw new ApiError(HttpStatus.FORBIDDEN);
+        throw new ApiError(HttpStatus.UNPROCESSABLE_ENTITY, 'Blob update state error');
       }
 
       if (op === abort) {
+        const {correlationId} = blob;
+
+        if (correlationId === '') {
+          return {
+            state: BLOB_STATE.ABORTED,
+            modificationTime: moment()
+          };
+        }
+
         return {
+          correlationId,
           state: BLOB_STATE.ABORTED,
           modificationTime: moment()
         };
@@ -397,19 +408,15 @@ export default function ({url}) {
       }
 
       if (op === recordProcessed) {
-        if ('status' in payload) {
-          return {
-            modificationTime: moment(),
-            $push: {
-              'processingInfo.importResults': {
-                status: payload.status,
-                metadata: payload.metadata
-              }
+        return {
+          modificationTime: moment(),
+          $push: {
+            'processingInfo.importResults': {
+              status: payload.status,
+              metadata: payload.metadata
             }
-          };
-        }
-
-        throw new ApiError(HttpStatus.UNPROCESSABLE_ENTITY);
+          }
+        };
       }
 
       logger.debug(`recordQueued: ${recordQueued}`);
@@ -435,7 +442,7 @@ export default function ({url}) {
       }
 
       logger.error('Blob update case was not found');
-      throw new ApiError(HttpStatus.UNPROCESSABLE_ENTITY);
+      throw new ApiError(HttpStatus.UNPROCESSABLE_ENTITY, 'Blob update operation error');
     }
   }
 
@@ -452,7 +459,7 @@ export default function ({url}) {
     const files = await gridFSBucket.find({filename}).toArray();
     if (files.length === 0) {
       logger.debug('No file metadata found!');
-      throw new ApiError(HttpStatus.NOT_FOUND);
+      throw new ApiError(HttpStatus.NOT_FOUND, 'File metadata not found');
     }
 
     logger.debug('Returning file metadata!');

@@ -30,11 +30,13 @@ import {expect} from 'chai';
 import HttpStatus from 'http-status';
 import Mongoose from 'mongoose';
 import profilesFactory from './profiles';
-import {ApiError} from '@natlibfi/melinda-record-import-commons';
 import fixtureFactory, {READERS} from '@natlibfi/fixura';
 import mongoFixtureFactory from '@natlibfi/fixura-mongo';
+import {Error as ApiError} from '@natlibfi/melinda-commons';
+import createDebugLogger from 'debug';
 
 describe('interfaces/profiles', () => {
+  const debug = createDebugLogger('@natlibfi/melinda-record-import-api:interface/profiles.SPEC');
   let mongoFixtures; // eslint-disable-line functional/no-let
   const {getFixture} = fixtureFactory({
     root: [__dirname, '..', '..', 'test-fixtures', 'profiles'],
@@ -129,8 +131,13 @@ describe('interfaces/profiles', () => {
         await profiles.read({id: 'foo', user});
         throw new Error('Should not succeed');
       } catch (err) {
-        expect(err).to.be.an.instanceOf(ApiError);
-        expect(err.status).to.equal(HttpStatus.NOT_FOUND);
+
+        if (err instanceof ApiError) {
+          debug(err);
+          return expect(err.status).to.equal(HttpStatus.NOT_FOUND);
+        }
+
+        throw new Error('Should be ApiError');
       }
     });
 

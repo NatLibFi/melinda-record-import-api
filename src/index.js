@@ -58,6 +58,7 @@ async function run() {
   const logger = createLogger();
   const app = express();
 
+  logger.info(`Setting up crowd authentication: ${CROWD_URL}`);
   const passportMiddlewares = generatePassportMiddlewares({
     localUsers: PASSPORT_LOCAL_USERS,
     crowd: {
