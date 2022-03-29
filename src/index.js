@@ -47,6 +47,7 @@ import {
   CROWD_URL, CROWD_APP_NAME, CROWD_APP_PASSWORD,
   PASSPORT_LOCAL_USERS, SOCKET_KEEP_ALIVE_TIMEOUT
 } from './config';
+import httpStatus from 'http-status';
 
 run();
 
@@ -86,7 +87,7 @@ async function run() {
 
   app.use(cors());
 
-  app.use(pathLogger);
+  app.use(pathValidator);
   app.use('/', createApiDocRouter());
   app.use('/auth', createAuthRouter(passportMiddlewares.credentials));
   app.use('/blobs', createBlobsRouter(passportMiddlewares.token));
@@ -100,11 +101,11 @@ async function run() {
 
   setSocketKeepAlive();
 
-  function pathLogger(req, res, next) {
-    logger.debug(`host: ${req.host}`);
-    logger.debug(`baseUrl: ${req.baseUrl}`);
-    logger.debug(`path: ${req.path}`);
-    logger.debug(`ip: ${req.ip}`);
+  function pathValidator(req, res, next) {
+    if (req.path.startsWith(/^\/\//u)) {
+      logger.debug(`path: ${req.path}`);
+      res.status(httpStatus.BAD_REQUEST).send('Invalid URL: extra /');
+    }
     next();
   }
 
