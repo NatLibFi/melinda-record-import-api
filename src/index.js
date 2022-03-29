@@ -101,7 +101,7 @@ async function run() {
   setSocketKeepAlive();
 
   function pathValidator(req, res, next) {
-    if (req.path.startsWith(/^\/\//u)) {
+    if (req.path.startsWith('//')) {
       logger.debug(`path: ${req.path}`);
       return res.status(HttpStatus.BAD_REQUEST).send('Invalid URL: extra /');
     }
