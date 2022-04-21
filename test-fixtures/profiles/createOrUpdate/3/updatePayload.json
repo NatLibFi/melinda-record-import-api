@@ -1,11 +1,5 @@
 {
     "auth": {
         "groups": ["admin"]
-    },
-    "transformation": {
-        "image": "foo"
-    },
-    "import": {
-        "image": "bar"
     }
 }
