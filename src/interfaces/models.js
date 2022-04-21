@@ -40,19 +40,6 @@ export const ProfileModel = new Schema({
       type: String,
       required: true
     }]
-  },
-  transformation: {
-    type: Object,
-    required: true,
-    image: {type: String, required: true},
-    env: {type: Object}
-  },
-  import: {
-    type: Object,
-    required: true,
-    image: {type: String, required: true},
-    concurrency: {type: Number},
-    env: {type: Object}
   }
 }, {strict: 'throw'});
 

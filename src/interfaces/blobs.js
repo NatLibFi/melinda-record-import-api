@@ -34,15 +34,18 @@ import {v4 as uuid} from 'uuid';
 import {BLOB_UPDATE_OPERATIONS, BLOB_STATE} from '@natlibfi/melinda-record-import-commons';
 import {BlobMetadataModel, ProfileModel} from './models';
 import {hasPermission} from './utils';
-import {BLOBS_QUERY_LIMIT} from '../config';
+import {BLOBS_QUERY_LIMIT, melindaApiOptions} from '../config';
 import {createLogger} from '@natlibfi/melinda-backend-commons';
 import {Error as ApiError} from '@natlibfi/melinda-commons';
 import createDebugLogger from 'debug';
+import {createApiClient as createMelindaApiClient} from '@natlibfi/melinda-rest-api-client';
+import {QUEUE_ITEM_STATE} from '@natlibfi/melinda-rest-api-commons';
 
 export default function ({url}) {
   const gridFSBucket = new GridFSBucket(Mongoose.connection.db, {bucketName: 'blobs'});
   const logger = createLogger();
   const debug = createDebugLogger('@natlibfi/melinda-record-import-api:route/blobs');
+  const melindaApiClient = melindaApiOptions.melindaApiUrl ? createMelindaApiClient(melindaApiOptions) : false;
 
   Mongoose.model('BlobMetadata', BlobMetadataModel);
   Mongoose.model('Profile', ProfileModel);
@@ -309,6 +312,11 @@ export default function ({url}) {
 
         if (modifiedCount === 0) { // eslint-disable-line functional/no-conditional-statement
           throw new ApiError(HttpStatus.CONFLICT);
+        }
+
+        if (melindaApiOptions.melindaApiUrl && doc.correlationId) {
+          await melindaApiClient.setBulkStatus(doc.correlationId, QUEUE_ITEM_STATE.ABORT);
+          return;
         }
 
         return;

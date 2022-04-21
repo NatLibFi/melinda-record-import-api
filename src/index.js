@@ -105,6 +105,7 @@ async function run() {
       logger.debug(`path: ${req.path}`);
       return res.status(HttpStatus.BAD_REQUEST).send('Invalid URL: extra /');
     }
+
     next();
   }
 
