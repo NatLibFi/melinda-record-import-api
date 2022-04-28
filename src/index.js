@@ -28,7 +28,7 @@
 
 import {createLogger, createExpressLogger, handleInterrupt} from '@natlibfi/melinda-backend-commons';
 import {generatePassportMiddlewares} from '@natlibfi/passport-melinda-crowd';
-import {ApiError} from '@natlibfi/melinda-record-import-commons';
+import {Error as ApiError} from '@natlibfi/melinda-commons';
 import HttpStatus from 'http-status';
 import passport from 'passport';
 import express from 'express';

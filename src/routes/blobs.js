@@ -51,6 +51,8 @@ export default function (passportMiddleware) {
     .delete('/:id/content', removeContent);
 
   async function query(req, res, next) {
+    debug('Query Blob');
+
     try {
       const queryParams = getQueryParams();
       const parameters = {user: req.user, ...queryParams};
@@ -85,6 +87,8 @@ export default function (passportMiddleware) {
   }
 
   async function read(req, res, next) {
+    debug('Read Blob');
+
     try {
       const result = await blobs.read({id: req.params.id, user: req.user});
       res.json(result);
@@ -94,6 +98,8 @@ export default function (passportMiddleware) {
   }
 
   async function remove(req, res, next) {
+    debug('Remove Blob');
+
     try {
       await blobs.remove({id: req.params.id, user: req.user});
       res.sendStatus(HttpStatus.NO_CONTENT);
@@ -124,6 +130,8 @@ export default function (passportMiddleware) {
   }
 
   async function update(req, res, next) {
+    debug('Update Blob');
+
     try {
       await blobs.update({
         id: req.params.id, user: req.user,
@@ -137,6 +145,8 @@ export default function (passportMiddleware) {
   }
 
   async function readContent(req, res, next) {
+    debug('Read content Blob');
+
     try {
       const {contentType, readStream} = await blobs.readContent({id: req.params.id, user: req.user});
       res.set('Content-Type', contentType);
@@ -147,6 +157,8 @@ export default function (passportMiddleware) {
   }
 
   async function removeContent(req, res, next) {
+    debug('Remove content Blob');
+
     try {
       await blobs.removeContent({id: req.params.id, user: req.user});
       res.sendStatus(HttpStatus.NO_CONTENT);

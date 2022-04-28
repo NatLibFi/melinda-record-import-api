@@ -44,7 +44,7 @@ import {QUEUE_ITEM_STATE} from '@natlibfi/melinda-rest-api-commons';
 export default function ({url}) {
   const gridFSBucket = new GridFSBucket(Mongoose.connection.db, {bucketName: 'blobs'});
   const logger = createLogger();
-  const debug = createDebugLogger('@natlibfi/melinda-record-import-api:route/blobs');
+  const debug = createDebugLogger('@natlibfi/melinda-record-import-api:interface/blobs');
   const melindaApiClient = melindaApiOptions.melindaApiUrl ? createMelindaApiClient(melindaApiOptions) : false;
 
   Mongoose.model('BlobMetadata', BlobMetadataModel);
@@ -53,12 +53,12 @@ export default function ({url}) {
   return {query, read, create, update, remove, removeContent, readContent};
 
   async function query({profile, contentType, state, creationTime, modificationTime, user, offset}) {
+    debug('query');
     const queryOpts = {
       limit: BLOBS_QUERY_LIMIT
     };
 
     const blobs = await Mongoose.models.BlobMetadata.find(await generateQuery(), undefined, queryOpts);
-    logger.debug('Interface/blobs/');
     logger.debug(`Query state: ${state}`);
     logger.debug(`Found ${blobs.length} blobs`);
 
@@ -167,6 +167,8 @@ export default function ({url}) {
   }
 
   async function read({id, user}) {
+    debug('Read');
+
     const doc = await Mongoose.models.BlobMetadata.findOne({id});
 
     if (doc) {
