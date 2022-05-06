@@ -87,7 +87,7 @@ export default function (passportMiddleware) {
   }
 
   async function read(req, res, next) {
-    debug('Read Blob');
+    debug('Read blob');
 
     try {
       const result = await blobs.read({id: req.params.id, user: req.user});
@@ -109,7 +109,7 @@ export default function (passportMiddleware) {
   }
 
   async function create(req, res, next) {
-    debug('Creating Blob');
+    debug('Creating blob');
 
     if ('content-type' in req.headers && 'import-profile' in req.headers) { // eslint-disable-line functional/no-conditional-statement
       try {
@@ -130,7 +130,7 @@ export default function (passportMiddleware) {
   }
 
   async function update(req, res, next) {
-    debug('Update Blob');
+    debug('Update blob');
 
     try {
       await blobs.update({
@@ -145,7 +145,7 @@ export default function (passportMiddleware) {
   }
 
   async function readContent(req, res, next) {
-    debug('Read content Blob');
+    debug('Read content blob');
 
     try {
       const {contentType, readStream} = await blobs.readContent({id: req.params.id, user: req.user});
@@ -157,7 +157,7 @@ export default function (passportMiddleware) {
   }
 
   async function removeContent(req, res, next) {
-    debug('Remove content Blob');
+    debug('Remove content blob');
 
     try {
       await blobs.removeContent({id: req.params.id, user: req.user});

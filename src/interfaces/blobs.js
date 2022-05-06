@@ -59,8 +59,8 @@ export default function ({url}) {
     };
 
     const blobs = await Mongoose.models.BlobMetadata.find(await generateQuery(), undefined, queryOpts);
-    logger.debug(`Query state: ${state}`);
-    logger.debug(`Found ${blobs.length} blobs`);
+    logger.silly(`Query state: ${state}`);
+    logger.silly(`Found ${blobs.length} blobs`);
 
     if (blobs.length < BLOBS_QUERY_LIMIT) {
       return {results: blobs.map(format)};
@@ -72,7 +72,7 @@ export default function ({url}) {
     };
 
     function format(doc) {
-      const blob = formatDocument(doc);
+      const blob = formatBlobDocument(doc);
       const {numberOfRecords, failedRecords, processedRecords, queuedRecords} = getRecordStats();
 
       delete blob.processingInfo; // eslint-disable-line functional/immutable-data
@@ -172,7 +172,7 @@ export default function ({url}) {
     const doc = await Mongoose.models.BlobMetadata.findOne({id});
 
     if (doc) {
-      const blob = formatDocument(doc);
+      const blob = formatBlobDocument(doc);
       const bgroups = await getProfile(blob.profile);
       if (hasPermission('blobs', 'read', user.groups, bgroups.auth.groups)) {
         return blob;
@@ -184,7 +184,7 @@ export default function ({url}) {
     throw new ApiError(HttpStatus.NOT_FOUND, 'Blob not found');
   }
 
-  function formatDocument(doc) {
+  function formatBlobDocument(doc) {
     const blob = doc._doc;
 
     return Object.keys(blob).reduce((acc, key) => {
@@ -202,6 +202,7 @@ export default function ({url}) {
   }
 
   async function remove({id, user}) {
+    debug('Remove');
     const blob = await Mongoose.models.BlobMetadata.findOne({id});
 
     if (blob) {
@@ -226,6 +227,7 @@ export default function ({url}) {
   }
 
   async function create({inputStream, profile, contentType, user}) {
+    debug('Create');
     const profileContent = await getProfile(profile);
 
     if (profileContent) {
