@@ -17,11 +17,14 @@
     }],
     "blobmetadatas": [{
         "processingInfo": {
-          "numberOfRecords": 0,
+          "numberOfRecords": 2,
           "failedRecords": [],
-          "importResults": []
+          "importResults": [{
+            "status": "CREATED", "metadata": {"foo": "bar"},
+            "status": "CREATED", "metadata": {"foo": "bar"}
+          }]
         },
-        "state": "TRANSFORMATION_IN_PROGRESS",
+        "state": "TRANSFORMED",
         "id": "foo",
         "profile": "foo",
         "contentType": "foo/bar"        

@@ -1,0 +1,4 @@
+{
+  "description": "Should return blobs using state filter",
+  "params": {"state": ["ABORTED"]}
+}

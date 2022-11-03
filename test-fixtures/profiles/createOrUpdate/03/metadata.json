@@ -1,0 +1,5 @@
+{
+  "description": "Should fail to create a new profile because of invalid syntax",
+  "expectToFail": true,
+  "expectedFailStatus": 422
+}

@@ -2,6 +2,6 @@
     "op": "recordProcessed",
     "status": "CREATED",
     "metadata": {
-        "foo": "fubar"
+        "foo": "bar"
     }
 }

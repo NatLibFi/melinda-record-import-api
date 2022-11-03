@@ -1,0 +1,5 @@
+{
+  "description": "Should fail because all records have been processed",
+  "expectToFail": true,
+  "expectedFailStatus": 409
+}

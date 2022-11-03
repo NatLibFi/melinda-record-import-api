@@ -1,0 +1,5 @@
+{
+  "description": "Should fail because current state doesn't allow updates",
+  "expectToFail": true,
+  "expectedFailStatus": 409
+}

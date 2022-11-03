@@ -19,9 +19,7 @@
         "processingInfo": {
           "numberOfRecords": 2,
           "failedRecords": [],
-          "importResults": [{
-            "status": "CREATED", "metadata": {"foo": "bar"}
-          }]
+          "importResults": []
         },
         "state": "TRANSFORMED",
         "id": "foo",

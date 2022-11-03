@@ -41,7 +41,7 @@ export const ProfileModel = new Schema({
       required: true
     }]
   }
-}, {strict: 'throw'});
+}, {strict: 'throw', versionKey: false});
 
 export const BlobMetadataModel = new Schema({
   id: {type: String, required: true, unique: true},
@@ -75,4 +75,4 @@ export const BlobMetadataModel = new Schema({
       metadata: {}
     }, {_id: false})]
   }
-}, {strict: 'throw'});
+}, {strict: 'throw', versionKey: false});

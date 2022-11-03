@@ -1,4 +1,4 @@
 {
-    "op": "addCorrelationId",
-    "correlationId": "c6579128-1b15-473b-9a43-ac0ba3fb8c37"
+    "op": "transformedRecord",
+    "error": null
 }

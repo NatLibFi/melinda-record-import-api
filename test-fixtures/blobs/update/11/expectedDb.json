@@ -16,16 +16,17 @@
       "filename": "foo"
   }],
   "blobmetadatas": [{
-      "processingInfo": {
+    "processingInfo": {
         "numberOfRecords": 2,
         "failedRecords": [],
-        "importResults": [{
-            "status": "CREATED", "metadata": {"foo": "bar"}
-        }]
-      },
-      "state": "ABORTED",
-      "id": "foo",
-      "profile": "foo",
-      "contentType": "foo/bar"
-    }]
+        "importResults": [
+            {"status": "CREATED", "metadata": {"foo": "bar"}},
+            {"status": "CREATED", "metadata": {"foo": "fubar"}}
+        ]
+    },
+    "state": "TRANSFORMED",
+    "id": "foo",
+    "profile": "foo",
+    "contentType": "foo/bar"        
+  }]
 }

@@ -1,0 +1,5 @@
+{
+  "description": "Should fail to remove a profile because of invalid permissions",
+  "expectToFail": true,
+  "expectedFailStatus": 403
+}

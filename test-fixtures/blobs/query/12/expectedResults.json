@@ -1,7 +1,19 @@
 [
     {
-        "id": "4",
-        "url": "https://api/blobs/4",
+        "id": "1",
+        "url": "https://api/blobs/1",
+        "profile": "foo",
+        "contentType": "foo/bar",
+        "state": "PENDING_TRANSFORMATION",
+        "numberOfRecords": 0,
+        "failedRecords": 0,
+        "processedRecords": 0,
+        "queuedRecords": 0,
+        "correlationId": ""
+    },
+    {
+        "id": "2",
+        "url": "https://api/blobs/2",
         "profile": "foo",
         "contentType": "foo/bar"    ,
         "state": "PENDING_TRANSFORMATION",
@@ -12,8 +24,8 @@
         "correlationId": ""
     },
     {
-        "id": "5",
-        "url": "https://api/blobs/5",
+        "id": "3",
+        "url": "https://api/blobs/3",
         "profile": "foo",
         "contentType": "foo/bar"    ,
         "state": "PENDING_TRANSFORMATION",

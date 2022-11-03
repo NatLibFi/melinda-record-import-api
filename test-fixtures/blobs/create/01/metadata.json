@@ -1,0 +1,5 @@
+{
+  "description": "Should create a new blob",
+  "loadDbContents": true,
+  "loadExpectedDb": true
+}

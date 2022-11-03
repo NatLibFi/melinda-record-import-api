@@ -1,0 +1,71 @@
+{
+    "profiles": [{
+        "id": "foo",
+        "auth": {
+            "groups": ["foo"]
+        },
+        "transformation": {
+            "image": "foo"
+        },
+        "import": {
+            "image": "bar"
+        }
+    }],
+    "blobmetadatas": [
+        {
+            "_id": "5d40037160d7401bb6f944e4",
+            "processingInfo": {
+                "numberOfRecords": 0,
+                "failedRecords": [],
+                "importResults": []
+            },
+            "id": "1",
+            "profile": "foo",
+            "contentType": "foo/bar"        
+        },
+        {
+            "_id": "5d40037160d7401bb6f944e5",
+            "processingInfo": {
+                "numberOfRecords": 0,
+                "failedRecords": [],
+                "importResults": []
+            },
+            "id": "2",            
+            "profile": "foo",
+            "contentType": "foo/bar"        
+        },
+        {
+            "_id": "5d40037160d7401bb6f944e6",
+            "processingInfo": {
+                "numberOfRecords": 0,
+                "failedRecords": [],
+                "importResults": []
+            },
+            "id": "3",
+            "profile": "foo",
+            "contentType": "foo/bar"        
+        },
+        {
+            "_id": "5d40037160d7401bb6f944e7",
+            "processingInfo": {
+                "numberOfRecords": 0,
+                "failedRecords": [],
+                "importResults": []
+            },
+            "id": "4",
+            "profile": "foo",
+            "contentType": "foo/bar"        
+        },
+        {
+            "_id": "5d40037160d7401bb6f944e8",
+            "processingInfo": {
+                "numberOfRecords": 0,
+                "failedRecords": [],
+                "importResults": []
+            },
+            "id": "5",
+            "profile": "foo",
+            "contentType": "foo/bar"        
+        }
+    ]
+}

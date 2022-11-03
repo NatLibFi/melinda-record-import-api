@@ -1,0 +1,30 @@
+{
+  "profiles": [{
+      "id": "foo",
+      "auth": {
+          "groups": ["creator", "foo"]
+      },
+      "transformation": {
+          "image": "foo"
+      },
+      "import": {
+          "image": "bar"
+      }
+  }],
+  "blobs.chunks": [{}],
+  "blobs.files": [{
+      "filename": "foo"
+  }],
+  "blobmetadatas": [{
+      "processingInfo": {
+        "numberOfRecords": 2,
+        "failedRecords": [],
+        "importResults": []
+      },
+      "state": "TRANSFORMED",
+      "id": "foo",
+      "profile": "foo",
+      "contentType": "foo/bar",
+      "correlationId": "c6579128-1b15-473b-9a43-ac0ba3fb8c37"
+    }]
+}

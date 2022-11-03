@@ -1,1 +1,14 @@
-[]
+[
+    {
+        "id": "foo",
+        "url": "https://api/blobs/foo",
+        "profile": "foo",
+        "contentType": "foo/bar",
+        "state": "ABORTED",
+        "numberOfRecords": 0,
+        "failedRecords": 0,
+        "processedRecords": 0,
+        "queuedRecords": 0,
+        "correlationId": ""
+    }
+]

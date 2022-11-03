@@ -1,0 +1,5 @@
+{
+  "description": "Should fail because of invalid permissions",
+  "expectToFail": true,
+  "expectedFailStatus": 403
+}

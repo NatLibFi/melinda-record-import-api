@@ -206,7 +206,7 @@ export default function ({url}) {
     const blob = await Mongoose.models.BlobMetadata.findOne({id});
 
     if (blob) {
-      if (hasPermission('blobs', 'remove', user.groups)) {
+      if (hasPermission('blobs', 'remove', user.groups)) { // eslint-disable-line functional/no-conditional-statement
         try {
           await getFileMetadata(id);
           throw new ApiError(HttpStatus.BAD_REQUEST, 'Request error');
