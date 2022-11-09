@@ -33,9 +33,12 @@ import {blobsFactory} from '../interfaces';
 import validateContentType from '@natlibfi/express-validate-content-type';
 import {validateMax as validateContentLength} from 'express-content-length-validator';
 import {API_URL, CONTENT_MAX_LENGTH} from '../config';
+import sanitize from 'mongo-sanitize';
+import createDebugLogger from 'debug';
 
 export default function (passportMiddleware) {
   const blobs = blobsFactory({url: API_URL});
+  const debug = createDebugLogger('@natlibfi/melinda-record-import-api:route/blobs');
 
   return new Router()
     .use(passportMiddleware)
@@ -48,15 +51,17 @@ export default function (passportMiddleware) {
     .delete('/:id/content', removeContent);
 
   async function query(req, res, next) {
+    debug('Query Blob');
+
     try {
       const queryParams = getQueryParams();
       const parameters = {user: req.user, ...queryParams};
 
       if (req.get('QueryOffset')) { // eslint-disable-line functional/no-conditional-statement
-        parameters.offset = req.get('QueryOffset'); // eslint-disable-line functional/immutable-data
+        parameters.offset = sanitize(req.get('QueryOffset')); // eslint-disable-line functional/immutable-data
       }
 
-      const {nextOffset, results} = await blobs.query(parameters);
+      const {nextOffset, results} = await blobs.query(parameters); // njsscan-ignore: node_sqli_injection
 
       if (nextOffset) {
         res.set('NextOffset', nextOffset);
@@ -74,13 +79,16 @@ export default function (passportMiddleware) {
       return Object.keys(req.query)
         .filter(k => KEYS.includes(k))
         .reduce((acc, k) => {
-          const value = req.query[k];
-          return {...acc, [k]: Array.isArray(value) ? value : [value]};
+          const cleanedK = sanitize(k);
+          const value = sanitize(req.query[k]);
+          return {...acc, [cleanedK]: Array.isArray(value) ? value : [value]};
         }, {});
     }
   }
 
   async function read(req, res, next) {
+    debug('Read blob');
+
     try {
       const result = await blobs.read({id: req.params.id, user: req.user});
       res.json(result);
@@ -90,6 +98,8 @@ export default function (passportMiddleware) {
   }
 
   async function remove(req, res, next) {
+    debug('Remove Blob');
+
     try {
       await blobs.remove({id: req.params.id, user: req.user});
       res.sendStatus(HttpStatus.NO_CONTENT);
@@ -99,6 +109,8 @@ export default function (passportMiddleware) {
   }
 
   async function create(req, res, next) {
+    debug('Creating blob');
+
     if ('content-type' in req.headers && 'import-profile' in req.headers) { // eslint-disable-line functional/no-conditional-statement
       try {
         const id = await blobs.create({
@@ -118,6 +130,8 @@ export default function (passportMiddleware) {
   }
 
   async function update(req, res, next) {
+    debug('Update blob');
+
     try {
       await blobs.update({
         id: req.params.id, user: req.user,
@@ -131,6 +145,8 @@ export default function (passportMiddleware) {
   }
 
   async function readContent(req, res, next) {
+    debug('Read content blob');
+
     try {
       const {contentType, readStream} = await blobs.readContent({id: req.params.id, user: req.user});
       res.set('Content-Type', contentType);
@@ -141,6 +157,8 @@ export default function (passportMiddleware) {
   }
 
   async function removeContent(req, res, next) {
+    debug('Remove content blob');
+
     try {
       await blobs.removeContent({id: req.params.id, user: req.user});
       res.sendStatus(HttpStatus.NO_CONTENT);

@@ -45,7 +45,8 @@ export default function (passportMiddleware) {
 
   async function query(req, res, next) {
     try {
-      const result = await profiles.query({user: req.user});
+      // Variable req.user is inserted by our own middleware and there is no chance to get injection code there
+      const result = await profiles.query({user: req.user}); // njsscan-ignore: node_sqli_injection
       res.json(result);
     } catch (err) {
       return next(err);

@@ -1,0 +1,13 @@
+{
+    "processingInfo": {
+        "numberOfRecords": 0,
+        "failedRecords": [],
+        "importResults": [],
+        "queuedRecords": []
+    },
+    "profile": "foo",
+    "id": "foo",
+    "state": "PENDING_TRANSFORMATION",
+    "contentType": "foo/bar",
+    "correlationId": ""
+}

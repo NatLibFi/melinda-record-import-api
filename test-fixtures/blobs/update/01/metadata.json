@@ -1,0 +1,6 @@
+{
+  "description": "Should fail because the blob doesn't exist",
+  "loadDbContents": false,
+  "expectToFail": true,
+  "expectedFailStatus": 404
+}

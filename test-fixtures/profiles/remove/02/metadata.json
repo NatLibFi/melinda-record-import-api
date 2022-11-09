@@ -1,0 +1,5 @@
+{
+  "description": "Should fail to remove a profile because it doesn't exist",
+  "expectToFail": true,
+  "expectedFailStatus": 404
+}

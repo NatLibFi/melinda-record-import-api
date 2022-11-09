@@ -1,0 +1,4 @@
+{
+  "description": "Should return only blobs that the user has access to",
+  "params": {}
+}

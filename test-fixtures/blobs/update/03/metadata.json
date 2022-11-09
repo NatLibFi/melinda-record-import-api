@@ -1,0 +1,5 @@
+{
+  "description": "Should fail because of invalid syntax (Missing op)",
+  "expectToFail": true,
+  "expectedFailStatus": 422
+}

@@ -1,0 +1,5 @@
+{
+  "description": "Should fail to update blob state because of invalid permissions",
+  "expectToFail": true,
+  "expectedFailStatus": 403
+}

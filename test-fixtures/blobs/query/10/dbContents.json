@@ -18,6 +18,7 @@
                 "failedRecords": [],
                 "importResults": []
             },
+            "state": "ABORTED",
             "creationTime": "2000-01-01T00:00:00.000Z",
             "modificationTime": "2000-01-02T00:00:00.000Z",
             "id": "foo",
@@ -30,9 +31,8 @@
                 "failedRecords": [],
                 "importResults": []
             },
-            "state": "ABORTED",
-            "creationTime": "2000-01-04T00:00:00.000Z",
-            "modificationTime": "2000-05-02T00:00:00.000Z",
+            "creationTime": "2000-01-01T00:00:00.000Z",
+            "modificationTime": "2000-01-02T00:00:00.000Z",
             "id": "bar",
             "profile": "foo",
             "contentType": "foo/bar"        

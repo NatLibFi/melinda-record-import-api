@@ -1,0 +1,3 @@
+{
+  "description": "Should return an empty list because of no permissions to read profiles"
+}

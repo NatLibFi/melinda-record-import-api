@@ -28,7 +28,7 @@
 
 import {createLogger, createExpressLogger, handleInterrupt} from '@natlibfi/melinda-backend-commons';
 import {generatePassportMiddlewares} from '@natlibfi/passport-melinda-crowd';
-import {ApiError} from '@natlibfi/melinda-record-import-commons';
+import {Error as ApiError} from '@natlibfi/melinda-commons';
 import HttpStatus from 'http-status';
 import passport from 'passport';
 import express from 'express';
@@ -58,6 +58,7 @@ async function run() {
   const logger = createLogger();
   const app = express();
 
+  logger.info(`Setting up crowd authentication: ${CROWD_URL}`);
   const passportMiddlewares = generatePassportMiddlewares({
     localUsers: PASSPORT_LOCAL_USERS,
     crowd: {
@@ -69,7 +70,7 @@ async function run() {
   Mongoose.set('debug', MONGO_DEBUG);
 
   try {
-    await Mongoose.connect(MONGO_URI, {useNewUrlParser: true, poolSize: MONGO_POOLSIZE, useUnifiedTopology: true});
+    await Mongoose.connect(MONGO_URI, {useNewUrlParser: true, maxPoolSize: MONGO_POOLSIZE, useUnifiedTopology: true});
   } catch (err) {
     throw new Error(`Failed connecting to MongoDB: ${err instanceof Error ? err.stack : err}`);
   }
@@ -85,6 +86,7 @@ async function run() {
 
   app.use(cors());
 
+  app.use(pathValidator);
   app.use('/', createApiDocRouter());
   app.use('/auth', createAuthRouter(passportMiddlewares.credentials));
   app.use('/blobs', createBlobsRouter(passportMiddlewares.token));
@@ -93,17 +95,26 @@ async function run() {
   app.use(handleError);
 
   server = app.listen(HTTP_PORT, () => { // eslint-disable-line prefer-const
-    logger.log('info', 'Started melinda-record-import-api');
+    logger.info('Started melinda-record-import-api');
   });
 
   setSocketKeepAlive();
+
+  function pathValidator(req, res, next) {
+    if (req.path.startsWith('//')) {
+      logger.debug(`path: ${req.path}`);
+      return res.status(HttpStatus.BAD_REQUEST).send('Invalid URL: extra /');
+    }
+
+    next();
+  }
 
   function handleError(err, req, res, next) { // eslint-disable-line no-unused-vars
     if (err instanceof ApiError || 'status' in err) {
       return res.sendStatus(err.status);
     }
 
-    logger.log('error', err instanceof Error ? err.stack : err);
+    logger.error(err instanceof Error ? err.stack : err);
     return res.sendStatus(HttpStatus.INTERNAL_SERVER_ERROR);
   }
 

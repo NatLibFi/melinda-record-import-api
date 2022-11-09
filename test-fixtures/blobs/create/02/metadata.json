@@ -1,0 +1,7 @@
+{
+  "description": "Should fail to create a new blob because of invalid profile",
+  "loadDbContents": false,
+  "loadExpectedDb": false,
+  "expectToFail": true,
+  "expectedFailStatus": 400
+}
