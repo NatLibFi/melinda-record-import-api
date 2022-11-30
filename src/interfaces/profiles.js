@@ -32,12 +32,10 @@ import {Error as ApiError} from '@natlibfi/melinda-commons';
 import {ProfileModel} from './models';
 import {hasPermission} from './utils';
 import {createLogger} from '@natlibfi/melinda-backend-commons';
-import createDebugLogger from 'debug';
 
 export default function ({url}) {
   Mongoose.model('Profile', ProfileModel);
   const logger = createLogger();
-  const debug = createDebugLogger('@natlibfi/melinda-record-import-api:route/blobs');
 
   return {query, read, createOrUpdate, remove};
 
@@ -87,7 +85,7 @@ export default function ({url}) {
     if (hasPermission('profiles', 'createOrUpdate', user.groups)) {
       const profile = await Mongoose.models.Profile.findOne({id});
 
-      debug(profile ? 'got profile' : 'invalid profile');
+      logger.debug(profile ? 'got profile' : 'invalid profile');
 
       if (profile) {
         return execute(true);

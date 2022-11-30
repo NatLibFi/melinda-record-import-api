@@ -34,11 +34,9 @@ import validateContentType from '@natlibfi/express-validate-content-type';
 import {validateMax as validateContentLength} from 'express-content-length-validator';
 import {API_URL, CONTENT_MAX_LENGTH} from '../config';
 import sanitize from 'mongo-sanitize';
-import createDebugLogger from 'debug';
 
 export default function (passportMiddleware) {
   const blobs = blobsFactory({url: API_URL});
-  const debug = createDebugLogger('@natlibfi/melinda-record-import-api:route/blobs');
 
   return new Router()
     .use(passportMiddleware)
@@ -51,7 +49,7 @@ export default function (passportMiddleware) {
     .delete('/:id/content', removeContent);
 
   async function query(req, res, next) {
-    debug('Query Blob');
+    logger.debug('Query Blob');
 
     try {
       const queryParams = getQueryParams();
@@ -87,7 +85,7 @@ export default function (passportMiddleware) {
   }
 
   async function read(req, res, next) {
-    debug('Read blob');
+    logger.debug('Read blob');
 
     try {
       const result = await blobs.read({id: req.params.id, user: req.user});
@@ -98,7 +96,7 @@ export default function (passportMiddleware) {
   }
 
   async function remove(req, res, next) {
-    debug('Remove Blob');
+    logger.debug('Remove Blob');
 
     try {
       await blobs.remove({id: req.params.id, user: req.user});
@@ -109,7 +107,7 @@ export default function (passportMiddleware) {
   }
 
   async function create(req, res, next) {
-    debug('Creating blob');
+    logger.debug('Creating blob');
 
     if ('content-type' in req.headers && 'import-profile' in req.headers) { // eslint-disable-line functional/no-conditional-statement
       try {
@@ -130,7 +128,7 @@ export default function (passportMiddleware) {
   }
 
   async function update(req, res, next) {
-    debug('Update blob');
+    logger.debug('Update blob');
 
     try {
       await blobs.update({
@@ -145,7 +143,7 @@ export default function (passportMiddleware) {
   }
 
   async function readContent(req, res, next) {
-    debug('Read content blob');
+    logger.debug('Read content blob');
 
     try {
       const {contentType, readStream} = await blobs.readContent({id: req.params.id, user: req.user});
@@ -157,7 +155,7 @@ export default function (passportMiddleware) {
   }
 
   async function removeContent(req, res, next) {
-    debug('Remove content blob');
+    logger.debug('Remove content blob');
 
     try {
       await blobs.removeContent({id: req.params.id, user: req.user});
