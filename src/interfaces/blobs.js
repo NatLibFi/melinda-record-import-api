@@ -259,7 +259,7 @@ export default function ({url}) {
 
     if (blob) {
       const bgroups = await getProfile(blob.profile);
-      if (hasPermission('blobs', 'readContent', user.groups, bgroups.auth.groups)) {
+      if (hasPermission('blobs', 'readContent', user.groups, bgroups.auth.groups)) { // eslint-disable-line functional/no-conditional-statement
         // Check if the file exists
         try {
           await getFileMetadata(id);
@@ -269,12 +269,12 @@ export default function ({url}) {
             readStream: gridFSBucket.openDownloadStreamByName(id)
           };
         } catch (error) {
-          if (err instanceof ApiError && err.status === HttpStatus.NOT_FOUND) { // eslint-disable-line functional/no-conditional-statement
+          if (error instanceof ApiError && error.status === HttpStatus.NOT_FOUND) { // eslint-disable-line functional/no-conditional-statement
             logger.error('Content not found! 404');
-            throw err;
+            throw error;
           }
 
-          throw err;
+          throw error;
         }
       }
 

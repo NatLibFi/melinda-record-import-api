@@ -31,12 +31,14 @@ import {Router} from 'express';
 import bodyParser from 'body-parser';
 import {blobsFactory} from '../interfaces';
 import validateContentType from '@natlibfi/express-validate-content-type';
+import {createLogger} from '@natlibfi/melinda-backend-commons';
 import {validateMax as validateContentLength} from 'express-content-length-validator';
 import {API_URL, CONTENT_MAX_LENGTH} from '../config';
 import sanitize from 'mongo-sanitize';
 
 export default function (passportMiddleware) {
   const blobs = blobsFactory({url: API_URL});
+  const logger = createLogger();
 
   return new Router()
     .use(passportMiddleware)
