@@ -95,7 +95,9 @@ describe('interfaces/blobs', () => {
       await blobs.update({id: 'foo', payload, user});
 
       const db = await mongoFixtures.dump();
-      expect(formatDump(db)).to.eql(expectedDb);
+      const formatedDump = formatDump(db);
+
+      expect(formatedDump.blobmetadatas).to.eql(expectedDb.blobmetadatas);
       expect(expectToFail, 'This is expected to succes').to.equal(false);
     } catch (error) {
       if (!expectToFail) { // eslint-disable-line

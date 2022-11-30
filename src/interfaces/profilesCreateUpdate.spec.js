@@ -95,7 +95,7 @@ describe('interfaces/profiles', () => {
       }
 
       const db = await mongoFixtures.dump();
-      expect(db).to.eql(expectedDb);
+      expect(db.profiles).to.eql(expectedDb.profiles);
       expect(expectToFail, 'This is expected to succes').to.equal(false);
     } catch (error) {
       if (!expectToFail) { // eslint-disable-line

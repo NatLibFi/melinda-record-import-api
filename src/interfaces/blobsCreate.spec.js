@@ -94,9 +94,10 @@ describe('interfaces/blobs', () => {
     try {
       const id = await blobs.create({contentType: 'foo/bar', profile: 'foo', inputStream, user});
       const db = await mongoFixtures.dump();
+      const formatedDump = formatDump(db);
 
       expect(id).to.equal('foo');
-      expect(formatDump(db)).to.eql(expectedDb);
+      expect(formatedDump.blobmetadatas).to.eql(expectedDb.blobmetadatas);
       expect(expectToFail, 'This is expected to succes').to.equal(false);
     } catch (error) {
       if (!expectToFail) { // eslint-disable-line
