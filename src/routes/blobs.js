@@ -51,7 +51,7 @@ export default function (passportMiddleware) {
     .delete('/:id/content', removeContent);
 
   async function query(req, res, next) {
-    logger.debug('Query Blob');
+    logger.silly('Query Blob');
 
     try {
       const queryParams = getQueryParams();

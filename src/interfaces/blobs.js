@@ -51,7 +51,7 @@ export default function ({url}) {
   return {query, read, create, update, remove, removeContent, readContent};
 
   async function query({profile, contentType, state, creationTime, modificationTime, user, offset}) {
-    logger.debug('query');
+    logger.silly('Query');
     const queryOpts = {
       limit: BLOBS_QUERY_LIMIT
     };
