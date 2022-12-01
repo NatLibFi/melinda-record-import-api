@@ -260,22 +260,12 @@ export default function ({url}) {
     if (blob) {
       const bgroups = await getProfile(blob.profile);
       if (hasPermission('blobs', 'readContent', user.groups, bgroups.auth.groups)) { // eslint-disable-line functional/no-conditional-statement
-        // Check if the file exists
-        try {
-          await getFileMetadata(id);
+        await getFileMetadata(id);
 
-          return {
-            contentType: blob.contentType,
-            readStream: gridFSBucket.openDownloadStreamByName(id)
-          };
-        } catch (error) {
-          if (error instanceof ApiError && error.status === HttpStatus.NOT_FOUND) { // eslint-disable-line functional/no-conditional-statement
-            logger.error('Content not found! 404');
-            throw error;
-          }
-
-          throw error;
-        }
+        return {
+          contentType: blob.contentType,
+          readStream: gridFSBucket.openDownloadStreamByName(id)
+        };
       }
 
       throw new ApiError(HttpStatus.FORBIDDEN, 'Blob readContent permission error');
