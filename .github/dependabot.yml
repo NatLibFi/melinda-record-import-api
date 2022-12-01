@@ -20,8 +20,6 @@ updates:
       time: "06:45"
       timezone: "Europe/Helsinki"
     versioning-strategy: lockfile-only
-    labels:
-      - "npm minor dependencies"
     allow:
       - dependency-type: "production"
     target-branch: "dependencies"
