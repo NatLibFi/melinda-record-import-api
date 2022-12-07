@@ -111,12 +111,12 @@ export default function (passportMiddleware) {
   async function create(req, res, next) {
     logger.debug('Creating blob');
 
-    if ('Content-Type' in req.headers && 'import-profile' in req.headers) { // eslint-disable-line functional/no-conditional-statement
+    if ('content-type' in req.headers && 'import-profile' in req.headers) { // eslint-disable-line functional/no-conditional-statement
       try {
         const id = await blobs.create({
           inputStream: req, user: req.user,
           profile: req.headers['import-profile'],
-          contentType: req.headers['Content-Type']
+          contentType: req.headers['content-type']
         });
 
         res.set('Location', `${API_URL}/blobs/${id}`);
@@ -151,7 +151,7 @@ export default function (passportMiddleware) {
 
     try {
       const {contentType, readStream} = await blobs.readContent({id: req.params.id, user: req.user});
-      res.setHeader('Content-Type', contentType);
+      res.setHeader('content-type', contentType);
       readStream.pipe(res);
     } catch (err) {
       return next(err);

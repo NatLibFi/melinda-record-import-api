@@ -52,7 +52,7 @@ paths:
           required: true
           schema:
             type: string
-        - name: Content-Type
+        - name: content-type
           in: header
           description: Media type of the blob
           required: true

@@ -35,7 +35,7 @@ export default function () {
 
   return new Router()
     .get('/', (req, res) => {
-      res.set('Content-Type', 'application/yaml');
+      res.set('content-type', 'application/yaml');
       res.send(apiDoc);
     });
 }
