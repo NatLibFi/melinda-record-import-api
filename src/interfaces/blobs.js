@@ -56,6 +56,7 @@ export default function ({url}) {
       limit: BLOBS_QUERY_LIMIT
     };
 
+    // eslint-disable-next-line functional/immutable-data
     const blobs = await Mongoose.models.BlobMetadata.find(await generateQuery(), undefined, queryOpts).sort('creationTime');
     logger.silly(`Query state: ${state}`);
     logger.silly(`Found ${blobs.length} blobs`);
