@@ -68,6 +68,7 @@ async function run() {
   });
 
   Mongoose.set('debug', MONGO_DEBUG);
+  Mongoose.set('strictQuery', true);
 
   try {
     await Mongoose.connect(MONGO_URI, {useNewUrlParser: true, maxPoolSize: MONGO_POOLSIZE, useUnifiedTopology: true});
