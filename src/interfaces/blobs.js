@@ -166,7 +166,7 @@ export default function ({url}) {
   }
 
   async function read({id, user}) {
-    logger.debug(`Read: ${id}, by: ${user.name}`);
+    logger.debug(`Read: ${id}`);
 
     const doc = await Mongoose.models.BlobMetadata.findOne({id});
 
