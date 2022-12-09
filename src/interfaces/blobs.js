@@ -166,7 +166,7 @@ export default function ({url}) {
   }
 
   async function read({id, user}) {
-    logger.debug('Read');
+    logger.debug(`Read: ${id}, by: ${user.name}`);
 
     const doc = await Mongoose.models.BlobMetadata.findOne({id});
 
@@ -235,7 +235,7 @@ export default function ({url}) {
 
         await Mongoose.models.BlobMetadata.create({id, profile, contentType});
 
-        return new Promise((resolve, reject) => {
+        await new Promise((resolve, reject) => {
           const outputStream = gridFSBucket.openUploadStream(id);
 
           inputStream
@@ -246,6 +246,9 @@ export default function ({url}) {
               resolve(id);
             }));
         });
+
+        await Mongoose.models.BlobMetadata.updateOne({id}, {state: BLOB_STATE.PENDING_TRANSFORMATION, modificationTime: moment()});
+        return id;
       }
 
       throw new ApiError(HttpStatus.FORBIDDEN, 'Blob creation permission error');

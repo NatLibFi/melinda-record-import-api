@@ -30,7 +30,7 @@
         "failedRecords": [],
         "importResults": []
       },
-      "state": "PENDING_TRANSFORMATION",
+      "state": "UPLOADING",
       "id": "foo",
       "profile": "foo",
       "contentType": "foo/bar"
