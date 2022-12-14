@@ -20,7 +20,7 @@
             },
             "id": "foo",
             "profile": "foo",
-            "contentType": "foo/bar"        
+            "contentType": "foo/bar"
         },
         {
             "processingInfo": {
@@ -30,7 +30,7 @@
             },
             "id": "bar",
             "profile": "foo",
-            "contentType": "foo/bar"        
+            "contentType": "foo/bar"
         }
     ]
 }

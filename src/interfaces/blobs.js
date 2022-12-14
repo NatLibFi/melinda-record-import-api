@@ -37,14 +37,12 @@ import {hasPermission} from './utils';
 import {BLOBS_QUERY_LIMIT, melindaApiOptions} from '../config';
 import {createLogger} from '@natlibfi/melinda-backend-commons';
 import {Error as ApiError} from '@natlibfi/melinda-commons';
-import createDebugLogger from 'debug';
 import {createApiClient as createMelindaApiClient} from '@natlibfi/melinda-rest-api-client';
 import {QUEUE_ITEM_STATE} from '@natlibfi/melinda-rest-api-commons';
 
 export default function ({url}) {
   const gridFSBucket = new GridFSBucket(Mongoose.connection.db, {bucketName: 'blobs'});
   const logger = createLogger();
-  const debug = createDebugLogger('@natlibfi/melinda-record-import-api:interface/blobs');
   const melindaApiClient = melindaApiOptions.melindaApiUrl ? createMelindaApiClient(melindaApiOptions) : false;
 
   Mongoose.model('BlobMetadata', BlobMetadataModel);
@@ -53,12 +51,13 @@ export default function ({url}) {
   return {query, read, create, update, remove, removeContent, readContent};
 
   async function query({profile, contentType, state, creationTime, modificationTime, user, offset}) {
-    debug('query');
+    logger.silly('Query');
     const queryOpts = {
       limit: BLOBS_QUERY_LIMIT
     };
 
-    const blobs = await Mongoose.models.BlobMetadata.find(await generateQuery(), undefined, queryOpts);
+    // eslint-disable-next-line functional/immutable-data
+    const blobs = await Mongoose.models.BlobMetadata.find(await generateQuery(), undefined, queryOpts).sort('creationTime');
     logger.silly(`Query state: ${state}`);
     logger.silly(`Found ${blobs.length} blobs`);
 
@@ -167,7 +166,7 @@ export default function ({url}) {
   }
 
   async function read({id, user}) {
-    debug('Read');
+    logger.debug(`Read: ${id}`);
 
     const doc = await Mongoose.models.BlobMetadata.findOne({id});
 
@@ -202,7 +201,7 @@ export default function ({url}) {
   }
 
   async function remove({id, user}) {
-    debug('Remove');
+    logger.debug('Remove');
     const blob = await Mongoose.models.BlobMetadata.findOne({id});
 
     if (blob) {
@@ -227,7 +226,7 @@ export default function ({url}) {
   }
 
   async function create({inputStream, profile, contentType, user}) {
-    debug('Create');
+    logger.debug('Create');
     const profileContent = await getProfile(profile);
 
     if (profileContent) {
@@ -236,7 +235,7 @@ export default function ({url}) {
 
         await Mongoose.models.BlobMetadata.create({id, profile, contentType});
 
-        return new Promise((resolve, reject) => {
+        await new Promise((resolve, reject) => {
           const outputStream = gridFSBucket.openUploadStream(id);
 
           inputStream
@@ -247,12 +246,15 @@ export default function ({url}) {
               resolve(id);
             }));
         });
+
+        await Mongoose.models.BlobMetadata.updateOne({id}, {state: BLOB_STATE.PENDING_TRANSFORMATION, modificationTime: moment()});
+        return id;
       }
 
       throw new ApiError(HttpStatus.FORBIDDEN, 'Blob creation permission error');
     }
 
-    debug('Blob create invalid profile');
+    logger.error('Blob create invalid profile');
     throw new ApiError(HttpStatus.BAD_REQUEST, 'Blob create profile not found');
   }
 
@@ -261,8 +263,7 @@ export default function ({url}) {
 
     if (blob) {
       const bgroups = await getProfile(blob.profile);
-      if (hasPermission('blobs', 'readContent', user.groups, bgroups.auth.groups)) {
-        // Check if the file exists
+      if (hasPermission('blobs', 'readContent', user.groups, bgroups.auth.groups)) { // eslint-disable-line functional/no-conditional-statement
         await getFileMetadata(id);
 
         return {
@@ -467,14 +468,14 @@ export default function ({url}) {
   }
 
   async function getFileMetadata(filename) {
-    logger.debug('Getting file metadata!');
+    logger.silly('Getting file metadata!');
     const files = await gridFSBucket.find({filename}).toArray();
     if (files.length === 0) {
-      logger.debug('No file metadata found!');
+      logger.silly('No file metadata found!');
       throw new ApiError(HttpStatus.NOT_FOUND, 'File metadata not found');
     }
 
-    logger.debug('Returning file metadata!');
+    logger.silly('Returning file metadata!');
     return files[0];
   }
 }
