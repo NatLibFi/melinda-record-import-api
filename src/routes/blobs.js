@@ -181,6 +181,7 @@ export default function (passportMiddleware) {
       });
     }
 
+    logger.debug('Contentlength OK');
     return (req, res, next) => next();
   }
 }
