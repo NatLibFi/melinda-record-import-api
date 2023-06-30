@@ -1,4 +1,4 @@
-FROM node:18-alpine
+FROM registry.redhat.io/rhel8/nodejs-18:latest
 CMD ["/usr/local/bin/node", "index.js"]
 WORKDIR /home/node
 
