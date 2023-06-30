@@ -1,4 +1,4 @@
-FROM image-registry.openshift-image-registry.svc:5000/melinda-record-update/node:18-alpine
+FROM registry.apps.ocp-kk-test-1.k8s.it.helsinki.fi/melinda-record-update/node:18-alpine
 CMD ["/usr/local/bin/node", "index.js"]
 WORKDIR /home/node
 
