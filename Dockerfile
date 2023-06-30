@@ -1,4 +1,4 @@
-FROM registry.redhat.io/rhel8/nodejs-18:latest
+FROM registry.access.redhat.com/ubi9/nodejs-18-minimal:latest
 CMD ["/usr/local/bin/node", "index.js"]
 WORKDIR /home/node
 
