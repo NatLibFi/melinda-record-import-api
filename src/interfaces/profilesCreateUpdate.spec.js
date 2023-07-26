@@ -89,7 +89,7 @@ describe('interfaces/profiles', () => {
 
       await profiles.createOrUpdate({id: 'foo', payload: createPayload, user});
 
-      if (update) { // eslint-disable-line functional/no-conditional-statement
+      if (update) { // eslint-disable-line functional/no-conditional-statements
         const updatePayload = getFixture('updatePayload.json');
         await profiles.createOrUpdate({id: 'foo', payload: updatePayload, user});
       }
