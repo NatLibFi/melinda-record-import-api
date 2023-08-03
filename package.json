@@ -43,7 +43,7 @@
     "@natlibfi/melinda-record-import-commons": "^10.1.6",
     "@natlibfi/melinda-rest-api-client": "^4.0.2",
     "@natlibfi/melinda-rest-api-commons": "^4.0.7",
-    "@natlibfi/passport-melinda-crowd": "^3.0.0-alpha.1",
+    "@natlibfi/passport-melinda-crowd": "^3.0.0",
     "body-parser": "^1.20.2",
     "cors": "^2.8.5",
     "debug": "^4.3.4",
@@ -53,7 +53,7 @@
     "moment": "^2.29.4",
     "mongo-sanitize": "^1.1.0",
     "mongodb": "^4.16.0",
-    "mongoose": "^6.11.4",
+    "mongoose": "^6.11.5",
     "passport": ">=0.6.0 <1.0.0",
     "uuid": "^9.0.0"
   },
@@ -70,7 +70,7 @@
     "babel-plugin-rewire": "^1.2.0",
     "chai": "^4.3.7",
     "cross-env": "^7.0.3",
-    "eslint": "^8.45.0",
+    "eslint": "^8.46.0",
     "mocha": "^10.2.0",
     "nodemon": "^3.0.1",
     "nyc": "^15.1.0"
