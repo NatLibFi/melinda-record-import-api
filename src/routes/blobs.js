@@ -59,7 +59,7 @@ export default function (passportMiddleware) {
       const queryParams = getQueryParams();
       const parameters = {user: req.user, ...queryParams};
 
-      if (req.get('QueryOffset')) { // eslint-disable-line functional/no-conditional-statement
+      if (req.get('QueryOffset')) { // eslint-disable-line functional/no-conditional-statements
         parameters.offset = sanitize(req.get('QueryOffset')); // eslint-disable-line functional/immutable-data
       }
 
@@ -114,7 +114,7 @@ export default function (passportMiddleware) {
     logger.debug('Creating blob');
     debug('Creating blob');
 
-    if ('content-type' in req.headers && 'import-profile' in req.headers) { // eslint-disable-line functional/no-conditional-statement
+    if ('content-type' in req.headers && 'import-profile' in req.headers) { // eslint-disable-line functional/no-conditional-statements
       logger.debug(`Content-type: ${req.headers['content-type']}`);
       logger.debug(`Import-profile: ${req.headers['import-profile']}`);
       debug(`Content-type: ${req.headers['content-type']}`);

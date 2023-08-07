@@ -120,7 +120,7 @@ async function run() {
   }
 
   function setSocketKeepAlive() {
-    if (SOCKET_KEEP_ALIVE_TIMEOUT) { // eslint-disable-line functional/no-conditional-statement
+    if (SOCKET_KEEP_ALIVE_TIMEOUT) { // eslint-disable-line functional/no-conditional-statements
       server.keepAliveTimeout = SOCKET_KEEP_ALIVE_TIMEOUT; // eslint-disable-line functional/immutable-data
 
       server.on('connection', socket => {
@@ -138,7 +138,7 @@ async function run() {
       .on('SIGUSR2', handle);
 
     function handle(arg) {
-      if (server) { // eslint-disable-line functional/no-conditional-statement
+      if (server) { // eslint-disable-line functional/no-conditional-statements
         server.close();
       }
 

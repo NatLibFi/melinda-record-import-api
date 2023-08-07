@@ -96,18 +96,18 @@ export default function ({url}) {
     async function generateQuery() {
       const doc = await init();
 
-      if (state) { // eslint-disable-line functional/no-conditional-statement
+      if (state) { // eslint-disable-line functional/no-conditional-statements
         doc.state = {$in: state}; // eslint-disable-line functional/immutable-data
       }
 
-      if (contentType) { // eslint-disable-line functional/no-conditional-statement
+      if (contentType) { // eslint-disable-line functional/no-conditional-statements
         doc.contentType = {$in: contentType}; // eslint-disable-line functional/immutable-data
       }
 
       if (creationTime) {
-        if (creationTime.length === 1) { // eslint-disable-line functional/no-conditional-statement
+        if (creationTime.length === 1) { // eslint-disable-line functional/no-conditional-statements
           doc.creationTime = formatTime(creationTime[0]); // eslint-disable-line functional/immutable-data
-        } else { // eslint-disable-line functional/no-conditional-statement
+        } else { // eslint-disable-line functional/no-conditional-statements
           doc.$and = [ // eslint-disable-line functional/immutable-data
             {creationTime: {$gte: formatTime(creationTime[0])}},
             {creationTime: {$lte: formatTime(creationTime[1])}}
@@ -116,9 +116,9 @@ export default function ({url}) {
       }
 
       if (modificationTime) {
-        if (modificationTime.length === 1) { // eslint-disable-line functional/no-conditional-statement
+        if (modificationTime.length === 1) { // eslint-disable-line functional/no-conditional-statements
           doc.modificationTime = formatTime(modificationTime[0]); // eslint-disable-line functional/immutable-data
-        } else { // eslint-disable-line functional/no-conditional-statement
+        } else { // eslint-disable-line functional/no-conditional-statements
           doc.$and = [ // eslint-disable-line functional/immutable-data
             {modificationTime: {$gte: formatTime(modificationTime[0])}},
             {modificationTime: {$lte: formatTime(modificationTime[1])}}
@@ -132,7 +132,7 @@ export default function ({url}) {
         const doc = {};
         const permittedProfiles = await getPermittedProfiles();
 
-        if (offset) { // eslint-disable-line functional/no-conditional-statement
+        if (offset) { // eslint-disable-line functional/no-conditional-statements
           doc._id = {$gt: ObjectId(offset)}; // eslint-disable-line new-cap, functional/immutable-data
         }
 
@@ -205,12 +205,12 @@ export default function ({url}) {
     const blob = await Mongoose.models.BlobMetadata.findOne({id});
 
     if (blob) {
-      if (hasPermission('blobs', 'remove', user.groups)) { // eslint-disable-line functional/no-conditional-statement
+      if (hasPermission('blobs', 'remove', user.groups)) { // eslint-disable-line functional/no-conditional-statements
         try {
           await getFileMetadata(id);
           throw new ApiError(HttpStatus.BAD_REQUEST, 'Request error');
         } catch (err) {
-          if (!(err instanceof ApiError && err.status === HttpStatus.NOT_FOUND)) { // eslint-disable-line functional/no-conditional-statement
+          if (!(err instanceof ApiError && err.status === HttpStatus.NOT_FOUND)) { // eslint-disable-line functional/no-conditional-statements
             throw err;
           }
         }
@@ -263,7 +263,7 @@ export default function ({url}) {
 
     if (blob) {
       const bgroups = await getProfile(blob.profile);
-      if (hasPermission('blobs', 'readContent', user.groups, bgroups.auth.groups)) { // eslint-disable-line functional/no-conditional-statement
+      if (hasPermission('blobs', 'readContent', user.groups, bgroups.auth.groups)) { // eslint-disable-line functional/no-conditional-statements
         await getFileMetadata(id);
 
         return {
@@ -309,13 +309,13 @@ export default function ({url}) {
         }
 
         const {numberOfRecords, failedRecords, importResults} = blob.processingInfo;
-        if (op === BLOB_UPDATE_OPERATIONS.recordProcessed && numberOfRecords <= failedRecords.length + importResults.length) { // eslint-disable-line functional/no-conditional-statement
+        if (op === BLOB_UPDATE_OPERATIONS.recordProcessed && numberOfRecords <= failedRecords.length + importResults.length) { // eslint-disable-line functional/no-conditional-statements
           throw new ApiError(HttpStatus.CONFLICT);
         }
 
         const {modifiedCount} = await Mongoose.models.BlobMetadata.updateOne({id}, doc);
 
-        if (modifiedCount === 0) { // eslint-disable-line functional/no-conditional-statement
+        if (modifiedCount === 0) { // eslint-disable-line functional/no-conditional-statements
           throw new ApiError(HttpStatus.CONFLICT);
         }
 
