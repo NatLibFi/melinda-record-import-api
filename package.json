@@ -14,7 +14,7 @@
     "url": "git@github.com:natlibfi/melinda-record-import-api.git"
   },
   "license": "AGPL-3.0+",
-  "version": "1.0.1",
+  "version": "1.0.2-alpha.1",
   "main": "./dist/index.js",
   "engines": {
     "node": ">=18"
@@ -40,7 +40,7 @@
     "@natlibfi/fixugen": "^2.0.1",
     "@natlibfi/melinda-backend-commons": "^2.2.1",
     "@natlibfi/melinda-commons": "^13.0.5",
-    "@natlibfi/melinda-record-import-commons": "^10.1.6",
+    "@natlibfi/melinda-record-import-commons": "^10.1.7",
     "@natlibfi/melinda-rest-api-client": "^4.0.2",
     "@natlibfi/melinda-rest-api-commons": "^4.0.7",
     "@natlibfi/passport-melinda-crowd": "^3.0.0",
@@ -64,9 +64,9 @@
     "@babel/node": "latest",
     "@babel/preset-env": "latest",
     "@babel/register": "latest",
-    "@natlibfi/eslint-config-melinda-backend": "^3.0.0",
+    "@natlibfi/eslint-config-melinda-backend": "^3.0.1",
     "@natlibfi/fixura": "^3.0.1",
-    "@natlibfi/fixura-mongo": "^2.0.5",
+    "@natlibfi/fixura-mongo": "^2.0.6",
     "babel-plugin-rewire": "^1.2.0",
     "chai": "^4.3.7",
     "cross-env": "^7.0.3",
