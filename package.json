@@ -52,7 +52,7 @@
     "http-status": "^1.6.2",
     "moment": "^2.29.4",
     "mongo-sanitize": "^1.1.0",
-    "mongodb": "^4.16.0",
+    "mongodb": "^4.17.0",
     "mongoose": "^6.11.5",
     "passport": ">=0.6.0 <1.0.0",
     "uuid": "^9.0.0"
