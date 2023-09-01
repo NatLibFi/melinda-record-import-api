@@ -115,10 +115,10 @@ export default function (passportMiddleware) {
     debug('Creating blob');
 
     if ('content-type' in req.headers && 'import-profile' in req.headers) { // eslint-disable-line functional/no-conditional-statements
-      logger.debug(`Content-type: ${req.headers['content-type']}`);
+      // logger.debug(`Content-type: ${req.headers['content-type']}`);
       logger.debug(`Import-profile: ${req.headers['import-profile']}`);
-      debug(`Content-type: ${req.headers['content-type']}`);
-      debug(`Import-profile: ${req.headers['import-profile']}`);
+      // debug(`Content-type: ${req.headers['content-type']}`);
+      // debug(`Import-profile: ${req.headers['import-profile']}`);
 
       try {
         const id = await blobs.create({
