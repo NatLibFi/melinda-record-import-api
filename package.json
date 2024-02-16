@@ -54,7 +54,7 @@
     "mongo-sanitize": "^1.1.0",
     "mongodb": "^4.16.0",
     "mongoose": "^6.12.6",
-    "passport": "^0.6.0",
+    "passport": "^0.7.0",
     "uuid": "^9.0.1"
   },
   "devDependencies": {
