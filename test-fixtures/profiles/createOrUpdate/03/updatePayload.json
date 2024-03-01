@@ -1,5 +1,5 @@
 {
-    "auth": {
-        "groups": ["admin"]
-    }
+    "groups": [
+        "admin"
+    ]
 }

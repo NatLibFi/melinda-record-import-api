@@ -1,31 +1,40 @@
 {
-    "profiles": [{
-        "id": "foo",
-        "auth": {
-            "groups": ["creator", "foo"]
-        },
-        "transformation": {
-            "image": "foo"
-        },
-        "import": {
-            "image": "bar"
-        }
-    }],
-    "blobs.chunks": [{}],
-    "blobs.files": [{
-        "filename": "foo"
-    }],
-    "blobmetadatas": [{
+  "profiles": [
+    {
+      "id": "foo",
+      "groups": [
+        "foo"
+      ]
+    }
+  ],
+  "blobs.chunks": [
+    {}
+  ],
+  "blobs.files": [
+    {
+      "filename": "foo"
+    }
+  ],
+  "blobmetadatas": [
+    {
       "processingInfo": {
-          "numberOfRecords": 2,
-          "failedRecords": [{}],
-          "importResults": [
-              {"status": "CREATED", "metadata": {"foo": "bar"}}
-          ]
+        "numberOfRecords": 2,
+        "failedRecords": [
+          {}
+        ],
+        "importResults": [
+          {
+            "status": "CREATED",
+            "metadata": {
+              "foo": "bar"
+            }
+          }
+        ]
       },
       "state": "TRANSFORMED",
       "id": "foo",
       "profile": "foo",
-      "contentType": "foo/bar"        
-    }]
-  }
+      "contentType": "foo/bar"
+    }
+  ]
+}

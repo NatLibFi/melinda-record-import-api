@@ -1,31 +1,3 @@
-/**
-*
-* @licstart  The following is the entire license notice for the JavaScript code in this file.
-*
-* API microservice of Melinda record batch import system
-*
-* Copyright (C) 2018-2019 University Of Helsinki (The National Library Of Finland)
-*
-* This file is part of melinda-record-import-api
-*
-* melinda-record-import-api program is free software: you can redistribute it and/or modify
-* it under the terms of the GNU Affero General Public License as
-* published by the Free Software Foundation, either version 3 of the
-* License, or (at your option) any later version.
-*
-* melinda-record-import-api is distributed in the hope that it will be useful,
-* but WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-* GNU Affero General Public License for more details.
-*
-* You should have received a copy of the GNU Affero General Public License
-* along with this program.  If not, see <http://www.gnu.org/licenses/>.
-*
-* @licend  The above is the entire license notice
-* for the JavaScript code in this file.
-*
-*/
-
 import HttpStatus from 'http-status';
 import {Router} from 'express';
 import bodyParser from 'body-parser';
@@ -37,13 +9,12 @@ import {API_URL, CONTENT_MAX_LENGTH} from '../config';
 import sanitize from 'mongo-sanitize';
 import createDebugLogger from 'debug';
 
-export default function (passportMiddleware) {
+export default function () {
   const blobs = blobsFactory({url: API_URL});
   const logger = createLogger();
-  const debug = createDebugLogger('@natlibfi/melinda-record-import-api:routes/blobs');
+  const debug = createDebugLogger('@natlibfi/melinda-record-import-api:routes/blobs'); // eslint-disable-line no-unused-vars
 
   return new Router()
-    .use(passportMiddleware)
     .get('/', query)
     .post('/', getContentLengthMiddleware(), create)
     .get('/:id', read)
@@ -53,8 +24,7 @@ export default function (passportMiddleware) {
     .delete('/:id/content', removeContent);
 
   async function query(req, res, next) {
-    logger.silly('Query Blob');
-
+    logger.debug('Route - Blobs - Query');
     try {
       const queryParams = getQueryParams();
       const parameters = {user: req.user, ...queryParams};
@@ -71,8 +41,8 @@ export default function (passportMiddleware) {
       }
 
       res.json(results);
-    } catch (err) {
-      return next(err);
+    } catch (error) {
+      return next(error);
     }
 
     function getQueryParams() {
@@ -89,34 +59,31 @@ export default function (passportMiddleware) {
   }
 
   async function read(req, res, next) {
-    logger.debug('Read blob');
-
+    logger.debug('Route - Blobs - Read');
     try {
       const result = await blobs.read({id: req.params.id, user: req.user});
       res.json(result);
-    } catch (err) {
-      return next(err);
+    } catch (error) {
+      return next(error);
     }
   }
 
   async function remove(req, res, next) {
-    logger.debug('Remove Blob');
-
+    logger.debug('Route - Blobs - Remove');
     try {
       await blobs.remove({id: req.params.id, user: req.user});
       res.sendStatus(HttpStatus.NO_CONTENT);
-    } catch (err) {
-      return next(err);
+    } catch (error) {
+      return next(error);
     }
   }
 
   async function create(req, res, next) {
-    logger.debug('Creating blob');
-    debug('Creating blob');
-
+    logger.debug('Route - Blobs - Create');
     if ('content-type' in req.headers && 'import-profile' in req.headers) { // eslint-disable-line functional/no-conditional-statements
       // logger.debug(`Content-type: ${req.headers['content-type']}`);
       logger.debug(`Import-profile: ${req.headers['import-profile']}`);
+      logger.debug(`User: ${req.user.preferred_username}`);
       // debug(`Content-type: ${req.headers['content-type']}`);
       // debug(`Import-profile: ${req.headers['import-profile']}`);
 
@@ -129,10 +96,13 @@ export default function (passportMiddleware) {
 
         res.set('Location', `${API_URL}/blobs/${id}`);
         return res.sendStatus(HttpStatus.CREATED);
-      } catch (err) {
-        logger.error('BLOBS/create');
-        logger.error(err);
-        return next(err);
+      } catch (error) {
+        logger.error('Route - Blobs - Create - Error');
+        if (error.status === 400) {
+          logger.error(JSON.stringify(error));
+          return res.status(404).send(error.payload);
+        }
+        return next(error);
       }
     }
 
@@ -140,8 +110,7 @@ export default function (passportMiddleware) {
   }
 
   async function update(req, res, next) {
-    logger.debug('Update blob');
-
+    logger.debug('Route - Blobs - Update');
     try {
       await blobs.update({
         id: req.params.id, user: req.user,
@@ -149,31 +118,29 @@ export default function (passportMiddleware) {
       });
 
       res.sendStatus(HttpStatus.NO_CONTENT);
-    } catch (err) {
-      return next(err);
+    } catch (error) {
+      return next(error);
     }
   }
 
   async function readContent(req, res, next) {
-    logger.debug('Read content blob');
-
+    logger.debug('Route - Blobs - Read Content');
     try {
       const {contentType, readStream} = await blobs.readContent({id: req.params.id, user: req.user});
       res.setHeader('content-type', contentType);
       readStream.pipe(res);
-    } catch (err) {
-      return next(err);
+    } catch (error) {
+      return next(error);
     }
   }
 
   async function removeContent(req, res, next) {
-    logger.debug('Remove content blob');
-
+    logger.debug('Route - Blobs - Remove Content');
     try {
       await blobs.removeContent({id: req.params.id, user: req.user});
       res.sendStatus(HttpStatus.NO_CONTENT);
-    } catch (err) {
-      return next(err);
+    } catch (error) {
+      return next(error);
     }
   }
 

@@ -1,14 +1,7 @@
 {
   "id": "foobar",
-  "name": {
-    "givenName": "foo",
-    "familyName": "bar"
-  },
-  "displayName": "foo bar",
-  "emails": [{"value": "foo@bar", "type": "work"}],
-  "organization": [],
   "groups": [
-      "transformer",
-      "foo"
+    "record-import-blobs-update",
+    "foo"
   ]
 }

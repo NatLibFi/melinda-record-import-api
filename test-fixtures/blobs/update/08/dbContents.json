@@ -1,29 +1,31 @@
 {
-    "profiles": [{
-        "id": "foo",
-        "auth": {
-            "groups": ["creator", "foo"]
-        },
-        "transformation": {
-            "image": "foo"
-        },
-        "import": {
-            "image": "bar"
+    "profiles": [
+        {
+            "id": "foo",
+            "groups": [
+                "foo"
+            ]
         }
-    }],
-    "blobs.chunks": [{}],
-    "blobs.files": [{
-        "filename": "foo"
-    }],
-    "blobmetadatas": [{
-        "processingInfo": {
-          "numberOfRecords": 10,
-          "failedRecords": [],
-          "importResults": []
-        },
-        "state": "TRANSFORMATION_IN_PROGRESS",
-        "id": "foo",
-        "profile": "foo",
-        "contentType": "foo/bar"        
-      }]
+    ],
+    "blobs.chunks": [
+        {}
+    ],
+    "blobs.files": [
+        {
+            "filename": "foo"
+        }
+    ],
+    "blobmetadatas": [
+        {
+            "processingInfo": {
+                "numberOfRecords": 10,
+                "failedRecords": [],
+                "importResults": []
+            },
+            "state": "TRANSFORMATION_IN_PROGRESS",
+            "id": "foo",
+            "profile": "foo",
+            "contentType": "foo/bar"
+        }
+    ]
 }

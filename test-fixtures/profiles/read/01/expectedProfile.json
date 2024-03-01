@@ -1,12 +1,6 @@
 {
-    "id": "foo",
-    "auth": {
-        "groups": ["foo"]
-    },
-    "transformation": {
-        "image": "foo"
-    },
-    "import": {
-        "image": "bar"
-    }
+  "id": "foo",
+  "groups": [
+    "foo"
+  ]
 }

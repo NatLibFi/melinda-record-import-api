@@ -2,18 +2,10 @@
   "profiles": [
     {
       "id": "foo",
-      "auth": {
-        "groups": [
-          "system",
-          "foo"
-        ]
-      },
-      "transformation": {
-        "image": "foo"
-      },
-      "import": {
-        "image": "bar"
-      }
+      "groups": [
+        "record-import-kvp",
+        "foo"
+      ]
     }
   ],
   "blobs.chunks": [

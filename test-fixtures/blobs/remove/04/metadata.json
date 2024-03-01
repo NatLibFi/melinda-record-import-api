@@ -1,5 +1,5 @@
 {
   "description": "Should fail because content still exists",
   "expectToFail": true,
-  "expectedFailStatus": 400
+  "expectedFailStatus": 409
 }

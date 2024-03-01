@@ -1,16 +1,12 @@
 {
-    "profiles": [{
-        "id": "foo",
-        "auth": {
-            "groups": ["foo"]
-        },
-        "transformation": {
-            "image": "foo"
-        },
-        "import": {
-            "image": "bar"
+    "profiles": [
+        {
+            "id": "foo",
+            "groups": [
+                "foo"
+            ]
         }
-    }],
+    ],
     "blobmetadatas": [
         {
             "processingInfo": {
@@ -21,7 +17,7 @@
             "state": "ABORTED",
             "id": "foo",
             "profile": "foo",
-            "contentType": "foo/bar"        
+            "contentType": "foo/bar"
         },
         {
             "processingInfo": {
@@ -31,7 +27,7 @@
             },
             "id": "bar",
             "profile": "foo",
-            "contentType": "foo/bar"        
+            "contentType": "foo/bar"
         }
     ]
 }

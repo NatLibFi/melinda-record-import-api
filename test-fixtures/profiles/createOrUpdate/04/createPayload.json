@@ -1,5 +1,5 @@
 {
-    "auth": {
-        "groups": ["foo"]
-    }
+    "groups": [
+        "foo"
+    ]
 }

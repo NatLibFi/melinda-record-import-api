@@ -1,5 +1,5 @@
 openapi: 3.0.0
-info: 
+info:
   title: Melinda-record-import (Erätuonti)
   description: API microservice of Melinda record batch import system.
   contact:
@@ -156,7 +156,7 @@ paths:
         description: ID of blob (uuid v4)
         required: true
         schema:
-          type: string  
+          type: string
         style: simple
     get:
       summary: Retrieve blob metadata
@@ -228,7 +228,7 @@ paths:
         description: ID of blob (uuid v4)
         required: true
         schema:
-          type: string  
+          type: string
         style: simple
     get:
       summary: Retrieve blob content
@@ -268,7 +268,7 @@ paths:
         description: NAME of Profile
         required: true
         schema:
-          type: string  
+          type: string
         style: simple
     put:
       summary: Create or update a profile

@@ -1,16 +1,12 @@
 {
-    "profiles": [{
-        "id": "foo",
-        "auth": {
-            "groups": ["foo"]
-        },
-        "transformation": {
-            "image": "foo"
-        },
-        "import": {
-            "image": "bar"
+    "profiles": [
+        {
+            "id": "foo",
+            "groups": [
+                "foo"
+            ]
         }
-    }],
+    ],
     "blobmetadatas": [
         {
             "_id": "5d40037160d7401bb6f944e4",
@@ -21,7 +17,7 @@
             },
             "id": "1",
             "profile": "foo",
-            "contentType": "foo/bar"        
+            "contentType": "foo/bar"
         },
         {
             "_id": "5d40037160d7401bb6f944e5",
@@ -30,9 +26,9 @@
                 "failedRecords": [],
                 "importResults": []
             },
-            "id": "2",            
+            "id": "2",
             "profile": "foo",
-            "contentType": "foo/bar"        
+            "contentType": "foo/bar"
         },
         {
             "_id": "5d40037160d7401bb6f944e6",
@@ -43,7 +39,7 @@
             },
             "id": "3",
             "profile": "foo",
-            "contentType": "foo/bar"        
+            "contentType": "foo/bar"
         },
         {
             "_id": "5d40037160d7401bb6f944e7",
@@ -54,7 +50,7 @@
             },
             "id": "4",
             "profile": "foo",
-            "contentType": "foo/bar"        
+            "contentType": "foo/bar"
         },
         {
             "_id": "5d40037160d7401bb6f944e8",
@@ -65,7 +61,7 @@
             },
             "id": "5",
             "profile": "foo",
-            "contentType": "foo/bar"        
+            "contentType": "foo/bar"
         }
     ]
 }

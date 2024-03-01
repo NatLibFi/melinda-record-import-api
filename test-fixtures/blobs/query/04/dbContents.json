@@ -1,36 +1,32 @@
 {
-    "profiles": [{
-        "id": "foo",
-        "auth": {
-            "groups": ["foo"]
-        },
-        "transformation": {
-            "image": "foo"
-        },
-        "import": {
-            "image": "bar"
-        }
-    }],
-    "blobmetadatas": [
-        {
-            "processingInfo": {
-                "numberOfRecords": 0,
-                "failedRecords": [],
-                "importResults": []
-            },            
-            "id": "foo",
-            "profile": "foo",
-            "contentType": "foo/bar"        
-        },
-        {
-            "processingInfo": {
-                "numberOfRecords": 0,
-                "failedRecords": [],
-                "importResults": []
-            },
-            "id": "bar",
-            "profile": "foo",
-            "contentType": "bar/foo"        
-        }
-    ]
+  "profiles": [
+    {
+      "id": "foo",
+      "groups": [
+        "foo"
+      ]
+    }
+  ],
+  "blobmetadatas": [
+    {
+      "processingInfo": {
+        "numberOfRecords": 0,
+        "failedRecords": [],
+        "importResults": []
+      },
+      "id": "foo",
+      "profile": "foo",
+      "contentType": "foo/bar"
+    },
+    {
+      "processingInfo": {
+        "numberOfRecords": 0,
+        "failedRecords": [],
+        "importResults": []
+      },
+      "id": "bar",
+      "profile": "foo",
+      "contentType": "bar/foo"
+    }
+  ]
 }

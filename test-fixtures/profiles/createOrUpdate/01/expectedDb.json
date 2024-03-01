@@ -2,11 +2,9 @@
   "profiles": [
     {
       "id": "foo",
-      "auth": {
-        "groups": [
-          "foo"
-        ]
-      }
+      "groups": [
+        "foo"
+      ]
     }
   ]
 }

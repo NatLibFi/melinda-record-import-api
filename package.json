@@ -21,18 +21,14 @@
   },
   "scripts": {
     "start": "node ./dist/index",
+    "start:dev": "babel-node src/index.js",
     "lint": "eslint src",
     "lint:dev": "eslint --fix src",
-    "test:base": "cross-env NODE_ENV=test mocha -timeout 20000 --exit --require @babel/register -- src/**/*.spec.js",
+    "test:base": "cross-env NODE_ENV=test nyc mocha --package package.json --exit",
     "test": "npm run lint && npm run test:base",
     "test:dev": "npm run lint:dev && npm run test:base",
-    "coverage": "npm run cover:unit && npm run cover:report",
-    "cover:unit": "nyc --silent npm run test",
-    "cover:report": "nyc report --reporter=lcov --reporter=text",
     "build": "babel src --source-maps --copy-files --delete-dir-on-start --out-dir=dist",
-    "build:dev": "npm run build:transpile",
-    "watch:test": "cross-env DEBUG=@natlibfi/* NODE_ENV=test nodemon -w src --exec 'npm run test:dev'",
-    "dev": "cross-env DEBUG=@natlibfi/* nodemon -w src --exec 'babel-node src/index.js'"
+    "dev": "cross-env DEBUG=@natlibfi/* LOG_LEVEL=debug nodemon"
   },
   "dependencies": {
     "@babel/runtime": "^7.23.2",
@@ -40,15 +36,15 @@
     "@natlibfi/fixugen": "^2.0.1",
     "@natlibfi/melinda-backend-commons": "^2.2.1",
     "@natlibfi/melinda-commons": "^13.0.6",
-    "@natlibfi/melinda-record-import-commons": "^10.1.8-alpha.1",
+    "@natlibfi/melinda-record-import-commons": "^11.0.0-alpha.9",
     "@natlibfi/melinda-rest-api-client": "^4.0.3",
     "@natlibfi/melinda-rest-api-commons": "^4.0.15",
-    "@natlibfi/passport-melinda-crowd": "^3.0.1",
     "body-parser": "^1.20.2",
     "cors": "^2.8.5",
     "debug": "^4.3.4",
     "express": "^4.18.2",
     "express-content-length-validator": "^1.0.0",
+    "express-openid-connect": "^2.17.1",
     "http-status": "^1.7.0",
     "moment": "^2.29.4",
     "mongo-sanitize": "^1.1.0",
@@ -66,7 +62,8 @@
     "@babel/register": "^7.22.15",
     "@natlibfi/eslint-config-melinda-backend": "^3.0.2",
     "@natlibfi/fixura": "^3.0.1",
-    "@natlibfi/fixura-mongo": "^2.0.8",
+    "@natlibfi/fixura-mongo": "^2.0.14",
+    "babel-plugin-istanbul": "^6.1.1",
     "babel-plugin-rewire": "^1.2.0",
     "chai": "^4.3.10",
     "cross-env": "^7.0.3",
@@ -83,17 +80,38 @@
       [
         "@babel/preset-env",
         {
-          "targets": "maintained node versions"
+          "targets": [
+            "last 2 versions",
+            "maintained node versions"
+          ]
         }
       ]
     ],
     "env": {
       "test": {
         "plugins": [
-          "rewire"
+          "rewire",
+          "istanbul"
         ]
       }
     }
+  },
+  "mocha": {
+    "spec": [
+      "src/*.spec.js",
+      "src/**/*.spec.js"
+    ],
+    "require": [
+      "@babel/register"
+    ],
+    "bail": true
+  },
+  "nodemonConfig": {
+    "exec": "npm run lint:dev && npm run test && npm run start:dev",
+    "watch": [
+      "src/*",
+      "test-fixtures/*"
+    ]
   },
   "nyc": {
     "include": [
@@ -103,8 +121,7 @@
       "**/*.spec.js"
     ],
     "reporter": [
-      "lcov",
-      "html"
+      "text"
     ],
     "require": [
       "@babel/register"

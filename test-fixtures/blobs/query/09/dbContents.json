@@ -1,16 +1,12 @@
 {
-    "profiles": [{
-        "id": "foo",
-        "auth": {
-            "groups": ["foo"]
-        },
-        "transformation": {
-            "image": "foo"
-        },
-        "import": {
-            "image": "bar"
+    "profiles": [
+        {
+            "id": "foo",
+            "groups": [
+                "foo"
+            ]
         }
-    }],
+    ],
     "blobmetadatas": [
         {
             "processingInfo": {
@@ -22,7 +18,7 @@
             "modificationTime": "2000-01-02T00:00:00.000Z",
             "id": "foo",
             "profile": "foo",
-            "contentType": "foo/bar"        
+            "contentType": "foo/bar"
         },
         {
             "processingInfo": {
@@ -34,7 +30,7 @@
             "modificationTime": "2000-01-04T00:00:00.000Z",
             "id": "bar",
             "profile": "foo",
-            "contentType": "foo/bar"        
+            "contentType": "foo/bar"
         }
     ]
 }

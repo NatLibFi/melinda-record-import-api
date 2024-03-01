@@ -3,5 +3,5 @@
   "loadDbContents": false,
   "loadExpectedDb": false,
   "expectToFail": true,
-  "expectedFailStatus": 400
+  "expectedFailStatus": 404
 }

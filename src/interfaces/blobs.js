@@ -152,7 +152,7 @@ export default function ({url}) {
           const profiles = await Mongoose.models.Profile.find();
 
           return profiles
-            .filter(profile => hasPermission('blobs', 'query', user.groups, profile.auth.groups))
+            .filter(profile => hasPermission('blobs', 'query', user.groups, profile.groups))
             .map(({id}) => id);
         }
       }
@@ -173,7 +173,7 @@ export default function ({url}) {
     if (doc) {
       const blob = formatBlobDocument(doc);
       const bgroups = await getProfile(blob.profile);
-      if (hasPermission('blobs', 'read', user.groups, bgroups.auth.groups)) {
+      if (hasPermission('blobs', 'read', user.groups, bgroups.groups)) {
         return blob;
       }
 
@@ -204,19 +204,21 @@ export default function ({url}) {
     logger.debug('Remove');
     const blob = await Mongoose.models.BlobMetadata.findOne({id});
 
-    if (blob) {
-      if (hasPermission('blobs', 'remove', user.groups)) { // eslint-disable-line functional/no-conditional-statements
+    if (blob) { // eslint-disable-line functional/no-conditional-statements
+      const bgroups = await getProfile(blob.profile);
+      if (hasPermission('blobs', 'remove', user.groups, bgroups.groups)) { // eslint-disable-line functional/no-conditional-statements
         try {
           await getFileMetadata(id);
-          throw new ApiError(HttpStatus.BAD_REQUEST, 'Request error');
-        } catch (err) {
-          if (!(err instanceof ApiError && err.status === HttpStatus.NOT_FOUND)) { // eslint-disable-line functional/no-conditional-statements
-            throw err;
+          throw new ApiError(HttpStatus.CONFLICT, 'Request error: Content still exists');
+        } catch (error) {
+          if (error instanceof ApiError && error.status === HttpStatus.NOT_FOUND) { // eslint-disable-line functional/no-conditional-statements
+            console.log(`*** ERROR: Status: ${error.status}, message: ${error.payload} ***`); // eslint-disable-line
+            logger.debug('Removing blob!');
+            return Mongoose.models.BlobMetadata.deleteOne({id});
           }
-        }
 
-        logger.debug('Removing blob!');
-        return Mongoose.models.BlobMetadata.deleteOne({id});
+          throw error;
+        }
       }
 
       throw new ApiError(HttpStatus.FORBIDDEN, 'Blob removal permission error');
@@ -230,7 +232,7 @@ export default function ({url}) {
     const profileContent = await getProfile(profile);
 
     if (profileContent) {
-      if (hasPermission('blobs', 'create', user.groups, profileContent.auth.groups)) {
+      if (hasPermission('blobs', 'create', user.groups, profileContent.groups)) {
         const id = uuid();
 
         await Mongoose.models.BlobMetadata.create({id, profile, contentType});
@@ -255,7 +257,7 @@ export default function ({url}) {
     }
 
     logger.error('Blob create invalid profile');
-    throw new ApiError(HttpStatus.BAD_REQUEST, 'Blob create profile not found');
+    throw new ApiError(HttpStatus.NOT_FOUND, 'Blob create profile not found');
   }
 
   async function readContent({id, user}) {
@@ -263,7 +265,7 @@ export default function ({url}) {
 
     if (blob) {
       const bgroups = await getProfile(blob.profile);
-      if (hasPermission('blobs', 'readContent', user.groups, bgroups.auth.groups)) { // eslint-disable-line functional/no-conditional-statements
+      if (hasPermission('blobs', 'readContent', user.groups, bgroups.groups)) { // eslint-disable-line functional/no-conditional-statements
         await getFileMetadata(id);
 
         return {
@@ -282,14 +284,14 @@ export default function ({url}) {
     const blob = await Mongoose.models.BlobMetadata.findOne({id});
 
     if (blob) {
-      if (hasPermission('blobs', 'removeContent', user.groups)) {
+      const bgroups = await getProfile(blob.profile);
+      if (hasPermission('blobs', 'removeContent', user.groups, bgroups.groups)) { // eslint-disable-line functional/no-conditional-statements
         const {_id: fileId} = await getFileMetadata(id);
         return gridFSBucket.delete(fileId);
       }
 
       throw new ApiError(HttpStatus.FORBIDDEN, 'Blob removeContent permission error');
     }
-
     throw new ApiError(HttpStatus.NOT_FOUND, 'Blob not found');
   }
 
@@ -334,11 +336,7 @@ export default function ({url}) {
 
     function checkPermission(op, user, bgroups) {
       if (op) {
-        if (op === BLOB_UPDATE_OPERATIONS.abort) {
-          return hasPermission('blobs', 'abort', user.groups, bgroups.auth.groups);
-        }
-
-        return hasPermission('blobs', 'update', user.groups, bgroups.auth.groups);
+        return hasPermission('blobs', 'update', user.groups, bgroups.groups);
       }
 
       throw new ApiError(HttpStatus.UNPROCESSABLE_ENTITY, 'Blob update operation error');
@@ -461,7 +459,7 @@ export default function ({url}) {
 
   async function getProfile(id) {
     const profile = await Mongoose.models.Profile.findOne({id});
-
+    logger.debug(profile);
     if (profile) {
       return profile;
     }

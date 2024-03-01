@@ -1,31 +1,3 @@
-/**
-*
-* @licstart  The following is the entire license notice for the JavaScript code in this file.
-*
-* Shared modules for microservices of Melinda record batch import system
-*
-* Copyright (C) 2018-2019 University Of Helsinki (The National Library Of Finland)
-*
-* This file is part of melinda-record-import-api
-*
-* melinda-record-import-api program is free software: you can redistribute it and/or modify
-* it under the terms of the GNU Affero General Public License as
-* published by the Free Software Foundation, either version 3 of the
-* License, or (at your option) any later version.
-*
-* melinda-record-import-api is distributed in the hope that it will be useful,
-* but WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-* GNU Affero General Public License for more details.
-*
-* You should have received a copy of the GNU Affero General Public License
-* along with this program.  If not, see <http://www.gnu.org/licenses/>.
-*
-* @licend  The above is the entire license notice
-* for the JavaScript code in this file.
-*
-*/
-
 import {parseBoolean} from '@natlibfi/melinda-commons';
 import {readEnvironmentVariable} from '@natlibfi/melinda-backend-commons';
 
@@ -54,6 +26,17 @@ export const melindaApiOptions = {
   melindaApiUrl: readEnvironmentVariable('MELINDA_API_URL', {defaultValue: false}),
   melindaApiUsername: readEnvironmentVariable('MELINDA_API_USERNAME', {defaultValue: ''}),
   melindaApiPassword: readEnvironmentVariable('MELINDA_API_PASSWORD', {defaultValue: ''})
+};
+
+export const keycloakOptions = {
+  authorizationParams: {
+    audience: readEnvironmentVariable('KEYCLOAK_AUDIENCE', {defaultValue: ''}),
+    scope: 'openid microprofile-jwt'
+  },
+  baseURL: readEnvironmentVariable('KEYCLOAK_BASE_URL', {defaultValue: ''}),
+  clientID: readEnvironmentVariable('KEYCLOAK_CLIENT_ID', {defaultValue: ''}),
+  issuerBaseURL: readEnvironmentVariable('KEYCLOAK_ISSUER_BASE_URL', {defaultValue: ''}),
+  secret: readEnvironmentVariable('KEYCLOAK_SECRET', {defaultValue: ''})
 };
 
 export const USER_AGENT_LOGGING_BLACKLIST = readEnvironmentVariable('USER_AGENT_LOGGING_BLACKLIST', {
