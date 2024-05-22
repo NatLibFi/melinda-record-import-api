@@ -20,8 +20,7 @@
             "processingInfo": {
                 "numberOfRecords": 0,
                 "failedRecords": [],
-                "importResults": [],
-                "queuedRecords": []
+                "importResults": []
             },
             "state": "UPLOADING",
             "id": "foo",

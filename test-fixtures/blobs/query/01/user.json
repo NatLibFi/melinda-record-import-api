@@ -1,6 +1,8 @@
 {
   "id": "foobar",
-  "groups": [
-    "record-import-kvp"
-  ]
+  "roles": {
+    "groups": [
+      "kvp"
+    ]
+  }
 }

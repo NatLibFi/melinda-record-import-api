@@ -11,11 +11,12 @@ export default function ({url}) {
 
   return {query, read, createOrUpdate, remove};
 
+  // MARK: Query
   async function query({user}) {
     try {
       logger.debug('Looking for profiles');
       const profiles = await Mongoose.models.Profile.find().exec();
-      return profiles.filter(p => hasPermission('profiles', 'query', user.groups, p.groups))
+      return profiles.filter(p => hasPermission(user.roles.groups, p.groups))
         .map(profile => ({id: profile.id, url: `${url}/profiles/${profile.id}`}));
     } catch (error) {
       logger.error(error); // eslint-disable-line
@@ -23,11 +24,12 @@ export default function ({url}) {
     }
   }
 
+  // MARK: Read
   async function read({id, user}) {
     const profile = await Mongoose.models.Profile.findOne({id}).exec();
 
     if (profile) {
-      if (hasPermission('profiles', 'read', user.groups, profile.groups)) {
+      if (hasPermission(user.roles.groups, profile.groups)) {
         logger.debug('Reading profile');
         return format(profile);
       }
@@ -44,23 +46,24 @@ export default function ({url}) {
     }
   }
 
+  // MARK: Remove
   async function remove({id, user}) {
-    if (hasPermission('profiles', 'createOrUpdate', user.groups)) {
-      const profile = await Mongoose.models.Profile.findOne({id}).exec();
-
-      if (profile) {
+    const profile = await Mongoose.models.Profile.findOne({id}).exec();
+    if (profile) {
+      if (hasPermission(user.roles.groups, profile.groups)) {
         logger.debug('Removing profile');
         return Mongoose.models.Profile.deleteOne({id}).exec();
       }
 
-      throw new ApiError(httpStatus.NOT_FOUND, 'Profile not found');
+      throw new ApiError(httpStatus.FORBIDDEN, 'Permission error');
     }
 
-    throw new ApiError(httpStatus.FORBIDDEN, 'Permission error');
+    throw new ApiError(httpStatus.NOT_FOUND, 'Profile not found');
   }
 
+  // MARK: Create or update
   async function createOrUpdate({id, payload, user}) {
-    if (hasPermission('profiles', 'createOrUpdate', user.groups)) {
+    if (hasPermission(user.roles.groups)) {
       const profile = await Mongoose.models.Profile.findOne({id});
 
       logger.debug(profile ? 'got profile' : 'invalid profile');
@@ -79,7 +82,7 @@ export default function ({url}) {
         if (update) {
           logger.debug('Updating profile');
           await Mongoose.models.Profile.updateOne({id}, {...payload, id}).exec();
-          return {status: httpStatus.OK};
+          return {status: httpStatus.NO_CONTENT};
         }
 
         logger.debug('Creating profile');

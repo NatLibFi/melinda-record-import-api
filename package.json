@@ -28,7 +28,7 @@
     "test": "npm run lint && npm run test:base",
     "test:dev": "npm run lint:dev && npm run test:base",
     "build": "babel src --source-maps --copy-files --delete-dir-on-start --out-dir=dist",
-    "dev": "cross-env DEBUG=@natlibfi/* LOG_LEVEL=debug nodemon"
+    "dev": "cross-env DEBUG=1 LOG_LEVEL=debug nodemon"
   },
   "dependencies": {
     "@babel/runtime": "^7.23.2",
@@ -36,21 +36,25 @@
     "@natlibfi/fixugen": "^2.0.1",
     "@natlibfi/melinda-backend-commons": "^2.2.1",
     "@natlibfi/melinda-commons": "^13.0.6",
-    "@natlibfi/melinda-record-import-commons": "^11.0.0-alpha.9",
+    "@natlibfi/melinda-record-import-commons": "^11.0.0-alpha.15",
     "@natlibfi/melinda-rest-api-client": "^4.0.3",
     "@natlibfi/melinda-rest-api-commons": "^4.0.15",
+    "@natlibfi/passport-natlibfi-keycloak": "^2.1.0-alpha.1",
     "body-parser": "^1.20.2",
     "cors": "^2.8.5",
     "debug": "^4.3.4",
     "express": "^4.18.2",
     "express-content-length-validator": "^1.0.0",
     "express-openid-connect": "^2.17.1",
+    "express-session": "^1.18.0",
     "http-status": "^1.7.0",
+    "jwt-decode": "^4.0.0",
     "moment": "^2.29.4",
     "mongo-sanitize": "^1.1.0",
     "mongodb": "^4.16.0",
     "mongoose": "^6.12.1",
-    "passport": "^0.6.0",
+    "openid-client": "^5.6.5",
+    "passport": "^0.7.0",
     "uuid": "^9.0.1"
   },
   "devDependencies": {
@@ -107,7 +111,7 @@
     "bail": true
   },
   "nodemonConfig": {
-    "exec": "npm run lint:dev && npm run test && npm run start:dev",
+    "exec": "npm run test:dev",
     "watch": [
       "src/*",
       "test-fixtures/*"

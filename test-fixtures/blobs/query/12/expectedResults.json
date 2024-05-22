@@ -8,31 +8,28 @@
         "numberOfRecords": 0,
         "failedRecords": 0,
         "processedRecords": 0,
-        "queuedRecords": 0,
         "correlationId": ""
     },
     {
         "id": "2",
         "url": "https://api/blobs/2",
         "profile": "foo",
-        "contentType": "foo/bar"    ,
+        "contentType": "foo/bar",
         "state": "UPLOADING",
         "numberOfRecords": 0,
         "failedRecords": 0,
         "processedRecords": 0,
-        "queuedRecords": 0,
         "correlationId": ""
     },
     {
         "id": "3",
         "url": "https://api/blobs/3",
         "profile": "foo",
-        "contentType": "foo/bar"    ,
+        "contentType": "foo/bar",
         "state": "UPLOADING",
         "numberOfRecords": 0,
         "failedRecords": 0,
         "processedRecords": 0,
-        "queuedRecords": 0,
         "correlationId": ""
     }
 ]

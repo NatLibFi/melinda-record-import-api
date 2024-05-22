@@ -177,7 +177,7 @@ paths:
           description: Not authorized
         '404':
           description: The blob does not exist
-    post:
+    put:
       summary: Update blob metadata
       security:
         - httpBearer: []

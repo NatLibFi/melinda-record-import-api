@@ -6,15 +6,15 @@ import {API_URL} from '../config';
 import validateContentType from '@natlibfi/express-validate-content-type';
 import {createLogger} from '@natlibfi/melinda-backend-commons';
 
-export default function () {
+export default function (permissionMiddleware) {
   const profiles = profilesFactory({url: API_URL});
   const logger = createLogger();
 
   return new Router()
-    .get('/', query)
-    .get('/:id', read)
-    .delete('/:id', remove)
-    .put('/:id', validateContentType({type: 'application/json'}), bodyParser.json({type: 'application/json'}), createOrUpdate);
+    .get('/', permissionMiddleware('profiles', 'read'), query)
+    .get('/:id', permissionMiddleware('profiles', 'read'), read)
+    .delete('/:id', permissionMiddleware('profiles', 'edit'), remove)
+    .put('/:id', permissionMiddleware('profiles', 'edit'), validateContentType({type: 'application/json'}), bodyParser.json({type: 'application/json'}), createOrUpdate);
 
   async function query(req, res, next) {
     logger.debug('Route - Profiles - Query');
@@ -57,7 +57,7 @@ export default function () {
     try {
       const sanitazedId = sanitaze(req.params.id);
       const result = await profiles.createOrUpdate({
-        id: sanitazedId, payload: req.body
+        id: sanitazedId, payload: req.body, user: req.user
       });
 
       res.sendStatus(result.status);

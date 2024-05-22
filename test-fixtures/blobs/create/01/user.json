@@ -1,7 +1,9 @@
 {
   "id": "foobar",
-  "groups": [
-    "record-import-blobs-create",
-    "foo"
-  ]
+  "roles": {
+    "groups": [
+      "create",
+      "foo"
+    ]
+  }
 }

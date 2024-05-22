@@ -1,6 +1,8 @@
 {
   "id": "foobar",
-  "groups": [
-    "bar"
-  ]
+  "roles": {
+    "groups": [
+      "bar"
+    ]
+  }
 }

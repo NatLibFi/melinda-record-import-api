@@ -1,8 +1,12 @@
 import httpStatus from 'http-status';
 import express from 'express';
-import pkg from 'express-openid-connect';
 import cors from 'cors';
 import Mongoose from 'mongoose';
+import fs from 'fs';
+import https from 'https';
+
+import {getUserApplicationRoles, generateUserAuthorizationMiddleware, generatePermissionMiddleware} from './middleware';
+import {generatePassportMiddlewares} from '@natlibfi/passport-natlibfi-keycloak';
 
 import {Error as ApiError} from '@natlibfi/melinda-commons';
 import {createLogger, createExpressLogger} from '@natlibfi/melinda-backend-commons';
@@ -14,32 +18,48 @@ import {
 } from './routes';
 
 export default async function ({
-  ENABLE_PROXY, HTTP_PORT,
+  ENABLE_PROXY, HTTPS_PORT,
   MONGO_URI, MONGO_POOLSIZE, MONGO_DEBUG,
   USER_AGENT_LOGGING_BLACKLIST, SOCKET_KEEP_ALIVE_TIMEOUT,
-  keycloakOptions
+  keycloakOpts, tlsKeyPath, tlsCertPath, allowSelfSignedApiCert
 }) {
   const logger = createLogger();
-  const app = express();
-  const {auth, requiresAuth} = pkg;
-  //---------------------------------------------------//
-  // Setup Express Open Id authentication
 
-  const authenticationOptions = {
-    ...keycloakOptions,
-    httpUserAgent: 'Melinda-ui',
-    session: {
-      name: 'melinda-ui'
-    },
-    idpLogout: true,
-    routes: {
-      login: '/login',
-      logout: '/logout',
-      postLogoutRedirect: '/'
-    }
+  if (!tlsKeyPath || !tlsCertPath) {
+    throw new Error('This prototype requires certificates!');
+  }
+
+  const tlsConfig = {
+    key: fs.readFileSync(tlsKeyPath, 'utf8'),
+    cert: fs.readFileSync(tlsCertPath, 'utf8'),
+    rejectUnauthorized: allowSelfSignedApiCert
   };
 
-  app.use(auth(authenticationOptions));
+  const app = express();
+
+  //---------------------------------------------------//
+  // Setup Express OpenID authentication with keycloak
+
+  logger.debug('Loading auth');
+  // Initialize passport middleware
+  const passportMiddlewares = await generatePassportMiddlewares({
+    keycloakOpts,
+    localUsers: false
+  });
+
+  // Initialize custom middleware that handles permissions
+  const authorizationMiddleware = generateUserAuthorizationMiddleware(passportMiddlewares);
+  const permissionMiddleware = generatePermissionMiddleware();
+  const gatherUserInformationMiddlewares = [authorizationMiddleware, getUserApplicationRoles];
+
+  app.enable('trust proxy', ENABLE_PROXY);
+
+  app.use(cors());
+
+  app.use(createExpressLogger({
+    // Do not log requests from automated processes ('Cause there'll be plenty)
+    skip: r => USER_AGENT_LOGGING_BLACKLIST.includes(r.get('User-Agent'))
+  }));
 
   //---------------------------------------------------//
   // Setup mongoose
@@ -53,26 +73,14 @@ export default async function ({
     throw new Error(`Failed connecting to MongoDB: ${error instanceof Error ? error.stack : error}`);
   }
 
-  app.enable('trust proxy', ENABLE_PROXY);
-
-  app.use(createExpressLogger({
-    // Do not log requests from automated processes ('Cause there'll be plenty)
-    skip: r => USER_AGENT_LOGGING_BLACKLIST.includes(r.get('User-Agent'))
-  }));
-
-
-  app.use(cors());
-
   app.use(pathValidator);
   app.use('/', createApiDocRouter());
-  app.use('/blobs', requiresAuth(), createBlobsRouter());
-  app.use('/profiles', requiresAuth(), createProfilesRouter());
+  app.use('/blobs', gatherUserInformationMiddlewares, createBlobsRouter(permissionMiddleware));
+  app.use('/profiles', gatherUserInformationMiddlewares, createProfilesRouter(permissionMiddleware));
 
   app.use(handleError);
 
-  const server = app.listen(HTTP_PORT, () => { // eslint-disable-line prefer-const
-    logger.info(`Started melinda-record-import-api in port ${HTTP_PORT}`);
-  });
+  const server = https.createServer(tlsConfig, app).listen(HTTPS_PORT, logger.info(`Started Melinda Poistot in port ${HTTPS_PORT}`));
 
   setSocketKeepAlive();
 
@@ -88,8 +96,8 @@ export default async function ({
   }
 
   function handleError(error, req, res, next) { // eslint-disable-line no-unused-vars
-    // console.log('Index Error handling'); // eslint-disable-line
-    // console.log(error); // eslint-disable-line
+    console.log('Index Error handling'); // eslint-disable-line
+    console.log(error); // eslint-disable-line
 
     if (error instanceof ApiError || 'status' in error) {
       if (error.payload) {

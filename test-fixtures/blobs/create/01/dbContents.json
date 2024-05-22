@@ -3,7 +3,7 @@
     {
       "id": "foo",
       "groups": [
-        "record-import-kvp",
+        "kvp",
         "foo"
       ]
     }

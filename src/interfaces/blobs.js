@@ -50,6 +50,7 @@ export default function ({url}) {
 
   return {query, read, create, update, remove, removeContent, readContent};
 
+  // MARK: Query
   async function query({profile, contentType, state, creationTime, modificationTime, user, offset}) {
     logger.silly('Query');
     const queryOpts = {
@@ -72,27 +73,27 @@ export default function ({url}) {
 
     function format(doc) {
       const blob = formatBlobDocument(doc);
-      const {numberOfRecords, failedRecords, processedRecords, queuedRecords} = getRecordStats();
+      const {numberOfRecords, failedRecords, processedRecords} = getRecordStats();
 
       delete blob.processingInfo; // eslint-disable-line functional/immutable-data
 
       return {
         ...blob,
-        numberOfRecords, failedRecords, processedRecords, queuedRecords,
+        numberOfRecords, failedRecords, processedRecords,
         url: `${url}/blobs/${blob.id}`
       };
 
       function getRecordStats() {
-        const {processingInfo: {numberOfRecords, failedRecords, importResults, queuedRecords}} = blob;
+        const {processingInfo: {numberOfRecords, failedRecords, importResults}} = blob;
         return {
           numberOfRecords,
           failedRecords: failedRecords.length,
-          processedRecords: importResults.length,
-          queuedRecords: queuedRecords.length
+          processedRecords: importResults.length
         };
       }
     }
 
+    // MARK: Query - Generate query
     async function generateQuery() {
       const doc = await init();
 
@@ -128,9 +129,13 @@ export default function ({url}) {
 
       return doc;
 
+      // MARK: Query - Generate query - init
       async function init() {
         const doc = {};
-        const permittedProfiles = await getPermittedProfiles();
+        const profiles = await Mongoose.models.Profile.find();
+        const permittedProfiles = profiles
+          .filter(profile => hasPermission(user.roles.groups, profile.groups))
+          .map(({id}) => id);
 
         if (offset) { // eslint-disable-line functional/no-conditional-statements
           doc._id = {$gt: ObjectId(offset)}; // eslint-disable-line new-cap, functional/immutable-data
@@ -147,16 +152,9 @@ export default function ({url}) {
         }
 
         return {...doc, profile: {$in: permittedProfiles}};
-
-        async function getPermittedProfiles() {
-          const profiles = await Mongoose.models.Profile.find();
-
-          return profiles
-            .filter(profile => hasPermission('blobs', 'query', user.groups, profile.groups))
-            .map(({id}) => id);
-        }
       }
 
+      // MARK: Query - Generate query - formatTime
       function formatTime(timestamp) {
         // Ditch the timezone
         const time = moment.utc(timestamp);
@@ -165,6 +163,7 @@ export default function ({url}) {
     }
   }
 
+  // MARK: Read
   async function read({id, user}) {
     logger.debug(`Read: ${id}`);
 
@@ -173,7 +172,7 @@ export default function ({url}) {
     if (doc) {
       const blob = formatBlobDocument(doc);
       const bgroups = await getProfile(blob.profile);
-      if (hasPermission('blobs', 'read', user.groups, bgroups.groups)) {
+      if (hasPermission(user.roles.groups, bgroups.groups)) {
         return blob;
       }
 
@@ -183,6 +182,7 @@ export default function ({url}) {
     throw new ApiError(HttpStatus.NOT_FOUND, 'Blob not found');
   }
 
+  // MARK: Format blob document
   function formatBlobDocument(doc) {
     const blob = doc._doc;
 
@@ -200,13 +200,14 @@ export default function ({url}) {
     }, {});
   }
 
+  // MARK: Remove
   async function remove({id, user}) {
     logger.debug('Remove');
     const blob = await Mongoose.models.BlobMetadata.findOne({id});
 
     if (blob) { // eslint-disable-line functional/no-conditional-statements
       const bgroups = await getProfile(blob.profile);
-      if (hasPermission('blobs', 'remove', user.groups, bgroups.groups)) { // eslint-disable-line functional/no-conditional-statements
+      if (hasPermission(user.roles.groups, bgroups.groups)) { // eslint-disable-line functional/no-conditional-statements
         try {
           await getFileMetadata(id);
           throw new ApiError(HttpStatus.CONFLICT, 'Request error: Content still exists');
@@ -227,12 +228,12 @@ export default function ({url}) {
     throw new ApiError(HttpStatus.NOT_FOUND, 'Blob not found');
   }
 
+  // MARK: Create
   async function create({inputStream, profile, contentType, user}) {
     logger.debug('Create');
     const profileContent = await getProfile(profile);
-
     if (profileContent) {
-      if (hasPermission('blobs', 'create', user.groups, profileContent.groups)) {
+      if (hasPermission(user.roles.groups, profileContent.groups)) {
         const id = uuid();
 
         await Mongoose.models.BlobMetadata.create({id, profile, contentType});
@@ -260,12 +261,13 @@ export default function ({url}) {
     throw new ApiError(HttpStatus.NOT_FOUND, 'Blob create profile not found');
   }
 
+  // MARK: Read content
   async function readContent({id, user}) {
     const blob = await Mongoose.models.BlobMetadata.findOne({id});
 
     if (blob) {
       const bgroups = await getProfile(blob.profile);
-      if (hasPermission('blobs', 'readContent', user.groups, bgroups.groups)) { // eslint-disable-line functional/no-conditional-statements
+      if (hasPermission(user.roles.groups, bgroups.groups)) { // eslint-disable-line functional/no-conditional-statements
         await getFileMetadata(id);
 
         return {
@@ -280,12 +282,14 @@ export default function ({url}) {
     throw new ApiError(HttpStatus.NOT_FOUND, 'Blob not found');
   }
 
+  // MARK: Remove content
   async function removeContent({id, user}) {
     const blob = await Mongoose.models.BlobMetadata.findOne({id});
 
     if (blob) {
+      console.log(blob); // eslint-disable-line
       const bgroups = await getProfile(blob.profile);
-      if (hasPermission('blobs', 'removeContent', user.groups, bgroups.groups)) { // eslint-disable-line functional/no-conditional-statements
+      if (hasPermission(user.roles.groups, bgroups.groups)) { // eslint-disable-line functional/no-conditional-statements
         const {_id: fileId} = await getFileMetadata(id);
         return gridFSBucket.delete(fileId);
       }
@@ -295,38 +299,44 @@ export default function ({url}) {
     throw new ApiError(HttpStatus.NOT_FOUND, 'Blob not found');
   }
 
+  // MARK: Update
   async function update({id, payload, user}) { // Updated 20211103
     const blob = await Mongoose.models.BlobMetadata.findOne({id});
-    const {op} = payload;
 
     if (blob) {
       const bgroups = await getProfile(blob.profile);
-      const permission = await checkPermission(op, user, bgroups);
-      if (permission) {
-        const doc = await getUpdateDoc(bgroups);
+      console.log(user.roles.groups); // eslint-disable-line
+      console.log(bgroups); // eslint-disable-line
+      if (hasPermission(user.roles.groups, bgroups.groups)) {
+        const {op} = payload;
+        if (op) {
+          const doc = await getUpdateDoc(op);
 
-        const updateIfNotInStates = [BLOB_STATE.TRANSFORMATION_FAILED, BLOB_STATE.ABORTED, BLOB_STATE.PROCESSED];
-        if (updateIfNotInStates.includes(blob.state)) {
-          throw new ApiError(HttpStatus.CONFLICT);
-        }
+          const updateIfNotInStates = [BLOB_STATE.TRANSFORMATION_FAILED, BLOB_STATE.ABORTED, BLOB_STATE.PROCESSED];
+          if (updateIfNotInStates.includes(blob.state)) {
+            throw new ApiError(HttpStatus.CONFLICT);
+          }
 
-        const {numberOfRecords, failedRecords, importResults} = blob.processingInfo;
-        if (op === BLOB_UPDATE_OPERATIONS.recordProcessed && numberOfRecords <= failedRecords.length + importResults.length) { // eslint-disable-line functional/no-conditional-statements
-          throw new ApiError(HttpStatus.CONFLICT);
-        }
+          const {numberOfRecords, failedRecords, importResults} = blob.processingInfo;
+          if (op === BLOB_UPDATE_OPERATIONS.recordProcessed && numberOfRecords <= failedRecords.length + importResults.length) { // eslint-disable-line functional/no-conditional-statements
+            throw new ApiError(HttpStatus.CONFLICT);
+          }
 
-        const {modifiedCount} = await Mongoose.models.BlobMetadata.updateOne({id}, doc);
+          const {modifiedCount} = await Mongoose.models.BlobMetadata.updateOne({id}, doc);
 
-        if (modifiedCount === 0) { // eslint-disable-line functional/no-conditional-statements
-          throw new ApiError(HttpStatus.CONFLICT);
-        }
+          if (modifiedCount === 0) { // eslint-disable-line functional/no-conditional-statements
+            throw new ApiError(HttpStatus.CONFLICT);
+          }
 
-        if (melindaApiOptions.melindaApiUrl && doc.correlationId) {
-          await melindaApiClient.setBulkStatus(doc.correlationId, QUEUE_ITEM_STATE.ABORT);
+          if (melindaApiOptions.melindaApiUrl && doc.correlationId) {
+            await melindaApiClient.setBulkStatus(doc.correlationId, QUEUE_ITEM_STATE.ABORT);
+            return;
+          }
+
           return;
         }
 
-        return;
+        throw new ApiError(HttpStatus.UNPROCESSABLE_ENTITY, 'Blob update operation error');
       }
 
       throw new ApiError(HttpStatus.FORBIDDEN, 'Blob update/abort permission error');
@@ -334,17 +344,10 @@ export default function ({url}) {
 
     throw new ApiError(HttpStatus.NOT_FOUND, 'Blob not found');
 
-    function checkPermission(op, user, bgroups) {
-      if (op) {
-        return hasPermission('blobs', 'update', user.groups, bgroups.groups);
-      }
-
-      throw new ApiError(HttpStatus.UNPROCESSABLE_ENTITY, 'Blob update operation error');
-    }
-
-    function getUpdateDoc() {
+    // MARK: Update - Get update doc
+    function getUpdateDoc(op) {
       const {
-        abort, recordProcessed, recordQueued, transformationFailed,
+        abort, recordProcessed, transformationFailed,
         updateState, transformedRecord, addCorrelationId
       } = BLOB_UPDATE_OPERATIONS;
 
@@ -430,20 +433,6 @@ export default function ({url}) {
         };
       }
 
-      logger.debug(`recordQueued: ${recordQueued}`);
-      if (op === recordQueued) {
-        logger.debug('recordQueued');
-        return {
-          modificationTime: moment(),
-          $push: {
-            'processingInfo.queuedRecords': {
-              title: payload.title,
-              standardIdentifiers: payload.standardIdentifiers
-            }
-          }
-        };
-      }
-
       if (op === addCorrelationId) {
         logger.debug(`case: ${op}, CorrelationId: ${payload.correlationId}`);
         return {
@@ -457,6 +446,7 @@ export default function ({url}) {
     }
   }
 
+  // MARK: Get profile
   async function getProfile(id) {
     const profile = await Mongoose.models.Profile.findOne({id});
     logger.debug(profile);
@@ -465,6 +455,7 @@ export default function ({url}) {
     }
   }
 
+  // MARK: Get file metadata
   async function getFileMetadata(filename) {
     logger.silly('Getting file metadata!');
     const files = await gridFSBucket.find({filename}).toArray();

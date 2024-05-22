@@ -10,7 +10,10 @@ export const PASSPORT_LOCAL_USERS = readEnvironmentVariable('PASSPORT_LOCAL_USER
 export const ENABLE_PROXY = readEnvironmentVariable('ENABLE_PROXY', {defaultValue: false, format: parseBoolean});
 
 export const API_URL = readEnvironmentVariable('RECORD_IMPORT_API_URL', {defaultValue: 'http://localhost:8080'});
-export const HTTP_PORT = readEnvironmentVariable('HTTP_PORT', {defaultValue: 8080, format: v => Number(v)});
+export const HTTPS_PORT = readEnvironmentVariable('HTTPS_PORT', {defaultValue: 8080, format: v => Number(v)});
+export const tlsKeyPath = readEnvironmentVariable('TLS_KEY_PATH', {defaultValue: ''});
+export const tlsCertPath = readEnvironmentVariable('TLS_CERT_PATH', {defaultValue: ''});
+export const allowSelfSignedApiCert = readEnvironmentVariable('ALLOW_API_SELF_SIGNED', {defaultValue: false, format: parseBoolean});
 
 export const MONGO_URI = readEnvironmentVariable('MONGO_URI', {defaultValue: 'mongodb://127.0.0.1/db'});
 export const MONGO_POOLSIZE = readEnvironmentVariable('MONGO_POOLSIZE', {defaultValue: 200, format: v => Number(v)});
@@ -28,16 +31,14 @@ export const melindaApiOptions = {
   melindaApiPassword: readEnvironmentVariable('MELINDA_API_PASSWORD', {defaultValue: ''})
 };
 
-export const keycloakOptions = {
-  authorizationParams: {
-    audience: readEnvironmentVariable('KEYCLOAK_AUDIENCE', {defaultValue: ''}),
-    scope: 'openid microprofile-jwt'
-  },
-  baseURL: readEnvironmentVariable('KEYCLOAK_BASE_URL', {defaultValue: ''}),
-  clientID: readEnvironmentVariable('KEYCLOAK_CLIENT_ID', {defaultValue: ''}),
-  issuerBaseURL: readEnvironmentVariable('KEYCLOAK_ISSUER_BASE_URL', {defaultValue: ''}),
-  secret: readEnvironmentVariable('KEYCLOAK_SECRET', {defaultValue: ''})
+export const keycloakOpts = {
+  algorithms: readEnvironmentVariable('KEYCLOAK_ALGORITHMS', {defaultValue: [], format: JSON.parse}),
+  audience: readEnvironmentVariable('KEYCLOAK_AUDIENCE', {defaultValue: ''}),
+  issuer: readEnvironmentVariable('KEYCLOAK_ISSUER', {defaultValue: ''}),
+  jwksUrl: `${readEnvironmentVariable('KEYCLOAK_ISSUER', {defaultValue: ''})}/protocol/openid-connect/certs`,
+  serviceAuthHeader: readEnvironmentVariable('KEYCLOAK_SERVICE_AUTH_HEADER', {defaultValue: ''})
 };
+export const KEYCLOAK_ROLE_MAP = readEnvironmentVariable('KEYCLOAK_ROLE_MAP', {defaultValue: {}, format: JSON.parse});
 
 export const USER_AGENT_LOGGING_BLACKLIST = readEnvironmentVariable('USER_AGENT_LOGGING_BLACKLIST', {
   defaultValue: [

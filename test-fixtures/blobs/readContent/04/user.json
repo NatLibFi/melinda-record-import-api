@@ -1,7 +1,8 @@
 {
   "id": "foobar",
-  "groups": [
-    "foo",
-    "record-import-blobs-content"
-  ]
+  "roles": {
+    "groups": [
+      "foo"
+    ]
+  }
 }

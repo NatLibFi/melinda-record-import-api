@@ -5,6 +5,12 @@
       "groups": [
         "foo"
       ]
+    },
+    {
+      "id": "bar",
+      "groups": [
+        "bar"
+      ]
     }
   ],
   "blobs.chunks": [
@@ -35,7 +41,7 @@
       },
       "state": "TRANSFORMED",
       "id": "foo",
-      "profile": "foo",
+      "profile": "bar",
       "contentType": "foo/bar"
     }
   ]

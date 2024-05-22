@@ -3,7 +3,7 @@
     {
       "id": "foo",
       "groups": [
-        "record-import-kvp",
+        "kvp",
         "foo"
       ]
     }
@@ -21,8 +21,7 @@
       "processingInfo": {
         "numberOfRecords": 0,
         "failedRecords": [],
-        "importResults": [],
-        "queuedRecords": []
+        "importResults": []
       },
       "state": "PENDING_TRANSFORMATION",
       "id": "foo",

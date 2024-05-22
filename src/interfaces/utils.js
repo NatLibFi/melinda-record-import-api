@@ -1,37 +1,16 @@
-const permissions = {
-  profiles: {
-    createOrUpdate: ['record-import-kvp'],
-    read: ['record-import-profiles-read'],
-    query: ['record-import-profiles-read'],
-    remove: ['record-import-kvp']
-  },
-  blobs: {
-    query: ['record-import-blobs-read'],
-    read: ['record-import-blobs-read'],
-    create: ['record-import-blobs-create'],
-    update: ['record-import-blobs-update'],
-    remove: ['record-import-blobs-remove'],
-    removeContent: ['record-import-blobs-content'],
-    readContent: ['record-import-blobs-content']
-  }
-};
-
-export function hasPermission(type, command, userGroups, permittedGroups = []) {
-  console.log(userGroups); // eslint-disable-line
-  const commandPermissions = permissions[type][command];
-  if (userGroups.includes('record-import-kvp')) {
+export function hasPermission(userGroups, permittedGroups = []) {
+  console.log('User groups: ', userGroups); // eslint-disable-line
+  console.log('Permited groups: ', permittedGroups); // eslint-disable-line
+  if (userGroups.includes('kvp')) {
     return true;
   }
 
-  if (hasGroup(permittedGroups) === false) {
-    console.log('Permitted groups does not match'); // eslint-disable-line
-    return false;
-  }
-
-  if (hasGroup(commandPermissions)) {
-    console.log('Command permissions does not match'); // eslint-disable-line
+  if (hasGroup(permittedGroups) === true) {
     return true;
   }
+
+  console.log('Permitted groups does not match'); // eslint-disable-line
+  return false;
 
   function hasGroup(permitted) {
     return userGroups.some(g => permitted.includes(g));

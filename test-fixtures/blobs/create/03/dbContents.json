@@ -1,11 +1,10 @@
 {
-    "profiles": [
-        {
-            "id": "foo",
-            "groups": [
-                "creator",
-                "foo"
-            ]
-        }
-    ]
+  "profiles": [
+    {
+      "id": "foo",
+      "groups": [
+        "foo"
+      ]
+    }
+  ]
 }

@@ -9,19 +9,19 @@ import {API_URL, CONTENT_MAX_LENGTH} from '../config';
 import sanitize from 'mongo-sanitize';
 import createDebugLogger from 'debug';
 
-export default function () {
+export default function (permissionMiddleware) {
   const blobs = blobsFactory({url: API_URL});
   const logger = createLogger();
   const debug = createDebugLogger('@natlibfi/melinda-record-import-api:routes/blobs'); // eslint-disable-line no-unused-vars
 
   return new Router()
-    .get('/', query)
-    .post('/', getContentLengthMiddleware(), create)
-    .get('/:id', read)
-    .delete('/:id', remove)
-    .post('/:id', validateContentType({type: 'application/json'}), bodyParser.json({type: 'application/json'}), update)
-    .get('/:id/content', readContent)
-    .delete('/:id/content', removeContent);
+    .get('/', permissionMiddleware('blobs', 'read'), query)
+    .post('/', permissionMiddleware('blobs', 'create'), getContentLengthMiddleware(), create)
+    .get('/:id', permissionMiddleware('blobs', 'read'), read)
+    .delete('/:id', permissionMiddleware('blobs', 'delete'), remove)
+    .put('/:id', permissionMiddleware('blobs', 'update'), validateContentType({type: 'application/json'}), bodyParser.json({type: 'application/json'}), update)
+    .get('/:id/content', permissionMiddleware('blobs', 'content'), readContent)
+    .delete('/:id/content', permissionMiddleware('blobs', 'content'), removeContent);
 
   async function query(req, res, next) {
     logger.debug('Route - Blobs - Query');
@@ -83,7 +83,6 @@ export default function () {
     if ('content-type' in req.headers && 'import-profile' in req.headers) { // eslint-disable-line functional/no-conditional-statements
       // logger.debug(`Content-type: ${req.headers['content-type']}`);
       logger.debug(`Import-profile: ${req.headers['import-profile']}`);
-      logger.debug(`User: ${req.user.preferred_username}`);
       // debug(`Content-type: ${req.headers['content-type']}`);
       // debug(`Import-profile: ${req.headers['import-profile']}`);
 
