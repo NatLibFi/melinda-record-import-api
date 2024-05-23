@@ -33,10 +33,10 @@ export const melindaApiOptions = {
 
 export const keycloakOpts = {
   algorithms: readEnvironmentVariable('KEYCLOAK_ALGORITHMS', {defaultValue: [], format: JSON.parse}),
-  audience: readEnvironmentVariable('KEYCLOAK_AUDIENCE', {defaultValue: ''}),
-  issuer: readEnvironmentVariable('KEYCLOAK_ISSUER', {defaultValue: ''}),
-  jwksUrl: `${readEnvironmentVariable('KEYCLOAK_ISSUER', {defaultValue: ''})}/protocol/openid-connect/certs`,
-  serviceAuthHeader: readEnvironmentVariable('KEYCLOAK_SERVICE_AUTH_HEADER', {defaultValue: ''})
+  audience: readEnvironmentVariable('KEYCLOAK_AUDIENCE', {defaultValue: false}),
+  issuer: readEnvironmentVariable('KEYCLOAK_ISSUER', {defaultValue: false}),
+  jwksUrl: `${readEnvironmentVariable('KEYCLOAK_ISSUER', {defaultValue: false})}/protocol/openid-connect/certs`,
+  serviceAuthHeader: readEnvironmentVariable('KEYCLOAK_SERVICE_AUTH_HEADER', {defaultValue: false})
 };
 export const KEYCLOAK_ROLE_MAP = readEnvironmentVariable('KEYCLOAK_ROLE_MAP', {defaultValue: {}, format: JSON.parse});
 

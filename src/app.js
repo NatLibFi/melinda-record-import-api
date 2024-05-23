@@ -24,8 +24,6 @@ export default async function ({
   keycloakOpts, tlsKeyPath, tlsCertPath, allowSelfSignedApiCert
 }) {
   const logger = createLogger();
-
-
   const app = express();
 
   //---------------------------------------------------//
