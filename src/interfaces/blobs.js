@@ -287,7 +287,6 @@ export default function ({url}) {
     const blob = await Mongoose.models.BlobMetadata.findOne({id});
 
     if (blob) {
-      console.log(blob); // eslint-disable-line
       const bgroups = await getProfile(blob.profile);
       if (hasPermission(user.roles.groups, bgroups.groups)) { // eslint-disable-line functional/no-conditional-statements
         const {_id: fileId} = await getFileMetadata(id);
@@ -305,8 +304,6 @@ export default function ({url}) {
 
     if (blob) {
       const bgroups = await getProfile(blob.profile);
-      console.log(user.roles.groups); // eslint-disable-line
-      console.log(bgroups); // eslint-disable-line
       if (hasPermission(user.roles.groups, bgroups.groups)) {
         const {op} = payload;
         if (op) {

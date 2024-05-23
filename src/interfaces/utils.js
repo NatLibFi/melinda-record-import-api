@@ -1,6 +1,4 @@
 export function hasPermission(userGroups, permittedGroups = []) {
-  console.log('User groups: ', userGroups); // eslint-disable-line
-  console.log('Permited groups: ', permittedGroups); // eslint-disable-line
   if (userGroups.includes('kvp')) {
     return true;
   }
