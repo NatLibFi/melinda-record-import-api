@@ -25,15 +25,6 @@ export default async function ({
 }) {
   const logger = createLogger();
 
-  if (!tlsKeyPath || !tlsCertPath) {
-    throw new Error('This prototype requires certificates!');
-  }
-
-  const tlsConfig = {
-    key: fs.readFileSync(tlsKeyPath, 'utf8'),
-    cert: fs.readFileSync(tlsCertPath, 'utf8'),
-    rejectUnauthorized: allowSelfSignedApiCert
-  };
 
   const app = express();
 
@@ -80,9 +71,23 @@ export default async function ({
 
   app.use(handleError);
 
+
+  if (!tlsKeyPath || !tlsCertPath) {
+    const server = app.listen(HTTPS_PORT, () => logger.info('Started Melinda Poistot in port ${HTTPS_PORT}'));
+    setSocketKeepAlive(server);
+
+    return server;
+  }
+
+  const tlsConfig = {
+    key: fs.readFileSync(tlsKeyPath, 'utf8'),
+    cert: fs.readFileSync(tlsCertPath, 'utf8'),
+    rejectUnauthorized: allowSelfSignedApiCert
+  };
+
   const server = https.createServer(tlsConfig, app).listen(HTTPS_PORT, logger.info(`Started Melinda Poistot in port ${HTTPS_PORT}`));
 
-  setSocketKeepAlive();
+  setSocketKeepAlive(server);
 
   return server;
 
@@ -111,7 +116,7 @@ export default async function ({
     return res.sendStatus(httpStatus.INTERNAL_SERVER_ERROR);
   }
 
-  function setSocketKeepAlive() {
+  function setSocketKeepAlive(server) {
     if (SOCKET_KEEP_ALIVE_TIMEOUT) { // eslint-disable-line functional/no-conditional-statements
       server.keepAliveTimeout = SOCKET_KEEP_ALIVE_TIMEOUT; // eslint-disable-line functional/immutable-data
 
