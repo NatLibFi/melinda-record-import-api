@@ -446,7 +446,6 @@ export default function ({url}) {
   // MARK: Get profile
   async function getProfile(id) {
     const profile = await Mongoose.models.Profile.findOne({id});
-    logger.debug(profile);
     if (profile) {
       return profile;
     }

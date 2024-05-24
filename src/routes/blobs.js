@@ -23,6 +23,7 @@ export default function (permissionMiddleware) {
     .get('/:id/content', permissionMiddleware('blobs', 'content'), readContent)
     .delete('/:id/content', permissionMiddleware('blobs', 'content'), removeContent);
 
+  // MARK: Query
   async function query(req, res, next) {
     logger.debug('Route - Blobs - Query');
     try {
@@ -58,6 +59,7 @@ export default function (permissionMiddleware) {
     }
   }
 
+  // MARK: Read
   async function read(req, res, next) {
     logger.debug('Route - Blobs - Read');
     try {
@@ -68,6 +70,7 @@ export default function (permissionMiddleware) {
     }
   }
 
+  // MARK: Remove
   async function remove(req, res, next) {
     logger.debug('Route - Blobs - Remove');
     try {
@@ -78,6 +81,7 @@ export default function (permissionMiddleware) {
     }
   }
 
+  // MARK: Create
   async function create(req, res, next) {
     logger.debug('Route - Blobs - Create');
     if ('content-type' in req.headers && 'import-profile' in req.headers) { // eslint-disable-line functional/no-conditional-statements
@@ -108,6 +112,7 @@ export default function (permissionMiddleware) {
     res.sendStatus(400);
   }
 
+  // MARK: Update
   async function update(req, res, next) {
     logger.debug('Route - Blobs - Update');
     try {
@@ -122,6 +127,7 @@ export default function (permissionMiddleware) {
     }
   }
 
+  // MARK: Read Content
   async function readContent(req, res, next) {
     logger.debug('Route - Blobs - Read Content');
     try {
@@ -133,6 +139,7 @@ export default function (permissionMiddleware) {
     }
   }
 
+  // MARK: Remove Content
   async function removeContent(req, res, next) {
     logger.debug('Route - Blobs - Remove Content');
     try {
@@ -143,6 +150,7 @@ export default function (permissionMiddleware) {
     }
   }
 
+  // MARK: Get content length middleware
   function getContentLengthMiddleware() {
     if (CONTENT_MAX_LENGTH > 0) {
       return validateContentLength({
