@@ -90,7 +90,7 @@ export default async function ({
   return server;
 
   function pathValidator(req, res, next) {
-    logger.debug(`path: ${req.path}`);
+    logger.debug(`path: ${req.path}, query: ${req.query}`);
     if (req.path.startsWith('//')) {
       return res.status(httpStatus.BAD_REQUEST).send('Invalid URL: extra /');
     }
