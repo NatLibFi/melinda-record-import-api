@@ -289,18 +289,8 @@ export default function ({url}) {
     if (blob) {
       const bgroups = await getProfile(blob.profile);
       if (hasPermission(user.roles.groups, bgroups.groups)) { // eslint-disable-line functional/no-conditional-statements
-        try {
-          const {_id: fileId} = await getFileMetadata(id);
-          return gridFSBucket.delete(fileId);
-        } catch (error) {
-          if (error instanceof ApiError && error.status === HttpStatus.NOT_FOUND) { // eslint-disable-line functional/no-conditional-statements
-            console.log(`*** ERROR: Status: ${error.status}, message: ${error.payload} ***`); // eslint-disable-line
-            logger.debug('Blob content allready removed!');
-            return;
-          }
-
-          throw error;
-        }
+        const {_id: fileId} = await getFileMetadata(id);
+        return gridFSBucket.delete(fileId);
       }
 
       throw new ApiError(HttpStatus.FORBIDDEN, 'Blob removeContent permission error');

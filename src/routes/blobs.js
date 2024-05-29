@@ -8,6 +8,7 @@ import {validateMax as validateContentLength} from 'express-content-length-valid
 import {API_URL, CONTENT_MAX_LENGTH} from '../config';
 import sanitize from 'mongo-sanitize';
 import createDebugLogger from 'debug';
+import {Error as ApiError} from '@natlibfi/melinda-commons';
 
 export default function (permissionMiddleware) {
   const blobs = blobsFactory({url: API_URL});
@@ -25,7 +26,7 @@ export default function (permissionMiddleware) {
 
   // MARK: Query
   async function query(req, res, next) {
-    logger.debug('Route - Blobs - Query');
+    logger.verbose('Route - Blobs - Query');
     try {
       const queryParams = getQueryParams();
       const parameters = {user: req.user, ...queryParams};
@@ -61,7 +62,7 @@ export default function (permissionMiddleware) {
 
   // MARK: Read
   async function read(req, res, next) {
-    logger.debug('Route - Blobs - Read');
+    logger.verbose('Route - Blobs - Read');
     try {
       const result = await blobs.read({id: req.params.id, user: req.user});
       res.json(result);
@@ -72,7 +73,7 @@ export default function (permissionMiddleware) {
 
   // MARK: Remove
   async function remove(req, res, next) {
-    logger.debug('Route - Blobs - Remove');
+    logger.verbose('Route - Blobs - Remove');
     try {
       await blobs.remove({id: req.params.id, user: req.user});
       res.sendStatus(HttpStatus.NO_CONTENT);
@@ -83,7 +84,7 @@ export default function (permissionMiddleware) {
 
   // MARK: Create
   async function create(req, res, next) {
-    logger.debug('Route - Blobs - Create');
+    logger.verbose('Route - Blobs - Create');
     if ('content-type' in req.headers && 'import-profile' in req.headers) { // eslint-disable-line functional/no-conditional-statements
       // logger.debug(`Content-type: ${req.headers['content-type']}`);
       logger.debug(`Import-profile: ${req.headers['import-profile']}`);
@@ -114,7 +115,7 @@ export default function (permissionMiddleware) {
 
   // MARK: Update
   async function update(req, res, next) {
-    logger.debug('Route - Blobs - Update');
+    logger.verbose('Route - Blobs - Update');
     try {
       await blobs.update({
         id: req.params.id, user: req.user,
@@ -129,7 +130,7 @@ export default function (permissionMiddleware) {
 
   // MARK: Read Content
   async function readContent(req, res, next) {
-    logger.debug('Route - Blobs - Read Content');
+    logger.verbose('Route - Blobs - Read Content');
     try {
       const {contentType, readStream} = await blobs.readContent({id: req.params.id, user: req.user});
       res.setHeader('content-type', contentType);
@@ -141,11 +142,16 @@ export default function (permissionMiddleware) {
 
   // MARK: Remove Content
   async function removeContent(req, res, next) {
-    logger.debug('Route - Blobs - Remove Content');
+    logger.verbose('Route - Blobs - Remove Content');
     try {
       await blobs.removeContent({id: req.params.id, user: req.user});
       res.sendStatus(HttpStatus.NO_CONTENT);
     } catch (error) {
+      if (error instanceof ApiError && error.status === HttpStatus.NOT_FOUND) { // eslint-disable-line functional/no-conditional-statements
+        console.log(`*** ERROR: Status: ${error.status}, message: ${error.payload} ***`); // eslint-disable-line
+        return res.status(error.status);
+      }
+
       return next(error);
     }
   }

@@ -90,8 +90,8 @@ export default async function ({
   return server;
 
   function pathValidator(req, res, next) {
-    logger.debug(`path: ${req.path}, query: ${JSON.stringify(req.query)}`);
     if (req.path.startsWith('//')) {
+      logger.debug(`path: ${req.path}, query: ${JSON.stringify(req.query)}`);
       return res.status(httpStatus.BAD_REQUEST).send('Invalid URL: extra /');
     }
 
@@ -99,7 +99,7 @@ export default async function ({
   }
 
   function handleError(error, req, res, next) { // eslint-disable-line no-unused-vars
-    console.log('Index Error handling'); // eslint-disable-line
+    console.log('App Error handling'); // eslint-disable-line
     console.log(error); // eslint-disable-line
 
     if (error instanceof ApiError || 'status' in error) {
