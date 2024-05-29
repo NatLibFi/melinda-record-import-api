@@ -438,7 +438,7 @@ export default function ({url}) {
         };
       }
 
-      logger.error('Blob update case was not found');
+      logger.error(`Blob update case '${op}' was not found`);
       throw new ApiError(HttpStatus.UNPROCESSABLE_ENTITY, 'Blob update operation error');
     }
   }
