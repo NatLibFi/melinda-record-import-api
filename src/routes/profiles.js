@@ -14,7 +14,7 @@ export default function (permissionMiddleware) {
     .get('/', permissionMiddleware('profiles', 'read'), query)
     .get('/:id', permissionMiddleware('profiles', 'read'), read)
     .delete('/:id', permissionMiddleware('profiles', 'edit'), remove)
-    .put('/:id', permissionMiddleware('profiles', 'edit'), validateContentType({type: 'application/json'}), bodyParser.json({type: 'application/json'}), createOrUpdate);
+    .post('/:id', permissionMiddleware('profiles', 'edit'), validateContentType({type: 'application/json'}), bodyParser.json({type: 'application/json'}), createOrUpdate);
 
   async function query(req, res, next) {
     logger.debug('Route - Profiles - Query');

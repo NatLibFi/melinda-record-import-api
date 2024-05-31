@@ -20,7 +20,7 @@ export default function (permissionMiddleware) {
     .post('/', permissionMiddleware('blobs', 'create'), getContentLengthMiddleware(), create)
     .get('/:id', permissionMiddleware('blobs', 'read'), read)
     .delete('/:id', permissionMiddleware('blobs', 'delete'), remove)
-    .put('/:id', permissionMiddleware('blobs', 'update'), validateContentType({type: 'application/json'}), bodyParser.json({type: 'application/json'}), update)
+    .post('/:id', permissionMiddleware('blobs', 'update'), validateContentType({type: 'application/json'}), bodyParser.json({type: 'application/json'}), update)
     .get('/:id/content', permissionMiddleware('blobs', 'content'), readContent)
     .delete('/:id/content', permissionMiddleware('blobs', 'content'), removeContent);
 

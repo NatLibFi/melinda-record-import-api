@@ -177,7 +177,7 @@ paths:
           description: Not authorized
         '404':
           description: The blob does not exist
-    put:
+    post:
       summary: Update blob metadata
       security:
         - httpBearer: []
@@ -270,7 +270,7 @@ paths:
         schema:
           type: string
         style: simple
-    put:
+    post:
       summary: Create or update a profile
       security:
         - httpBearer: []
