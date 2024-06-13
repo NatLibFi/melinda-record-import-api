@@ -71,7 +71,7 @@ export default async function ({
 
 
   if (!tlsKeyPath || !tlsCertPath) {
-    const server = app.listen(HTTPS_PORT, () => logger.info(`Started Melinda Poistot in port ${HTTPS_PORT}`));
+    const server = app.listen(HTTPS_PORT, () => logger.info(`Started Melinda record import api in port ${HTTPS_PORT}`));
     setSocketKeepAlive(server);
 
     return server;
@@ -83,7 +83,7 @@ export default async function ({
     rejectUnauthorized: allowSelfSignedApiCert
   };
 
-  const server = https.createServer(tlsConfig, app).listen(HTTPS_PORT, logger.info(`Started Melinda Poistot in port ${HTTPS_PORT}`));
+  const server = https.createServer(tlsConfig, app).listen(HTTPS_PORT, logger.info(`Started Melinda record import api in port ${HTTPS_PORT}`));
 
   setSocketKeepAlive(server);
 

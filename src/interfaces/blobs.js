@@ -171,8 +171,8 @@ export default function ({url}) {
 
     if (doc) {
       const blob = formatBlobDocument(doc);
-      const bgroups = await getProfile(blob.profile);
-      if (hasPermission(user.roles.groups, bgroups.groups)) {
+      const apiProfile = await getProfile({id: blob.profile});
+      if (hasPermission(user.roles.groups, apiProfile.groups)) {
         return blob;
       }
 
@@ -206,8 +206,8 @@ export default function ({url}) {
     const blob = await Mongoose.models.BlobMetadata.findOne({id});
 
     if (blob) { // eslint-disable-line functional/no-conditional-statements
-      const bgroups = await getProfile(blob.profile);
-      if (hasPermission(user.roles.groups, bgroups.groups)) { // eslint-disable-line functional/no-conditional-statements
+      const apiProfile = await getProfile({id: blob.profile});
+      if (hasPermission(user.roles.groups, apiProfile.groups)) { // eslint-disable-line functional/no-conditional-statements
         try {
           await getFileMetadata(id);
           throw new ApiError(HttpStatus.CONFLICT, 'Request error: Content still exists');
@@ -231,9 +231,9 @@ export default function ({url}) {
   // MARK: Create
   async function create({inputStream, profile, contentType, user}) {
     logger.debug('Create');
-    const profileContent = await getProfile(profile);
-    if (profileContent) {
-      if (hasPermission(user.roles.groups, profileContent.groups)) {
+    const apiProfile = await getProfile({id: profile});
+    if (apiProfile) {
+      if (hasPermission(user.roles.groups, apiProfile.groups)) {
         const id = uuid();
 
         await Mongoose.models.BlobMetadata.create({id, profile, contentType});
@@ -266,8 +266,8 @@ export default function ({url}) {
     const blob = await Mongoose.models.BlobMetadata.findOne({id});
 
     if (blob) {
-      const bgroups = await getProfile(blob.profile);
-      if (hasPermission(user.roles.groups, bgroups.groups)) { // eslint-disable-line functional/no-conditional-statements
+      const apiProfile = await getProfile({id: blob.profile});
+      if (hasPermission(user.roles.groups, apiProfile.groups)) { // eslint-disable-line functional/no-conditional-statements
         await getFileMetadata(id);
 
         return {
@@ -287,8 +287,8 @@ export default function ({url}) {
     const blob = await Mongoose.models.BlobMetadata.findOne({id});
 
     if (blob) {
-      const bgroups = await getProfile(blob.profile);
-      if (hasPermission(user.roles.groups, bgroups.groups)) { // eslint-disable-line functional/no-conditional-statements
+      const apiProfile = await getProfile({id: blob.profile});
+      if (hasPermission(user.roles.groups, apiProfile.groups)) { // eslint-disable-line functional/no-conditional-statements
         const {_id: fileId} = await getFileMetadata(id);
         return gridFSBucket.delete(fileId);
       }
@@ -303,8 +303,8 @@ export default function ({url}) {
     const blob = await Mongoose.models.BlobMetadata.findOne({id});
 
     if (blob) {
-      const bgroups = await getProfile(blob.profile);
-      if (hasPermission(user.roles.groups, bgroups.groups)) {
+      const apiProfile = await getProfile({id: blob.profile});
+      if (hasPermission(user.roles.groups, apiProfile.groups)) {
         const {op} = payload;
         if (op) {
           const doc = await getUpdateDoc(op);
@@ -345,7 +345,8 @@ export default function ({url}) {
     function getUpdateDoc(op) {
       const {
         abort, recordProcessed, transformationFailed,
-        updateState, transformedRecord, addCorrelationId
+        updateState, transformedRecord, addCorrelationId,
+        setCataloger
       } = BLOB_UPDATE_OPERATIONS;
 
       logger.debug(`Update blob: ${op}`);
@@ -438,17 +439,29 @@ export default function ({url}) {
         };
       }
 
+      if (op === setCataloger) {
+        logger.debug(`case: ${op}, cataloger: ${payload.cataloger}`);
+        return {
+          modificationTime: moment(),
+          $set: {
+            cataloger: payload.cataloger
+          }
+        };
+      }
+
       logger.error(`Blob update case '${op}' was not found`);
       throw new ApiError(HttpStatus.UNPROCESSABLE_ENTITY, 'Blob update operation error');
     }
   }
 
   // MARK: Get profile
-  async function getProfile(id) {
+  async function getProfile({id}) {
     const profile = await Mongoose.models.Profile.findOne({id});
     if (profile) {
       return profile;
     }
+
+    return false;
   }
 
   // MARK: Get file metadata

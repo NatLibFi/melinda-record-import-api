@@ -66,7 +66,7 @@ export default function ({url}) {
     if (hasPermission(user.roles.groups)) {
       const profile = await Mongoose.models.Profile.findOne({id});
 
-      logger.debug(profile ? 'got profile' : 'invalid profile');
+      logger.debug(profile ? 'got profile' : 'existing profile not found');
 
       if (profile) {
         return execute(true);
