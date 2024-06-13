@@ -27,7 +27,8 @@
       "id": "foo",
       "profile": "foo",
       "contentType": "foo/bar",
-      "correlationId": ""
+      "correlationId": "",
+      "cataloger": ""
     }
   ]
 }

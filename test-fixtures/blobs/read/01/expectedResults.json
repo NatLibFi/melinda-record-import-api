@@ -8,5 +8,6 @@
     "id": "foo",
     "state": "UPLOADING",
     "contentType": "foo/bar",
-    "correlationId": ""
+    "correlationId": "",
+    "cataloger": ""
 }

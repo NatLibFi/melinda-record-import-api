@@ -8,7 +8,8 @@
         "numberOfRecords": 0,
         "failedRecords": 0,
         "processedRecords": 0,
-        "correlationId": ""
+        "correlationId": "",
+        "cataloger": ""
     },
     {
         "id": "bar",
@@ -19,6 +20,7 @@
         "numberOfRecords": 0,
         "failedRecords": 0,
         "processedRecords": 0,
-        "correlationId": ""
+        "correlationId": "",
+        "cataloger": ""
     }
 ]
