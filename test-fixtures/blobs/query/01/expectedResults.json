@@ -9,7 +9,8 @@
         "failedRecords": 0,
         "processedRecords": 0,
         "correlationId": "",
-        "cataloger": ""
+        "cataloger": "",
+        "notificationEmail": ""
     },
     {
         "id": "bar",
@@ -21,6 +22,7 @@
         "failedRecords": 0,
         "processedRecords": 0,
         "correlationId": "",
-        "cataloger": ""
+        "cataloger": "",
+        "notificationEmail": ""
     }
 ]

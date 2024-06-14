@@ -28,7 +28,8 @@
       "profile": "foo",
       "contentType": "foo/bar",
       "correlationId": "",
-      "cataloger": ""
+      "cataloger": "",
+      "notificationEmail": ""
     }
   ]
 }

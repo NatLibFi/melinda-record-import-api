@@ -9,5 +9,6 @@
     "state": "UPLOADING",
     "contentType": "foo/bar",
     "correlationId": "",
-    "cataloger": ""
+    "cataloger": "",
+    "notificationEmail": ""
 }

@@ -449,6 +449,16 @@ export default function ({url}) {
         };
       }
 
+      if (op === setNotificationEmail) {
+        logger.debug(`case: ${op}, cataloger: ${payload.notificationEmail}`);
+        return {
+          modificationTime: moment(),
+          $set: {
+            notificationEmail: payload.notificationEmail
+          }
+        };
+      }
+
       logger.error(`Blob update case '${op}' was not found`);
       throw new ApiError(HttpStatus.UNPROCESSABLE_ENTITY, 'Blob update operation error');
     }

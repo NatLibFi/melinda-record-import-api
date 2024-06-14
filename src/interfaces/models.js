@@ -16,6 +16,7 @@ export const BlobMetadataModel = new Schema({
   correlationId: {type: String, default: ''},
   profile: {type: String, required: true},
   cataloger: {type: String, default: ''},
+  notificationEmail: {type: String, default: ''},
   contentType: {type: String, required: true},
   state: {
     type: String,

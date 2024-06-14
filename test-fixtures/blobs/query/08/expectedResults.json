@@ -9,6 +9,7 @@
         "failedRecords": 0,
         "processedRecords": 0,
         "correlationId": "",
-        "cataloger": ""
+        "cataloger": "",
+        "notificationEmail": ""
     }
 ]
