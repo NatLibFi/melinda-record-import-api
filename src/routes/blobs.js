@@ -26,7 +26,7 @@ export default function (permissionMiddleware) {
 
   // MARK: Query
   async function query(req, res, next) {
-    logger.verbose('Route - Blobs - Query');
+    logger.silly('Route - Blobs - Query');
     try {
       const queryParams = getQueryParams();
       const parameters = {user: req.user, ...queryParams};
