@@ -319,7 +319,7 @@ export default function ({url}) {
       const {
         abort, recordProcessed, transformationFailed,
         updateState, transformedRecord, addCorrelationId,
-        setCataloger
+        setCataloger, setNotificationEmail
       } = BLOB_UPDATE_OPERATIONS;
 
       logger.debug(`Update blob: ${op}`);
