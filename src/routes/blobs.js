@@ -5,13 +5,12 @@ import {blobsFactory} from '../interfaces';
 import validateContentType from '@natlibfi/express-validate-content-type';
 import {createLogger} from '@natlibfi/melinda-backend-commons';
 import {validateMax as validateContentLength} from 'express-content-length-validator';
-import {API_URL, CONTENT_MAX_LENGTH} from '../config';
 import sanitize from 'mongo-sanitize';
 import createDebugLogger from 'debug';
 import {Error as ApiError} from '@natlibfi/melinda-commons';
 
-export default function (permissionMiddleware) {
-  const blobs = blobsFactory({url: API_URL});
+export default function (permissionMiddleware, {API_URL, CONTENT_MAX_LENGTH, MONGO_URI, MELINDA_API_OPTIONS, BLOBS_QUERY_LIMIT}) {
+  const blobs = blobsFactory({MONGO_URI, MELINDA_API_OPTIONS, BLOBS_QUERY_LIMIT});
   const logger = createLogger();
   const debug = createDebugLogger('@natlibfi/melinda-record-import-api:routes/blobs'); // eslint-disable-line no-unused-vars
 

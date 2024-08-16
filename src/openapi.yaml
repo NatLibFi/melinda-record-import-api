@@ -4,45 +4,30 @@ info:
   description: API microservice of Melinda record batch import system.
   contact:
     name: Melinda palvelut
-    url: http://www.example.com/support
+    url: https://www.kansalliskirjasto.fi/fi/palvelut/melinda
     email: melinda-posti@helsinki.fi
   license:
-    name: AGPL-3.0+
-    url: https://www.gnu.org/licenses/agpl-3.0.en.html
+    name: MIT
+    url: https://opensource.org/license/mit
   version: 1.0.0
+servers:
+  - url: https://record-import.api.melinda.kansalliskirjasto.fi/
+    description: Internal staging server for testing
 tags:
-  - name: auth
-    description: Get authentication token
   - name: blobs
     description: Operate on blobs
   - name: profiles
     description: Operate on profiles
 security:
-  - httpBasic: []
-  - httpBearer: []
+  - openId:
+      - melinda
 paths:
-  /auth:
-    post:
-      summary: Get a bearer token for authentication
-      security:
-        - httpBasic: []
-      tags:
-        - auth
-      responses:
-        '204':
-          description: Authentication succeeded
-          headers:
-            Token:
-              description: Bearer token used in authenticating with other resources
-              schema:
-                type: string
-        '401':
-          description: Authentication failed
   /blobs:
     post:
       summary: Create a new blob
       security:
-        - httpBearer: []
+        - openId:
+          - melinda
       tags:
         - blobs
       parameters:
@@ -77,7 +62,8 @@ paths:
     get:
       summary: Query for blobs
       security:
-        - httpBearer: []
+        - openId:
+          - melinda
       tags:
         - blobs
       parameters:
@@ -161,7 +147,8 @@ paths:
     get:
       summary: Retrieve blob metadata
       security:
-        - httpBearer: []
+        - openId:
+          - melinda
       tags:
         - blobs
       responses:
@@ -180,7 +167,8 @@ paths:
     post:
       summary: Update blob metadata
       security:
-        - httpBearer: []
+        - openId:
+          - melinda
       tags:
         - blobs
       requestBody:
@@ -206,7 +194,8 @@ paths:
     delete:
       summary: Delete a blob
       security:
-        - httpBearer: []
+        - openId:
+          - melinda
       description: The blob is completely removed including all related records in the queue
       tags:
         - blobs
@@ -233,7 +222,8 @@ paths:
     get:
       summary: Retrieve blob content
       security:
-        - httpBearer: []
+        - openId:
+          - melinda
       tags:
         - blobs
       responses:
@@ -248,7 +238,8 @@ paths:
     delete:
       summary: Delete blob content
       security:
-        - httpBearer: []
+        - openId:
+          - melinda
       description: The blob content is removed
       tags:
         - blobs
@@ -273,7 +264,8 @@ paths:
     post:
       summary: Create or update a profile
       security:
-        - httpBearer: []
+        - openId:
+          - melinda
       tags:
         - profiles
       requestBody:
@@ -295,7 +287,8 @@ paths:
     get:
       summary: Retrieve a profile
       security:
-        - httpBearer: []
+        - openId:
+          - melinda
       tags:
         - profiles
       responses:
@@ -313,13 +306,10 @@ paths:
           description: The profile does not exist
 components:
   securitySchemes:
-    httpBasic:
-      type: http
-      scheme: basic
-    httpBearer:
-      type: http
-      scheme: bearer
-      bearerFormat: JWT
+    openId:
+      type: openIdConnect
+      description: Melinda openid auth
+      openIdConnectUrl: https://ssotest.natlib.fi/realms/melinda/.well-known/openid-configuration
   schemas:
     BlobState:
       type: string

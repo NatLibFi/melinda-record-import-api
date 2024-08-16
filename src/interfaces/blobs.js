@@ -1,139 +1,29 @@
 
 import HttpStatus from 'http-status';
-import Mongoose from 'mongoose';
 import moment from 'moment';
-import {GridFSBucket, ObjectId} from 'mongodb';
+import {ObjectId} from 'mongodb';
 import {v4 as uuid} from 'uuid';
-import {BLOB_UPDATE_OPERATIONS, BLOB_STATE} from '@natlibfi/melinda-record-import-commons';
-import {BlobMetadataModel, ProfileModel} from './models';
+import {BLOB_UPDATE_OPERATIONS, BLOB_STATE, createMongoOperator} from '@natlibfi/melinda-record-import-commons';
 import {hasPermission} from './utils';
-import {BLOBS_QUERY_LIMIT, melindaApiOptions} from '../config';
 import {createLogger} from '@natlibfi/melinda-backend-commons';
 import {Error as ApiError} from '@natlibfi/melinda-commons';
 import {createApiClient as createMelindaApiClient} from '@natlibfi/melinda-rest-api-client';
 import {QUEUE_ITEM_STATE} from '@natlibfi/melinda-rest-api-commons';
 
-export default function ({url}) {
-  const gridFSBucket = new GridFSBucket(Mongoose.connection.db, {bucketName: 'blobs'});
+export async default function ({MONGO_URI, MELINDA_API_OPTIONS, BLOBS_QUERY_LIMIT}) {
   const logger = createLogger();
-  const melindaApiClient = melindaApiOptions.melindaApiUrl ? createMelindaApiClient(melindaApiOptions) : false;
+  const collection = 'blobmetadatas';
+  const mongoOperator = await createMongoOperator(MONGO_URI, {db: 'db', collection});
+  const melindaApiClient = MELINDA_API_OPTIONS.melindaApiUrl ? createMelindaApiClient(MELINDA_API_OPTIONS) : false;
 
-  Mongoose.model('BlobMetadata', BlobMetadataModel);
-  Mongoose.model('Profile', ProfileModel);
 
   return {query, read, create, update, remove, removeContent, readContent};
 
   // MARK: Query
+  /* eslint-disable-next-line */
   async function query({profile, contentType, state, creationTime, modificationTime, user, offset}) {
     logger.silly('Query');
-    const queryOpts = {
-      limit: BLOBS_QUERY_LIMIT
-    };
-
-    // eslint-disable-next-line functional/immutable-data
-    const blobs = await Mongoose.models.BlobMetadata.find(await generateQuery(), undefined, queryOpts).sort('creationTime');
-    logger.silly(`Query state: ${state}`);
-    logger.silly(`Found ${blobs.length} blobs`);
-
-    if (blobs.length < BLOBS_QUERY_LIMIT) {
-      return {results: blobs.map(format)};
-    }
-
-    return {
-      nextOffset: blobs.slice(-1).shift()._id.toString(),
-      results: blobs.map(format)
-    };
-
-    function format(doc) {
-      const blob = formatBlobDocument(doc);
-      const {numberOfRecords, failedRecords, processedRecords} = getRecordStats();
-
-      delete blob.processingInfo; // eslint-disable-line functional/immutable-data
-
-      return {
-        ...blob,
-        numberOfRecords, failedRecords, processedRecords,
-        url: `${url}/blobs/${blob.id}`
-      };
-
-      function getRecordStats() {
-        const {processingInfo: {numberOfRecords, failedRecords, importResults}} = blob;
-        return {
-          numberOfRecords,
-          failedRecords: failedRecords.length,
-          processedRecords: importResults.length
-        };
-      }
-    }
-
-    // MARK: Query - Generate query
-    async function generateQuery() {
-      const doc = await init();
-
-      if (state) { // eslint-disable-line functional/no-conditional-statements
-        doc.state = {$in: state}; // eslint-disable-line functional/immutable-data
-      }
-
-      if (contentType) { // eslint-disable-line functional/no-conditional-statements
-        doc.contentType = {$in: contentType}; // eslint-disable-line functional/immutable-data
-      }
-
-      if (creationTime) {
-        if (creationTime.length === 1) { // eslint-disable-line functional/no-conditional-statements
-          doc.creationTime = formatTime(creationTime[0]); // eslint-disable-line functional/immutable-data
-        } else { // eslint-disable-line functional/no-conditional-statements
-          doc.$and = [ // eslint-disable-line functional/immutable-data
-            {creationTime: {$gte: formatTime(creationTime[0])}},
-            {creationTime: {$lte: formatTime(creationTime[1])}}
-          ];
-        }
-      }
-
-      if (modificationTime) {
-        if (modificationTime.length === 1) { // eslint-disable-line functional/no-conditional-statements
-          doc.modificationTime = formatTime(modificationTime[0]); // eslint-disable-line functional/immutable-data
-        } else { // eslint-disable-line functional/no-conditional-statements
-          doc.$and = [ // eslint-disable-line functional/immutable-data
-            {modificationTime: {$gte: formatTime(modificationTime[0])}},
-            {modificationTime: {$lte: formatTime(modificationTime[1])}}
-          ];
-        }
-      }
-
-      return doc;
-
-      // MARK: Query - Generate query - init
-      async function init() {
-        const doc = {};
-        const profiles = await Mongoose.models.Profile.find();
-        const permittedProfiles = profiles
-          .filter(profile => hasPermission(user.roles.groups, profile.groups))
-          .map(({id}) => id);
-
-        if (offset) { // eslint-disable-line functional/no-conditional-statements
-          doc._id = {$gt: ObjectId(offset)}; // eslint-disable-line new-cap, functional/immutable-data
-        }
-
-        if (profile) {
-          return {
-            ...doc,
-            $and: [
-              {profile: {$in: permittedProfiles}},
-              {profile: {$in: profile}}
-            ]
-          };
-        }
-
-        return {...doc, profile: {$in: permittedProfiles}};
-      }
-
-      // MARK: Query - Generate query - formatTime
-      function formatTime(timestamp) {
-        // Ditch the timezone
-        const time = moment.utc(timestamp);
-        return time.toDate();
-      }
-    }
+    console.log(user);
   }
 
   // MARK: Read
@@ -298,7 +188,7 @@ export default function ({url}) {
             throw new ApiError(HttpStatus.CONFLICT);
           }
 
-          if (melindaApiOptions.melindaApiUrl && doc.correlationId) {
+          if (MELINDA_API_OPTIONS.melindaApiUrl && doc.correlationId) {
             await melindaApiClient.setBulkStatus(doc.correlationId, QUEUE_ITEM_STATE.ABORT);
             return;
           }

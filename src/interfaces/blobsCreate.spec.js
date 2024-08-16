@@ -65,9 +65,15 @@ describe('interfaces/blobs', () => {
     await populateDB();
 
     try {
+      console.log('tests'); // eslint-disable-line
+
       const id = await blobs.create({contentType: 'foo/bar', profile: 'foo', inputStream, user});
+
+      console.log('dump'); // eslint-disable-line
       const db = await mongoFixtures.dump();
       const formatedDump = formatDump(db);
+
+      console.log('results'); // eslint-disable-line
 
       expect(id).to.equal('foo');
       expect(formatedDump.blobmetadatas).to.eql(expectedDb.blobmetadatas);
