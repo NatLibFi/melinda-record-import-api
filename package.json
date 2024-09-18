@@ -28,7 +28,7 @@
     "test": "npm run lint && npm run test:base",
     "test:dev": "npm run lint:dev && npm run test:base",
     "build": "babel src --source-maps --copy-files --delete-dir-on-start --out-dir=dist",
-    "dev": "cross-env DEBUG=1 LOG_LEVEL=debug nodemon"
+    "dev": "cross-env DEBUG=@natlibfi/* LOG_LEVEL=debug nodemon"
   },
   "dependencies": {
     "@babel/runtime": "^7.24.5",
@@ -36,10 +36,10 @@
     "@natlibfi/fixugen": "^2.0.5",
     "@natlibfi/melinda-backend-commons": "^2.3.1",
     "@natlibfi/melinda-commons": "^13.0.13",
-    "@natlibfi/melinda-record-import-commons": "^11.0.0-alpha.46",
+    "@natlibfi/melinda-record-import-commons": "^11.0.0-alpha.51",
     "@natlibfi/melinda-rest-api-client": "^4.0.3",
     "@natlibfi/melinda-rest-api-commons": "^4.1.7",
-    "@natlibfi/passport-natlibfi-keycloak": "^2.1.0-alpha.1",
+    "@natlibfi/passport-natlibfi-keycloak": "^2.2.0-alpha.2",
     "body-parser": "^1.20.2",
     "cors": "^2.8.5",
     "debug": "^4.3.4",

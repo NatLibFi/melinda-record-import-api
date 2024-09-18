@@ -56,13 +56,16 @@ describe('interfaces/blobs', () => {
     expectedFailStatus = ''
   }) {
     try {
+      const MONGO_URI = await mongoFixtures.getUri();
       const dbContents = getFixture('dbContents.json');
       const user = getFixture('user.json');
-      const blobs = blobsFactory({url: 'https://api'});
+      const blobs = await blobsFactory({MONGO_URI, MELINDA_API_OPTIONS: {}, BLOBS_QUERY_LIMIT: 100, MONGO_DB: ''});
 
       await mongoFixtures.populate(dbContents);
 
       await blobs.remove({id: 'foo', user});
+      const dump = await mongoFixtures.dump();
+      expect(dump.blobmetadatas).to.eql([]);
       expect(expectToFail, 'This is expected to succes').to.equal(false);
     } catch (error) {
       if (!expectToFail) { // eslint-disable-line functional/no-conditional-statements
@@ -71,8 +74,7 @@ describe('interfaces/blobs', () => {
         }
         throw error;
       }
-
-      console.log(error); // eslint-disable-line
+      //console.log(error); // eslint-disable-line
       expect(expectToFail, 'This is expected to fail').to.equal(true);
       expect(error).to.be.instanceOf(ApiError);
       expect(error.status).to.equal(expectedFailStatus);

@@ -1,5 +1,0 @@
-{
-  "description": "Should fail because the blob content has already been removed",
-  "expectToFail": true,
-  "expectedFailStatus": 404
-}

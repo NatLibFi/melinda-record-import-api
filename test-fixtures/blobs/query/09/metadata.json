@@ -1,9 +1,6 @@
 {
   "description": "Should return blobs using modificationTime range filter",
   "params": {
-    "modificationTime": [
-      "2000-01-01T00:00:00.000Z",
-      "2000-01-02T00:00:00.000Z"
-    ]
+    "modificationTime": "2000-01-01T00:00:00.000Z,2000-01-02T00:00:00.000Z"
   }
 }

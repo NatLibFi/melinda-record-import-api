@@ -8,6 +8,7 @@ import {validateMax as validateContentLength} from 'express-content-length-valid
 import sanitize from 'mongo-sanitize';
 import createDebugLogger from 'debug';
 import {Error as ApiError} from '@natlibfi/melinda-commons';
+import {checkQueryParams} from '../middleware/queryCheck';
 
 export default function (permissionMiddleware, {API_URL, CONTENT_MAX_LENGTH, MONGO_URI, MELINDA_API_OPTIONS, BLOBS_QUERY_LIMIT}) {
   const blobs = blobsFactory({MONGO_URI, MELINDA_API_OPTIONS, BLOBS_QUERY_LIMIT});
@@ -15,7 +16,7 @@ export default function (permissionMiddleware, {API_URL, CONTENT_MAX_LENGTH, MON
   const debug = createDebugLogger('@natlibfi/melinda-record-import-api:routes/blobs'); // eslint-disable-line no-unused-vars
 
   return new Router()
-    .get('/', permissionMiddleware('blobs', 'read'), query)
+    .get('/', permissionMiddleware('blobs', 'read'), checkQueryParams, query)
     .post('/', permissionMiddleware('blobs', 'create'), getContentLengthMiddleware(), create)
     .get('/:id', permissionMiddleware('blobs', 'read'), read)
     .delete('/:id', permissionMiddleware('blobs', 'delete'), remove)
@@ -27,8 +28,7 @@ export default function (permissionMiddleware, {API_URL, CONTENT_MAX_LENGTH, MON
   async function query(req, res, next) {
     logger.silly('Route - Blobs - Query');
     try {
-      const queryParams = getQueryParams();
-      const parameters = {user: req.user, ...queryParams};
+      const parameters = {...req.query, user: req.user};
 
       if (req.get('QueryOffset')) { // eslint-disable-line functional/no-conditional-statements
         parameters.offset = sanitize(req.get('QueryOffset')); // eslint-disable-line functional/immutable-data
@@ -44,18 +44,6 @@ export default function (permissionMiddleware, {API_URL, CONTENT_MAX_LENGTH, MON
       res.json(results);
     } catch (error) {
       return next(error);
-    }
-
-    function getQueryParams() {
-      const KEYS = ['state', 'profile', 'contentType', 'creationTime', 'modificationTime'];
-
-      return Object.keys(req.query)
-        .filter(k => KEYS.includes(k))
-        .reduce((acc, k) => {
-          const cleanedK = sanitize(k);
-          const value = sanitize(req.query[k]);
-          return {...acc, [cleanedK]: Array.isArray(value) ? value : [value]};
-        }, {});
     }
   }
 
@@ -94,7 +82,8 @@ export default function (permissionMiddleware, {API_URL, CONTENT_MAX_LENGTH, MON
         const id = await blobs.create({
           inputStream: req, user: req.user,
           profile: req.headers['import-profile'],
-          contentType: req.headers['content-type']
+          contentType: req.headers['content-type'],
+          date: new Date()
         });
 
         res.set('Location', `${API_URL}/blobs/${id}`);

@@ -1,4 +1,6 @@
 {
-  "description": "Should return blobs using profile filte",
-  "params": {"profile": ["foo"]}
+  "description": "Should return blobs using profile filter",
+  "params": {
+    "profile": "foo"
+  }
 }
