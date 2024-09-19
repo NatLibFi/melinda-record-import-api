@@ -24,6 +24,7 @@
       },
       "state": "PENDING",
       "id": "foo",
+      "correlationId": "",
       "profile": "foo",
       "contentType": "foo/bar"
     }

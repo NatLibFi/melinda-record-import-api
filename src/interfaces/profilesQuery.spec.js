@@ -1,5 +1,4 @@
 import {expect} from 'chai';
-import Mongoose from 'mongoose';
 import {READERS} from '@natlibfi/fixura';
 import mongoFixturesFactory from '@natlibfi/fixura-mongo';
 import {Error as ApiError} from '@natlibfi/melinda-commons';
@@ -21,19 +20,7 @@ describe('interfaces/profiles', () => {
     },
     mocha: {
       before: async () => {
-        mongoFixtures = await mongoFixturesFactory({
-          rootPath: [__dirname, '..', '..', 'test-fixtures', 'profiles', 'query'],
-          gridFS: {bucketName: 'blobs'},
-          useObjectId: true,
-          format: {
-            blobmetadatas: {
-              creationTime: v => new Date(v),
-              modificationTime: v => new Date(v)
-            }
-          }
-        });
-        Mongoose.set('strictQuery', true);
-        await Mongoose.connect(await mongoFixtures.getUri(), {});
+        await initMongofixtures();
       },
       beforeEach: async () => {
         await mongoFixtures.clear();
@@ -42,11 +29,24 @@ describe('interfaces/profiles', () => {
         await mongoFixtures.clear();
       },
       after: async () => {
-        await Mongoose.disconnect();
         await mongoFixtures.close();
       }
     }
   });
+
+  async function initMongofixtures() {
+    mongoFixtures = await mongoFixturesFactory({
+      rootPath: [__dirname, '..', '..', 'test-fixtures', 'profiles', 'query'],
+      gridFS: {bucketName: 'blobmetadatas'},
+      useObjectId: true,
+      format: {
+        blobmetadatas: {
+          creationTime: v => new Date(v),
+          modificationTime: v => new Date(v)
+        }
+      }
+    });
+  }
 
   async function callback({
     getFixture,
@@ -54,10 +54,11 @@ describe('interfaces/profiles', () => {
     expectedFailStatus = ''
   }) {
     try {
+      const mongoUri = await mongoFixtures.getUri();
       const dbContents = getFixture('dbContents.json');
       const user = getFixture('user.json');
       const expectedResults = getFixture('results.json');
-      const profiles = profilesFactory({url: 'https://api'});
+      const profiles = await profilesFactory({MONGO_URI: mongoUri, MONGO_DB: ''});
 
       await mongoFixtures.populate(dbContents);
 

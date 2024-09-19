@@ -9,59 +9,69 @@
     ],
     "blobmetadatas": [
         {
-            "_id": "5d40037160d7401bb6f944e4",
             "processingInfo": {
                 "numberOfRecords": 0,
                 "failedRecords": [],
                 "importResults": []
             },
+            "state": "UPLOADING",
             "id": "1",
             "profile": "foo",
-            "contentType": "foo/bar"
+            "contentType": "foo/bar",
+            "creationTime": "2000-01-04T00:01:00.000Z",
+            "modificationTime": "2000-05-02T00:01:00.000Z"
         },
         {
-            "_id": "5d40037160d7401bb6f944e5",
             "processingInfo": {
                 "numberOfRecords": 0,
                 "failedRecords": [],
                 "importResults": []
             },
+            "state": "UPLOADING",
             "id": "2",
             "profile": "foo",
-            "contentType": "foo/bar"
+            "contentType": "foo/bar",
+            "creationTime": "2000-01-04T00:02:00.000Z",
+            "modificationTime": "2000-05-02T00:02:00.000Z"
         },
         {
-            "_id": "5d40037160d7401bb6f944e6",
             "processingInfo": {
                 "numberOfRecords": 0,
                 "failedRecords": [],
                 "importResults": []
             },
+            "state": "UPLOADING",
             "id": "3",
             "profile": "foo",
-            "contentType": "foo/bar"
+            "contentType": "foo/bar",
+            "creationTime": "2000-01-04T00:03:00.000Z",
+            "modificationTime": "2000-05-02T00:03:00.000Z"
         },
         {
-            "_id": "5d40037160d7401bb6f944e7",
             "processingInfo": {
                 "numberOfRecords": 0,
                 "failedRecords": [],
                 "importResults": []
             },
+            "state": "UPLOADING",
             "id": "4",
             "profile": "foo",
-            "contentType": "foo/bar"
+            "contentType": "foo/bar",
+            "creationTime": "2000-01-04T00:04:00.000Z",
+            "modificationTime": "2000-05-02T00:04:00.000Z"
         },
         {
-            "_id": "5d40037160d7401bb6f944e8",
             "processingInfo": {
                 "numberOfRecords": 0,
                 "failedRecords": [],
                 "importResults": []
             },
+            "state": "UPLOADING",
             "id": "5",
             "profile": "foo",
-            "contentType": "foo/bar"
+            "contentType": "foo/bar",
+            "creationTime": "2000-01-04T00:05:00.000Z",
+            "modificationTime": "2000-05-02T00:05:00.000Z"
         }
     ]
 }

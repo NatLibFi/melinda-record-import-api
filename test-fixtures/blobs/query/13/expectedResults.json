@@ -1,28 +1,20 @@
 [
     {
         "id": "4",
-        "url": "https://api/blobs/4",
         "profile": "foo",
         "contentType": "foo/bar",
         "state": "UPLOADING",
         "numberOfRecords": 0,
         "failedRecords": 0,
-        "processedRecords": 0,
-        "correlationId": "",
-        "cataloger": "",
-        "notificationEmail": ""
+        "processedRecords": 0
     },
     {
         "id": "5",
-        "url": "https://api/blobs/5",
         "profile": "foo",
         "contentType": "foo/bar",
         "state": "UPLOADING",
         "numberOfRecords": 0,
         "failedRecords": 0,
-        "processedRecords": 0,
-        "correlationId": "",
-        "cataloger": "",
-        "notificationEmail": ""
+        "processedRecords": 0
     }
 ]

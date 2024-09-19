@@ -25,7 +25,7 @@ export const BLOBS_QUERY_LIMIT = readEnvironmentVariable('BLOBS_QUERY_LIMIT', {d
 export const CONTENT_MAX_LENGTH = readEnvironmentVariable('CONTENT_MAX_LENGTH', {defaultValue: 0, format: v => Number(v)});
 export const SOCKET_KEEP_ALIVE_TIMEOUT = readEnvironmentVariable('SOCKET_KEEP_ALIVE_TIMEOUT', {defaultValue: 0, format: v => Number(v)});
 
-export const melindaApiOptions = {
+export const MELINDA_API_OPTIONS = {
   melindaApiUrl: readEnvironmentVariable('MELINDA_API_URL', {defaultValue: false}),
   melindaApiUsername: readEnvironmentVariable('MELINDA_API_USERNAME', {defaultValue: ''}),
   melindaApiPassword: readEnvironmentVariable('MELINDA_API_PASSWORD', {defaultValue: ''})

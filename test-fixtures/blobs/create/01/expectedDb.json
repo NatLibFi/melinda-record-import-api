@@ -21,7 +21,8 @@
       "processingInfo": {
         "numberOfRecords": 0,
         "failedRecords": [],
-        "importResults": []
+        "importResults": [],
+        "transformationError": {}
       },
       "state": "PENDING_TRANSFORMATION",
       "id": "foo",

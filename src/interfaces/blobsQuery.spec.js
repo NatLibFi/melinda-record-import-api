@@ -1,5 +1,4 @@
 import {expect} from 'chai';
-import Mongoose from 'mongoose';
 import {READERS} from '@natlibfi/fixura';
 import mongoFixturesFactory from '@natlibfi/fixura-mongo';
 import generateTests from '@natlibfi/fixugen';
@@ -20,19 +19,7 @@ describe('interfaces/blobs', () => {
     },
     mocha: {
       before: async () => {
-        mongoFixtures = await mongoFixturesFactory({
-          rootPath: [__dirname, '..', '..', 'test-fixtures', 'blobs', 'query'],
-          gridFS: {bucketName: 'blobs'},
-          useObjectId: true,
-          format: {
-            blobmetadatas: {
-              creationTime: v => new Date(v),
-              modificationTime: v => new Date(v)
-            }
-          }
-        });
-        Mongoose.set('strictQuery', true);
-        await Mongoose.connect(await mongoFixtures.getUri(), {});
+        await initMongofixtures();
       },
       beforeEach: async () => {
         RewireAPI.__Rewire__('uuid', () => 'foo');
@@ -45,11 +32,24 @@ describe('interfaces/blobs', () => {
         await mongoFixtures.clear();
       },
       after: async () => {
-        await Mongoose.disconnect();
         await mongoFixtures.close();
       }
     }
   });
+
+  async function initMongofixtures() {
+    mongoFixtures = await mongoFixturesFactory({
+      rootPath: [__dirname, '..', '..', 'test-fixtures', 'blobs', 'query'],
+      gridFS: {bucketName: 'blobmetadatas'},
+      useObjectId: true,
+      format: {
+        blobmetadatas: {
+          creationTime: v => new Date(v),
+          modificationTime: v => new Date(v)
+        }
+      }
+    });
+  }
 
   async function callback({
     getFixture,
@@ -57,10 +57,11 @@ describe('interfaces/blobs', () => {
     params = {}
   }) {
     try {
+      const MONGO_URI = await mongoFixtures.getUri();
       const user = getFixture('user.json');
       const expectedResults = getFixture('expectedResults.json');
       const dbContents = getFixture('dbContents.json');
-      const blobs = blobsFactory({url: 'https://api'});
+      const blobs = await blobsFactory({MONGO_URI, MELINDA_API_OPTIONS: {}, BLOBS_QUERY_LIMIT: 100, MONGO_DB: ''});
 
       await mongoFixtures.populate(dbContents);
 

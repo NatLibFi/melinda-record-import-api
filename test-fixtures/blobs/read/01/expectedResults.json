@@ -7,8 +7,5 @@
     "profile": "foo",
     "id": "foo",
     "state": "UPLOADING",
-    "contentType": "foo/bar",
-    "correlationId": "",
-    "cataloger": "",
-    "notificationEmail": ""
+    "contentType": "foo/bar"
 }

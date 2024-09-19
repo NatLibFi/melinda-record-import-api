@@ -1,15 +1,11 @@
 [
     {
         "id": "foo",
-        "url": "https://api/blobs/foo",
         "profile": "foo",
         "contentType": "foo/bar",
         "state": "UPLOADING",
         "numberOfRecords": 0,
         "failedRecords": 0,
-        "processedRecords": 0,
-        "correlationId": "",
-        "cataloger": "",
-        "notificationEmail": ""
+        "processedRecords": 0
     }
 ]

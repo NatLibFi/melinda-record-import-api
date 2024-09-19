@@ -2,12 +2,11 @@ import HttpStatus from 'http-status';
 import {Router} from 'express';
 import bodyParser from 'body-parser';
 import {profilesFactory} from '../interfaces';
-import {API_URL} from '../config';
 import validateContentType from '@natlibfi/express-validate-content-type';
 import {createLogger} from '@natlibfi/melinda-backend-commons';
 
-export default function (permissionMiddleware) {
-  const profiles = profilesFactory({url: API_URL});
+export default async function (permissionMiddleware, {MONGO_URI}) {
+  const profiles = await profilesFactory({MONGO_URI});
   const logger = createLogger();
 
   return new Router()

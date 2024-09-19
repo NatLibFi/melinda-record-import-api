@@ -18,7 +18,8 @@
             "modificationTime": "2000-01-01T00:00:00.000Z",
             "id": "foo",
             "profile": "foo",
-            "contentType": "foo/bar"
+            "contentType": "foo/bar",
+            "state": "UPLOADING"
         },
         {
             "processingInfo": {
@@ -30,7 +31,8 @@
             "modificationTime": "2000-01-02T00:00:00.000Z",
             "id": "bar",
             "profile": "foo",
-            "contentType": "foo/bar"
+            "contentType": "foo/bar",
+            "state": "UPLOADING"
         }
     ]
 }
