@@ -20,7 +20,7 @@ export function checkQueryParams(req, res, next) {
     {name: 'id', value: queryParams.id ? uuidValidate(queryParams.id) && uuidVersion(queryParams.id) === 4 : true},
     {name: 'correlationId', value: queryParams.correlationId ? uuidValidate(queryParams.correlationId) && uuidVersion(queryParams.correlationId) === 4 : true},
     {name: 'profile', value: queryParams.profile ? checkProfile(queryParams.profile) : true},
-    {name: 'contentType', value: queryParams.contentType ? (/^[\w/-,]{1,30}$/iu).test(queryParams.contentType) : true},
+    {name: 'contentType', value: queryParams.contentType ? (/^(?:[-.\w/]{1,30})$/iu).test(queryParams.contentType) : true},
     {name: 'state', value: queryParams.state ? checkState(queryParams.state) : true},
     {name: 'creationTime', value: queryParams.creationTime ? checkTimeFormat(queryParams.creationTime) : true},
     {name: 'modificationTime', value: queryParams.modificationTime ? checkTimeFormat(queryParams.modificationTime) : true},
@@ -38,7 +38,7 @@ export function checkQueryParams(req, res, next) {
   return res.status(httpStatus.BAD_REQUEST).json({error: 'BAD query params', failedParams});
 
   function checkProfile(profile) {
-    if ((/^[\w-,]{1,30}$/iu).test(profile)) {
+    if ((/^(?:[-.\w/]{1,30})$/iu).test(profile)) {
       const {groups} = req.user.roles;
       if (profile.includes(',')) {
         const profileArray = profile.split(',');

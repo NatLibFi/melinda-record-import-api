@@ -10,8 +10,8 @@ import createDebugLogger from 'debug';
 import {Error as ApiError} from '@natlibfi/melinda-commons';
 import {checkQueryParams} from '../middleware/queryCheck';
 
-export default function (permissionMiddleware, {API_URL, CONTENT_MAX_LENGTH, MONGO_URI, MELINDA_API_OPTIONS, BLOBS_QUERY_LIMIT}) {
-  const blobs = blobsFactory({MONGO_URI, MELINDA_API_OPTIONS, BLOBS_QUERY_LIMIT});
+export default async function (permissionMiddleware, {CONTENT_MAX_LENGTH, MONGO_URI, MELINDA_API_OPTIONS, BLOBS_QUERY_LIMIT}) {
+  const blobs = await blobsFactory({MONGO_URI, MELINDA_API_OPTIONS, BLOBS_QUERY_LIMIT});
   const logger = createLogger();
   const debug = createDebugLogger('@natlibfi/melinda-record-import-api:routes/blobs'); // eslint-disable-line no-unused-vars
 
@@ -85,8 +85,8 @@ export default function (permissionMiddleware, {API_URL, CONTENT_MAX_LENGTH, MON
           contentType: req.headers['content-type'],
           date: new Date()
         });
-
-        res.set('Location', `${API_URL}/blobs/${id}`);
+        const apiUrl = `${req.protocol}://${req.header('host')}`;
+        res.set('Location', `${apiUrl}/blobs/${id}`);
         return res.sendStatus(HttpStatus.CREATED);
       } catch (error) {
         logger.error('Route - Blobs - Create - Error');

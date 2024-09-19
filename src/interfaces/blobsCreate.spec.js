@@ -39,7 +39,7 @@ describe('interfaces/blobs', () => {
   async function initMongofixtures() {
     mongoFixtures = await mongoFixturesFactory({
       rootPath: [__dirname, '..', '..', 'test-fixtures', 'blobs', 'create'],
-      gridFS: {bucketName: 'blobs'},
+      gridFS: {bucketName: 'blobmetadatas'},
       useObjectId: true,
       format: {
         blobmetadatas: {
