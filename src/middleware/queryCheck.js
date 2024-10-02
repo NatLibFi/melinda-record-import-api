@@ -76,24 +76,28 @@ export function checkQueryParams(req, res, next) {
   function checkTimeFormat(timestampArrayString) {
     logger.debug(`TimestampArrayString: ${timestampArrayString}`);
     try {
-      // 2024-08-30T00:00:00.000Z or 2024-08-30T00:00:00.000Z,2024-08-31T00:00:00.000Z
-      if ((/^(?:\d{4}-[01]{1}\d{1}-[0-3]{1}\d{1}T[0-2]{1}\d{1}:[0-6]{1}\d{1}:[0-6]{1}\d{1}\.\d{3}Z,?){1,2}$/u).test(timestampArrayString)) {
-        logger.debug('timestamp UTC format OK (e.g. 2024-08-30T00:00:00.000Z)');
-        return true;
-      }
+      const array = timestampArrayString.split(',');
+      return !array.some(value => {
 
-      if ((/^(?:\d{4}-[01]{1}\d{1}-[0-3]{1}\d{1}T[0-2]{1}\d{1}:[0-6]{1}\d{1}:[0-6]{1}\d{1}\.\d{3}\+[0-1]{1}\d:\d{2},?){1,2}$/u).test(timestampArrayString)) {
-        logger.debug('timestamp ISO format OK (e.g. 2024-10-02T00:00:00.000+03:00)');
-        return true;
-      }
+        // 2024-08-30T00:00:00.000Z
+        if ((/^(?:\d{4}-[01]{1}\d{1}-[0-3]{1}\d{1}T[0-2]{1}\d{1}:[0-6]{1}\d{1}:[0-6]{1}\d{1}\.\d{3}Z)$/u).test(value)) {
+          logger.debug('timestamp UTC format OK (e.g. 2024-08-30T00:00:00.000Z)');
+          return false;
+        }
 
-      // 2024-08-30 or 2024-08-30,2024-09-05
-      if ((/^(?:\d{4}-[01]{1}\d{1}-[0-3]{1}\d{1},?){1,2}$/u).test(timestampArrayString)) {
-        logger.debug('timestamp day format OK (e.g. 2024-08-30)');
-        return true;
-      }
+        if ((/^(?:\d{4}-[01]{1}\d{1}-[0-3]{1}\d{1}T[0-2]{1}\d{1}:[0-6]{1}\d{1}:[0-6]{1}\d{1}\.\d{3}\+[0-1]{1}\d:\d{2})$/u).test(value)) {
+          logger.debug('timestamp ISO format OK (e.g. 2024-10-02T00:00:00.000+03:00)');
+          return false;
+        }
 
-      return false;
+        // 2024-08-30 or 2024-08-30,2024-09-05
+        if ((/^(?:\d{4}-[01]{1}\d{1}-[0-3]{1}\d{1})$/u).test(value)) {
+          logger.debug('timestamp day format OK (e.g. 2024-08-30)');
+          return false;
+        }
+
+        return true;
+      });
     } catch (err) {
       logger.debug(`Parsing timestampArrayString ${timestampArrayString} failed: ${err.message}`);
       return false;
