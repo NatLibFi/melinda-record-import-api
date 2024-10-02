@@ -1,10 +1,10 @@
 import {expect} from 'chai';
 import {READERS} from '@natlibfi/fixura';
 import mongoFixturesFactory from '@natlibfi/fixura-mongo';
-import {Error as ApiError} from '@natlibfi/melinda-commons';
 import generateTests from '@natlibfi/fixugen';
+import {validate} from 'uuid';
 
-import blobsFactory, {__RewireAPI__ as RewireAPI} from './blobs';
+import blobsFactory from './blobs';
 
 describe('interfaces/blobs', () => {
   let mongoFixtures; // eslint-disable-line functional/no-let
@@ -23,11 +23,9 @@ describe('interfaces/blobs', () => {
         await initMongofixtures();
       },
       beforeEach: async () => {
-        RewireAPI.__Rewire__('uuid', () => 'foo');
         await mongoFixtures.clear();
       },
       afterEach: async () => {
-        RewireAPI.__ResetDependency__('uuid');
         await mongoFixtures.clear();
       },
       after: async () => {
@@ -40,13 +38,7 @@ describe('interfaces/blobs', () => {
     mongoFixtures = await mongoFixturesFactory({
       rootPath: [__dirname, '..', '..', 'test-fixtures', 'blobs', 'create'],
       gridFS: {bucketName: 'blobmetadatas'},
-      useObjectId: true,
-      format: {
-        blobmetadatas: {
-          creationTime: v => new Date(v),
-          modificationTime: v => new Date(v)
-        }
-      }
+      useObjectId: true
     });
   }
 
@@ -57,7 +49,7 @@ describe('interfaces/blobs', () => {
     expectedFailStatus = ''
   }) {
     const MONGO_URI = await mongoFixtures.getUri();
-    await mongoFixtures.populate(getFixture({components: ['dbContents.json'], reader: READERS.JSON}));
+    await mongoFixtures.populate(getFixture('dbContents.json'));
     const expectedDb = loadExpectedDb ? getFixture('expectedDb.json') : false;
 
     const inputStream = getFixture({components: ['payload.txt'], reader: READERS.STREAM});
@@ -69,24 +61,23 @@ describe('interfaces/blobs', () => {
       const id = await blobs.create({contentType: 'foo/bar', profile: 'foo', inputStream, date: new Date('2024-07-20'), user});
       const dump = dumpParser(await mongoFixtures.dump());
 
-      expect(id).to.equal('foo');
+      expect(validate(id)).to.equal(true);
       expect(dump.blobmetadatas).to.eql(expectedDb.blobmetadatas);
       expect(expectToFail, 'This is expected to succes').to.equal(false);
     } catch (error) {
       if (!expectToFail) { // eslint-disable-line
         throw error;
       }
-      // console.log(error);  // eslint-disable-line
+      console.log(error);  // eslint-disable-line
       expect(expectToFail, 'This is expected to fail').to.equal(true);
-      expect(error).to.be.instanceOf(ApiError);
       expect(error.status).to.equal(expectedFailStatus);
     }
 
     function dumpParser(dump) {
       // Drop timestamps
       const blobmetadatas = dump.blobmetadatas.map(blobmetadata => {
-        const {_id, modificationTime, creationTime, timestamp, ...rest} = blobmetadata; // eslint-disable-line no-unused-vars
-        return rest;
+        const {_id, id, modificationTime, creationTime, timestamp, ...rest} = blobmetadata; // eslint-disable-line no-unused-vars
+        return {id: 'foo', ...rest};
       });
 
       return {

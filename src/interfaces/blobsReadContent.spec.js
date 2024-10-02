@@ -3,9 +3,8 @@ import {READERS} from '@natlibfi/fixura';
 import mongoFixturesFactory from '@natlibfi/fixura-mongo';
 import generateTests from '@natlibfi/fixugen';
 import {Error as ApiError} from '@natlibfi/melinda-commons';
-import {MongoDriverError} from 'mongodb';
 
-import blobsFactory, {__RewireAPI__ as RewireAPI} from './blobs';
+import blobsFactory from './blobs';
 
 
 describe('interfaces/blobs', () => {
@@ -25,11 +24,9 @@ describe('interfaces/blobs', () => {
         await initMongofixtures();
       },
       beforeEach: async () => {
-        RewireAPI.__Rewire__('uuid', () => 'foo');
         await mongoFixtures.clear();
       },
       afterEach: async () => {
-        RewireAPI.__ResetDependency__('uuid');
         await mongoFixtures.clear();
       },
       after: async () => {
@@ -42,13 +39,7 @@ describe('interfaces/blobs', () => {
     mongoFixtures = await mongoFixturesFactory({
       rootPath: [__dirname, '..', '..', 'test-fixtures', 'blobs', 'readContent'],
       gridFS: {bucketName: 'blobmetadatas'},
-      useObjectId: true,
-      format: {
-        blobmetadatas: {
-          creationTime: v => new Date(v),
-          modificationTime: v => new Date(v)
-        }
-      }
+      useObjectId: true
     });
   }
 
@@ -77,8 +68,8 @@ describe('interfaces/blobs', () => {
         throw error;
       }
       expect(expectToFail, 'This is expected to fail').to.equal(true);
-      if (error instanceof MongoDriverError) {
-        expect(error).to.be.instanceOf(MongoDriverError);
+      if (error.errmsg) {
+        expect(error.errmsg.includes('FileNotFound')).to.equal(true);
         return;
       }
       expect(error).to.be.instanceOf(ApiError);
@@ -91,10 +82,7 @@ describe('interfaces/blobs', () => {
 
         stream
           .setEncoding('utf8')
-          .on('error', error => {
-            // console.log(error); // eslint-disable-line
-            reject(error);
-          })
+          .on('error', reject)
           .on('data', chunk => chunks.push(chunk)) // eslint-disable-line functional/immutable-data
           .on('end', () => resolve(chunks.join('')));
       });

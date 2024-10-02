@@ -37,13 +37,7 @@ describe('interfaces/profiles', () => {
   async function initMongofixtures() {
     mongoFixtures = await mongoFixturesFactory({
       rootPath: [__dirname, '..', '..', 'test-fixtures', 'profiles', 'createOrUpdate'],
-      useObjectId: true,
-      format: {
-        blobmetadatas: {
-          creationTime: v => new Date(v),
-          modificationTime: v => new Date(v)
-        }
-      }
+      useObjectId: true
     });
   }
 

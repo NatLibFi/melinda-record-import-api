@@ -6,13 +6,18 @@ import {BLOB_STATE} from '@natlibfi/melinda-record-import-commons';
 const logger = createLogger();
 
 export function checkQueryParams(req, res, next) {
-  const tempQueryParams = req.query;
-  const queryParams = Object.keys(tempQueryParams).filter(key => {
+  const queryParams = req.query;
+
+  /*
+  Object.keys(queryParams).foreach(key => {
     if (['id', 'correlationId', 'profile', 'contentType', 'state', 'creationTime', 'modificationTime', 'skip', 'limit'].includes(key)) {
-      return true;
+      logger.debug(queryParams[key]);
+      return;
     }
-    return false;
+    delete queryParams[key]; // eslint-disable-line functional/immutable-data
+    return;
   });
+  */
 
   req.query = queryParams; // eslint-disable-line
   logger.debug(`Checking query params: ${JSON.stringify(queryParams)}`);
@@ -73,11 +78,13 @@ export function checkQueryParams(req, res, next) {
     try {
       // 2024-08-30T00:00:00.000Z or 2024-08-30T00:00:00.000Z,2024-08-31T00:00:00.000Z
       if ((/^(?:\d{4}-[01]{1}\d{1}-[0-3]{1}\d{1}T[0-2]{1}\d{1}:[0-6]{1}\d{1}:[0-6]{1}\d{1}\.\d{3}Z,?){1,2}$/u).test(timestampArrayString)) {
+        logger.debug('timestamp UTC format OK (e.g. 2024-08-30T00:00:00.000Z)');
         return false;
       }
 
       // 2024-08-30 or 2024-08-30,2024-09-05
       if ((/^(?:\d{4}-[01]{1}\d{1}-[0-3]{1}\d{1},?){1,2}$/u).test(timestampArrayString)) {
+        logger.debug('timestamp day format OK (e.g. 2024-08-30)');
         return false;
       }
 

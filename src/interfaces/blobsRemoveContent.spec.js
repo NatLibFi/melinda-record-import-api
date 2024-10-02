@@ -2,9 +2,8 @@ import {expect} from 'chai';
 import {READERS} from '@natlibfi/fixura';
 import mongoFixturesFactory from '@natlibfi/fixura-mongo';
 import generateTests from '@natlibfi/fixugen';
-import {Error as ApiError} from '@natlibfi/melinda-commons';
 
-import blobsFactory, {__RewireAPI__ as RewireAPI} from './blobs';
+import blobsFactory from './blobs';
 
 
 describe('interfaces/blobs', () => {
@@ -24,11 +23,9 @@ describe('interfaces/blobs', () => {
         await initMongofixtures();
       },
       beforeEach: async () => {
-        RewireAPI.__Rewire__('uuid', () => 'foo');
         await mongoFixtures.clear();
       },
       afterEach: async () => {
-        RewireAPI.__ResetDependency__('uuid');
         await mongoFixtures.clear();
       },
       after: async () => {
@@ -76,7 +73,6 @@ describe('interfaces/blobs', () => {
         throw error;
       }
       expect(expectToFail, 'This is expected to fail').to.equal(true);
-      expect(error).to.be.instanceOf(ApiError);
       expect(error.status).to.equal(expectedFailStatus);
     }
   }

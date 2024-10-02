@@ -14,8 +14,8 @@
                 "failedRecords": [],
                 "importResults": []
             },
-            "creationTime": "2000-01-01T00:00:00.000Z",
-            "modificationTime": "2000-01-01T00:00:00.000Z",
+            "creationTime": "2000-01-01T04:00:01.000Z",
+            "modificationTime": "2000-01-01T05:00:00.000Z",
             "id": "foo",
             "profile": "foo",
             "contentType": "foo/bar",

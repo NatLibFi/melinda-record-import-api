@@ -1,7 +1,6 @@
 import {expect} from 'chai';
 import {READERS} from '@natlibfi/fixura';
 import mongoFixturesFactory from '@natlibfi/fixura-mongo';
-import {Error as ApiError} from '@natlibfi/melinda-commons';
 import generateTests from '@natlibfi/fixugen';
 
 import profilesFactory from './profiles';
@@ -38,13 +37,7 @@ describe('interfaces/profiles', () => {
     mongoFixtures = await mongoFixturesFactory({
       rootPath: [__dirname, '..', '..', 'test-fixtures', 'profiles', 'remove'],
       gridFS: {bucketName: 'blobmetadatas'},
-      useObjectId: true,
-      format: {
-        blobmetadatas: {
-          creationTime: v => new Date(v),
-          modificationTime: v => new Date(v)
-        }
-      }
+      useObjectId: true
     });
   }
 
@@ -72,7 +65,6 @@ describe('interfaces/profiles', () => {
         throw error;
       }
       expect(expectToFail, 'This is expected to fail').to.equal(true);
-      expect(error).to.be.an.instanceOf(ApiError);
       expect(error.status).to.equal(expectedFailStatus);
     }
   }

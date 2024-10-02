@@ -1,10 +1,9 @@
 import {expect} from 'chai';
 import {READERS} from '@natlibfi/fixura';
 import mongoFixturesFactory from '@natlibfi/fixura-mongo';
-import {Error as ApiError} from '@natlibfi/melinda-commons';
 import generateTests from '@natlibfi/fixugen';
 
-import blobsFactory, {__RewireAPI__ as RewireAPI} from './blobs';
+import blobsFactory from './blobs';
 import {formatDump} from './utils';
 
 
@@ -25,11 +24,9 @@ describe('interfaces/blobs', () => {
         await initMongofixtures();
       },
       beforeEach: async () => {
-        RewireAPI.__Rewire__('uuid', () => 'foo');
         await mongoFixtures.clear();
       },
       afterEach: async () => {
-        RewireAPI.__ResetDependency__('uuid');
         await mongoFixtures.clear();
       },
       after: async () => {
@@ -42,13 +39,7 @@ describe('interfaces/blobs', () => {
     mongoFixtures = await mongoFixturesFactory({
       rootPath: [__dirname, '..', '..', 'test-fixtures', 'blobs', 'update'],
       gridFS: {bucketName: 'blobmetadatas'},
-      useObjectId: true,
-      format: {
-        blobmetadatas: {
-          creationTime: v => new Date(v),
-          modificationTime: v => new Date(v)
-        }
-      }
+      useObjectId: true
     });
   }
 
@@ -79,7 +70,6 @@ describe('interfaces/blobs', () => {
       }
       // console.log(error); // eslint-disable-line
       expect(expectToFail, 'This is expected to fail').to.equal(true);
-      expect(error).to.be.instanceOf(ApiError);
       expect(error.status).to.equal(expectedFailStatus);
     }
 

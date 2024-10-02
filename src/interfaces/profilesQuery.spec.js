@@ -38,13 +38,7 @@ describe('interfaces/profiles', () => {
     mongoFixtures = await mongoFixturesFactory({
       rootPath: [__dirname, '..', '..', 'test-fixtures', 'profiles', 'query'],
       gridFS: {bucketName: 'blobmetadatas'},
-      useObjectId: true,
-      format: {
-        blobmetadatas: {
-          creationTime: v => new Date(v),
-          modificationTime: v => new Date(v)
-        }
-      }
+      useObjectId: true
     });
   }
 

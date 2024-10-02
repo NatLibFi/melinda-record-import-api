@@ -21,11 +21,12 @@ export default async function ({MONGO_URI, MELINDA_API_OPTIONS, BLOBS_QUERY_LIMI
 
   // MARK: Query
   /* eslint-disable-next-line */
-  async function query({user, profile, contentType, state, creationTime, modificationTime, offset, limit = BLOBS_QUERY_LIMIT, getAll = true}) {
+  async function query(params) {
     logger.silly('Query');
+    const {user, offset: skip, limit = BLOBS_QUERY_LIMIT, getAll = true, ...rest} = params;
     const results = [];
     const nextOffset = await new Promise((resolve, reject) => {
-      const emitter = mongoBlobsOperator.queryBlob({profile, contentType, state, creationTime, modificationTime, skip: offset, limit, getAll}, user);
+      const emitter = mongoBlobsOperator.queryBlob({...rest, skip, limit, getAll}, user);
       emitter.on('blobs', blobs => blobs.forEach(blob => results.push(blob))) // eslint-disable-line functional/immutable-data
         .on('error', error => reject(error))
         .on('end', nextOffset => resolve(nextOffset));
@@ -100,22 +101,20 @@ export default async function ({MONGO_URI, MELINDA_API_OPTIONS, BLOBS_QUERY_LIMI
     logger.debug('Remove');
     const blob = await mongoBlobsOperator.readBlob({id});
 
-    if (blob) { // eslint-disable-line functional/no-conditional-statements
-      const apiProfile = await getProfile({id: blob.profile});
-      if (hasPermission(user.roles.groups, apiProfile.groups)) { // eslint-disable-line functional/no-conditional-statements
-        return mongoBlobsOperator.removeBlob({id});
-      }
-
-      throw new ApiError(HttpStatus.FORBIDDEN, 'Blob removal permission error');
+    const apiProfile = await getProfile({id: blob.profile});
+    if (hasPermission(user.roles.groups, apiProfile.groups)) { // eslint-disable-line functional/no-conditional-statements
+      return mongoBlobsOperator.removeBlob({id});
     }
 
-    throw new ApiError(HttpStatus.NOT_FOUND, 'Blob not found');
+    throw new ApiError(HttpStatus.FORBIDDEN, 'Blob removal permission error');
   }
 
   // MARK: Create
   async function create({inputStream, profile, contentType, date, user}) {
     logger.debug('Create');
+
     const apiProfile = await getProfile({id: profile});
+
     if (apiProfile) {
       if (hasPermission(user.roles.groups, apiProfile.groups)) {
         const id = uuid();
@@ -125,11 +124,8 @@ export default async function ({MONGO_URI, MELINDA_API_OPTIONS, BLOBS_QUERY_LIMI
         return id;
       }
 
-      throw new ApiError(HttpStatus.FORBIDDEN, 'Blob creation permission error');
+      throw new ApiError(403, 'Invalid profile permissions');
     }
-
-    logger.error('Blob create invalid profile');
-    throw new ApiError(HttpStatus.NOT_FOUND, 'Blob create profile not found');
   }
 
   // MARK: Read content
