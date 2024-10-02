@@ -79,16 +79,16 @@ export function checkQueryParams(req, res, next) {
       // 2024-08-30T00:00:00.000Z or 2024-08-30T00:00:00.000Z,2024-08-31T00:00:00.000Z
       if ((/^(?:\d{4}-[01]{1}\d{1}-[0-3]{1}\d{1}T[0-2]{1}\d{1}:[0-6]{1}\d{1}:[0-6]{1}\d{1}\.\d{3}Z,?){1,2}$/u).test(timestampArrayString)) {
         logger.debug('timestamp UTC format OK (e.g. 2024-08-30T00:00:00.000Z)');
-        return false;
+        return true;
       }
 
       // 2024-08-30 or 2024-08-30,2024-09-05
       if ((/^(?:\d{4}-[01]{1}\d{1}-[0-3]{1}\d{1},?){1,2}$/u).test(timestampArrayString)) {
         logger.debug('timestamp day format OK (e.g. 2024-08-30)');
-        return false;
+        return true;
       }
 
-      return true;
+      return false;
     } catch (err) {
       logger.debug(`Parsing timestampArrayString ${timestampArrayString} failed: ${err.message}`);
       return false;
