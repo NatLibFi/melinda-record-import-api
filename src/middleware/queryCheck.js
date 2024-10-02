@@ -85,8 +85,13 @@ export function checkQueryParams(req, res, next) {
           return false;
         }
 
-        if ((/^(?:\d{4}-[01]{1}\d{1}-[0-3]{1}\d{1}T[0-2]{1}\d{1}:[0-6]{1}\d{1}:[0-6]{1}\d{1}\.\d{3}\+[0-1]{1}\d:\d{2})$/u).test(value)) {
+        if ((/^(?:\d{4}-[01]{1}\d{1}-[0-3]{1}\d{1}T[0-2]{1}\d{1}:[0-6]{1}\d{1}:[0-6]{1}\d{1}\.\d{3}[+-]{1}[0-1]{1}\d:\d{2})$/u).test(value)) {
           logger.debug('timestamp ISO format OK (e.g. 2024-10-02T00:00:00.000+03:00)');
+          return false;
+        }
+
+        if ((/^(?:\d{4}-[01]{1}\d{1}-[0-3]{1}\d{1}T[0-2]{1}\d{1}:[0-6]{1}\d{1}:[0-6]{1}\d{1}[+-]{1}[0-1]{1}\d:\d{2})$/u).test(value)) {
+          logger.debug('timestamp day format OK (e.g. 2024-08-30:00:00:00+00:00)');
           return false;
         }
 
