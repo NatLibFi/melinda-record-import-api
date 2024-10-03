@@ -1,0 +1,5 @@
+{
+  "description": "Check empty query params",
+  "only": true,
+  "query": {}
+}

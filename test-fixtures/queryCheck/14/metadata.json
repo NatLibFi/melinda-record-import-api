@@ -1,0 +1,8 @@
+{
+  "description": "Check multiple state query params",
+  "only": true,
+  "query": {
+    "state": "UPLOADING,PROCESSING_PRIO"
+  },
+  "expectedFailedParams": []
+}

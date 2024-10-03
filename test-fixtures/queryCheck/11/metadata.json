@@ -1,0 +1,10 @@
+{
+  "description": "Check failing content type query params",
+  "only": true,
+  "query": {
+    "contentType": "text@jason"
+  },
+  "expectedFailedParams": [
+    "contentType"
+  ]
+}

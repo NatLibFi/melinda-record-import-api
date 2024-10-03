@@ -1,0 +1,7 @@
+{
+  "description": "Check correlationId query params",
+  "only": true,
+  "query": {
+    "correlationId": "a1700482-8416-4f1a-b257-b3a0e58d3acb"
+  }
+}

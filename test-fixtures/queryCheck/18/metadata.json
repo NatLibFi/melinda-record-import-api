@@ -1,0 +1,7 @@
+{
+  "description": "Check creationTime iso format query params",
+  "only": true,
+  "query": {
+    "creationTime": "2024-10-02T00:00:00.000+03:00"
+  }
+}

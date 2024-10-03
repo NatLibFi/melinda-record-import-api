@@ -1,37 +1,16 @@
 import httpStatus from 'http-status';
-import {createLogger} from '@natlibfi/melinda-backend-commons';
 import {version as uuidVersion, validate as uuidValidate} from 'uuid';
+import {createLogger} from '@natlibfi/melinda-backend-commons';
 import {BLOB_STATE} from '@natlibfi/melinda-record-import-commons';
 
 const logger = createLogger();
 
 export function checkQueryParams(req, res, next) {
   const queryParams = req.query;
-
-  /*
-  Object.keys(queryParams).foreach(key => {
-    if (['id', 'correlationId', 'profile', 'contentType', 'state', 'creationTime', 'modificationTime', 'skip', 'limit'].includes(key)) {
-      logger.debug(queryParams[key]);
-      return;
-    }
-    delete queryParams[key]; // eslint-disable-line functional/immutable-data
-    return;
-  });
-  */
-
-  req.query = queryParams; // eslint-disable-line
+  const {groups} = req.user.roles;
   logger.debug(`Checking query params: ${JSON.stringify(queryParams)}`);
-  const failedParams = [
-    {name: 'id', value: queryParams.id ? uuidValidate(queryParams.id) && uuidVersion(queryParams.id) === 4 : true},
-    {name: 'correlationId', value: queryParams.correlationId ? uuidValidate(queryParams.correlationId) && uuidVersion(queryParams.correlationId) === 4 : true},
-    {name: 'profile', value: queryParams.profile ? checkProfile(queryParams.profile) : true},
-    {name: 'contentType', value: queryParams.contentType ? (/^(?:[-.\w/]{1,30})$/iu).test(queryParams.contentType) : true},
-    {name: 'state', value: queryParams.state ? checkState(queryParams.state) : true},
-    {name: 'creationTime', value: queryParams.creationTime ? checkTimeFormat(queryParams.creationTime) : true},
-    {name: 'modificationTime', value: queryParams.modificationTime ? checkTimeFormat(queryParams.modificationTime) : true},
-    {name: 'skip', value: queryParams.skip ? (/^\d{1,7}$/u).test(queryParams.skip) : true},
-    {name: 'limit', value: queryParams.limit ? (/^\d{1,7}$/u).test(queryParams.limit) : true}
-  ].filter(param => !param.value).map(param => param.name);
+
+  const failedParams = validateQueryParams(queryParams, groups);
 
   if (failedParams.length === 0) {
     logger.debug('Query params OK');
@@ -42,41 +21,72 @@ export function checkQueryParams(req, res, next) {
   //const combinedFailedParams = [...failedParams, ...nonCompatibleParams];
   return res.status(httpStatus.BAD_REQUEST).json({error: 'BAD query params', failedParams});
 
+}
+
+export function validateQueryParams(queryParams = {}, groups = {}) {
+  const failedParams = [
+    {name: 'id', value: queryParams.id ? validateUuid(queryParams.id) : true},
+    {name: 'correlationId', value: queryParams.correlationId ? validateUuid(queryParams.correlationId) : true},
+    {name: 'profile', value: queryParams.profile ? checkProfile(queryParams.profile) : true},
+    {name: 'contentType', value: queryParams.contentType ? (/^(?:[-.\w/]{1,30})$/iu).test(queryParams.contentType) : true},
+    {name: 'state', value: queryParams.state ? checkState(queryParams.state) : true},
+    {name: 'creationTime', value: queryParams.creationTime ? checkTimeFormat(queryParams.creationTime) : true},
+    {name: 'modificationTime', value: queryParams.modificationTime ? checkTimeFormat(queryParams.modificationTime) : true},
+    {name: 'skip', value: queryParams.skip ? (/^\d{1,7}$/u).test(queryParams.skip) : true},
+    {name: 'limit', value: queryParams.limit ? (/^\d{1,7}$/u).test(queryParams.limit) : true}
+  ].filter(param => !param.value).map(param => param.name);
+
+  return failedParams;
+
+  function validateUuid(uuid) {
+    logger.debug(`Uuid: ${uuid}`);
+    return uuidValidate(uuid) && uuidVersion(uuid) === 4;
+  }
+
   function checkProfile(profile) {
-    if ((/^(?:[-.\w/]{1,30})$/iu).test(profile)) {
-      const {groups} = req.user.roles;
+    logger.debug(`Profile: ${profile}`);
+    if ((/^(?:[-.,\w/]{1,30})$/iu).test(profile)) {
       if (profile.includes(',')) {
         const profileArray = profile.split(',');
-        return profileArray.some(p => !groups.includes(p));
+        return !profileArray.some(p => !groups.includes(p));
       }
 
       if (groups.includes(profile)) {
-        return false;
+        return true;
       }
 
-      return true;
+      logger.debug('Invalid profile permissions');
+      return false;
     }
 
-    return true;
+    logger.debug('Malformed profile query');
+    return false;
   }
 
   function checkState(state) {
+    logger.debug(`State: ${state}`);
     if (state.includes(',')) { // eslint-disable-line functional/no-conditional-statements
       const stateArray = state.split(',');
-      return stateArray.filter(singleState => !BLOB_STATE.includes(singleState)).length > 0;
+      return stateArray.filter(singleState => BLOB_STATE[singleState] === undefined).length === 0;
     }
 
     if (Array.isArray(state)) {
-      return state.filter(singleState => !BLOB_STATE.includes(singleState)).length > 0;
+      return state.filter(singleState => BLOB_STATE[singleState] === undefined).length === 0;
     }
 
-    return !BLOB_STATE.includes(queryParams.state);
+    logger.debug(`${JSON.stringify(BLOB_STATE)}`);
+
+    return BLOB_STATE[state] !== undefined;
   }
 
   function checkTimeFormat(timestampArrayString) {
     logger.debug(`TimestampArrayString: ${timestampArrayString}`);
     try {
       const array = timestampArrayString.split(',');
+      if (array.length > 2) {
+        return true;
+      }
+
       return !array.some(value => {
 
         // 2024-08-30T00:00:00.000Z
@@ -91,7 +101,7 @@ export function checkQueryParams(req, res, next) {
         }
 
         if ((/^(?:\d{4}-[01]{1}\d{1}-[0-3]{1}\d{1}T[0-2]{1}\d{1}:[0-6]{1}\d{1}:[0-6]{1}\d{1}[+-]{1}[0-1]{1}\d:\d{2})$/u).test(value)) {
-          logger.debug('timestamp day format OK (e.g. 2024-08-30:00:00:00+00:00)');
+          logger.debug('timestamp format OK (e.g. 2024-08-30:00:00:00+00:00)');
           return false;
         }
 
