@@ -1,0 +1,11 @@
+{
+  "description": "Check multiple profile query params on kvp",
+  "only": false,
+  "query": {
+    "profile": "foo,bar"
+  },
+  "groups": [
+    "kvp"
+  ],
+  "expectedFailedParams": []
+}
