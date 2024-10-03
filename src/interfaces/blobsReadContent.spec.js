@@ -45,6 +45,7 @@ describe('interfaces/blobs', () => {
 
   async function callback({
     getFixture,
+    expectedContentType = 'foo/bar',
     expectToFail = false,
     expectedFailStatus = ''
   }) {
@@ -59,8 +60,9 @@ describe('interfaces/blobs', () => {
       await mongoFixtures.populate(dbContents);
       await mongoFixtures.populateFiles(dbFiles);
 
-      const readStream = await blobs.readContent({id: 'foo', user});
+      const {contentType, readStream} = await blobs.readContent({id: 'foo', user});
 
+      expect(contentType).to.eql(expectedContentType);
       expect(await getData(readStream)).to.equal(expectedContent);
       expect(expectToFail, 'This is expected to succes').to.equal(false);
     } catch (error) {

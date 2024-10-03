@@ -1,6 +1,6 @@
 {
   "description": "Check Failing correlationId query params",
-  "only": true,
+  "only": false,
   "query": {
     "correlationId": "fuu"
   },

@@ -1,6 +1,6 @@
 {
   "description": "Check failing single state query params",
-  "only": true,
+  "only": false,
   "query": {
     "state": "foo"
   },

@@ -46,6 +46,11 @@ export function validateQueryParams(queryParams = {}, groups = {}) {
   function checkProfile(profile) {
     logger.debug(`Profile: ${profile}`);
     if ((/^(?:[-.,\w/]{1,30})$/iu).test(profile)) {
+      if (groups.includes('kvp')) {
+        return true;
+      }
+
+
       if (profile.includes(',')) {
         const profileArray = profile.split(',');
         return !profileArray.some(p => !groups.includes(p));

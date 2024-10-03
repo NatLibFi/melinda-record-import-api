@@ -25,10 +25,8 @@ describe('interfaces/blobs', () => {
     expectedFailStatus = 200
   }) {
     try {
-      console.log(query); // eslint-disable-line
-      console.log(groups); // eslint-disable-line
-
-
+      // console.log(query); // eslint-disable-line
+      // console.log(groups); // eslint-disable-line
       const failedParams = validateQueryParams(query, groups);
 
       expect(failedParams).to.eql(expectedFailedParams);

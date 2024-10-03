@@ -1,6 +1,6 @@
 {
   "description": "Check id query params",
-  "only": true,
+  "only": false,
   "query": {
     "id": "a1700482-8416-4f1a-b257-b3a0e58d3acb"
   }

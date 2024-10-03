@@ -1,6 +1,6 @@
 {
   "description": "Check failing profile query params",
-  "only": true,
+  "only": false,
   "query": {
     "profile": "bar"
   },

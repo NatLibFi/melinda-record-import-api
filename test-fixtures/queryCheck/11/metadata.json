@@ -1,6 +1,6 @@
 {
   "description": "Check failing content type query params",
-  "only": true,
+  "only": false,
   "query": {
     "contentType": "text@jason"
   },

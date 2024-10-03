@@ -1,6 +1,6 @@
 {
   "description": "Check profile query params",
-  "only": true,
+  "only": false,
   "query": {
     "profile": "foo"
   },
