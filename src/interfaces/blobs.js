@@ -4,7 +4,7 @@ import moment from 'moment';
 import {v4 as uuid} from 'uuid';
 
 import {createLogger} from '@natlibfi/melinda-backend-commons';
-import {Error as ApiError} from '@natlibfi/melinda-commons';
+import {Error as ApiError, parseBoolean} from '@natlibfi/melinda-commons';
 import {BLOB_STATE, createMongoBlobsOperator, createMongoProfilesOperator} from '@natlibfi/melinda-record-import-commons';
 import {createApiClient as createMelindaApiClient} from '@natlibfi/melinda-rest-api-client';
 import {QUEUE_ITEM_STATE} from '@natlibfi/melinda-rest-api-commons';
