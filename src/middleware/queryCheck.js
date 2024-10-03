@@ -33,7 +33,8 @@ export function validateQueryParams(queryParams = {}, groups = {}) {
     {name: 'creationTime', value: queryParams.creationTime ? checkTimeFormat(queryParams.creationTime) : true},
     {name: 'modificationTime', value: queryParams.modificationTime ? checkTimeFormat(queryParams.modificationTime) : true},
     {name: 'skip', value: queryParams.skip ? (/^\d{1,7}$/u).test(queryParams.skip) : true},
-    {name: 'limit', value: queryParams.limit ? (/^\d{1,7}$/u).test(queryParams.limit) : true}
+    {name: 'limit', value: queryParams.limit ? (/^\d{1,7}$/u).test(queryParams.limit) : true},
+    {name: 'getAll', value: queryParams.getAll ? (/^[10]{1}$/u).test(queryParams.getAll) : true}
   ].filter(param => !param.value).map(param => param.name);
 
   return failedParams;
