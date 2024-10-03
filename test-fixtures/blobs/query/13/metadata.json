@@ -2,6 +2,6 @@
   "description": "Should return the results from the specified offset",
   "params": {
     "offset": "3",
-    "getAll": false
+    "getAll": "0"
   }
 }

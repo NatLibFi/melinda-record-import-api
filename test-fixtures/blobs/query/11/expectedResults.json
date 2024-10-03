@@ -1,1 +1,11 @@
-[]
+[
+  {
+    "failedRecords": 0,
+    "numberOfRecords": 0,
+    "processedRecords": 0,
+    "state": "ABORTED",
+    "id": "bar",
+    "profile": "foo",
+    "contentType": "foo/bar"
+  }
+]

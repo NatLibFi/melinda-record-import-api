@@ -1,7 +1,7 @@
 {
   "description": "Should return an incomplete set",
   "params": {
-    "limit": 3,
-    "getAll": false
+    "limit": "3",
+    "getAll": "0"
   }
 }
