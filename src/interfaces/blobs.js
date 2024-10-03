@@ -23,7 +23,8 @@ export default async function ({MONGO_URI, MELINDA_API_OPTIONS, BLOBS_QUERY_LIMI
   /* eslint-disable-next-line */
   async function query(params) {
     logger.silly('Query');
-    const {user, offset: skip, limit = BLOBS_QUERY_LIMIT, getAll = true, ...rest} = params;
+    const {user, offset: skip, limit = BLOBS_QUERY_LIMIT, ...rest} = params;
+    const getAll = params.getAll ? parseBoolean(params.getAll) : true;
     const results = [];
     const nextOffset = await new Promise((resolve, reject) => {
       const emitter = mongoBlobsOperator.queryBlob({...rest, skip, limit, getAll}, user);
