@@ -13,7 +13,8 @@ import {createLogger, createExpressLogger} from '@natlibfi/melinda-backend-commo
 import {
   createBlobsRouter,
   createProfilesRouter,
-  createApiDocRouter
+  createApiDocRouter,
+  createStatusRouter
 } from './routes';
 
 export default async function (config) {
@@ -52,6 +53,7 @@ export default async function (config) {
   app.use('/', createApiDocRouter());
   app.use('/blobs', gatherUserInformationMiddlewares, await createBlobsRouter(permissionMiddleware, config));
   app.use('/profiles', gatherUserInformationMiddlewares, await createProfilesRouter(permissionMiddleware, config));
+  app.use('/status', createStatusRouter());
 
   app.use(handleError);
 

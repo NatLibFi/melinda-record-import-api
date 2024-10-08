@@ -73,11 +73,11 @@ export function validateQueryParams(queryParams = {}, groups = {}) {
     logger.debug(`State: ${state}`);
     if (state.includes(',')) { // eslint-disable-line functional/no-conditional-statements
       const stateArray = state.split(',');
-      return stateArray.filter(singleState => BLOB_STATE[singleState] === undefined).length === 0;
+      return !stateArray.find(singleState => BLOB_STATE[singleState] === undefined);
     }
 
     if (Array.isArray(state)) {
-      return state.filter(singleState => BLOB_STATE[singleState] === undefined).length === 0;
+      return !state.find(singleState => BLOB_STATE[singleState] === undefined);
     }
 
     logger.debug(`${JSON.stringify(BLOB_STATE)}`);
@@ -96,17 +96,17 @@ export function validateQueryParams(queryParams = {}, groups = {}) {
       return !array.some(value => {
 
         // 2024-08-30T00:00:00.000Z
-        if ((/^(?:\d{4}-[01]{1}\d{1}-[0-3]{1}\d{1}T[0-2]{1}\d{1}:[0-6]{1}\d{1}:[0-6]{1}\d{1}\.\d{3}Z)$/u).test(value)) {
+        if ((/^(?:\d{4}-[01]{1}\d{1}-[0-3]{1}\d{1}T(?:[01][0-9]|2[0-3]):[0-6]{1}\d{1}:[0-6]{1}\d{1}\.\d{3}Z)$/u).test(value)) {
           logger.debug('timestamp UTC format OK (e.g. 2024-08-30T00:00:00.000Z)');
           return false;
         }
 
-        if ((/^(?:\d{4}-[01]{1}\d{1}-[0-3]{1}\d{1}T[0-2]{1}\d{1}:[0-6]{1}\d{1}:[0-6]{1}\d{1}\.\d{3}[+-]{1}[0-1]{1}\d:\d{2})$/u).test(value)) {
+        if ((/^(?:\d{4}-[01]{1}\d{1}-[0-3]{1}\d{1}T(?:[01][0-9]|2[0-3]):[0-6]{1}\d{1}:[0-6]{1}\d{1}\.\d{3}[+-]{1}[0-1]{1}\d:\d{2})$/u).test(value)) {
           logger.debug('timestamp ISO format OK (e.g. 2024-10-02T00:00:00.000+03:00)');
           return false;
         }
 
-        if ((/^(?:\d{4}-[01]{1}\d{1}-[0-3]{1}\d{1}T[0-2]{1}\d{1}:[0-6]{1}\d{1}:[0-6]{1}\d{1}[+-]{1}[0-1]{1}\d:\d{2})$/u).test(value)) {
+        if ((/^(?:\d{4}-[01]{1}\d{1}-[0-3]{1}\d{1}T(?:[01][0-9]|2[0-3]):[0-6]{1}\d{1}:[0-6]{1}\d{1}[+-]{1}[0-1]{1}\d:\d{2})$/u).test(value)) {
           logger.debug('timestamp format OK (e.g. 2024-08-30:00:00:00+00:00)');
           return false;
         }

@@ -2,7 +2,7 @@
   "description": "Check Failing id query params",
   "only": false,
   "query": {
-    "id": "fuu"
+    "id": "foo"
   },
   "expectedFailedParams": [
     "id"

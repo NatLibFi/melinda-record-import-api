@@ -11,7 +11,7 @@ info:
     url: https://opensource.org/license/mit
   version: 1.0.0
 servers:
-  - url: https://record-import.api.melinda.kansalliskirjasto.fi/
+  - url: https://record-import.api.melinda-test.kansalliskirjasto.fi/
     description: Internal staging server for testing
 tags:
   - name: blobs

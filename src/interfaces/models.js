@@ -9,13 +9,13 @@ export const profileSchema = {
 };
 
 export const blobsSchema = {
-  id: value => shcemaHelper(value, {name: 'id', type: 'string', required: true}),
-  correlationId: value => shcemaHelper(value, {name: 'id', type: 'string'}),
-  profile: value => shcemaHelper(value, {name: 'id', type: 'string', required: true}),
-  cataloger: value => shcemaHelper(value, {name: 'id', type: 'string'}),
-  notificationEmail: value => shcemaHelper(value, {name: 'id', type: 'string'}),
-  contentType: value => shcemaHelper(value, {name: 'id', type: 'string'}),
-  state: value => shcemaHelper(value, {name: 'id', type: 'string', match: BLOB_STATE[`${value}`], required: true}),
+  id: value => schemaHelper(value, {name: 'id', type: 'string', required: true}),
+  correlationId: value => schemaHelper(value, {name: 'id', type: 'string'}),
+  profile: value => schemaHelper(value, {name: 'id', type: 'string', required: true}),
+  cataloger: value => schemaHelper(value, {name: 'id', type: 'string'}),
+  notificationEmail: value => schemaHelper(value, {name: 'id', type: 'string'}),
+  contentType: value => schemaHelper(value, {name: 'id', type: 'string'}),
+  state: value => schemaHelper(value, {name: 'id', type: 'string', match: BLOB_STATE[`${value}`], required: true}),
   creationTime: value => typeof value === Date || typeof value === 'string',
   modificationTime: value => typeof value === Date || typeof value === 'string',
   processingInfo: value => Array.isArray(value)
@@ -23,33 +23,32 @@ export const blobsSchema = {
 
 export function validate(object, schema) {
   const extraKeys = Object.keys(object)
-    .filter(key => schema[key] === undefined)
-    .map(key => new ApiError(httpStatus.UNPROCESSABLE_ENTITY, `Object contains key "${key}" that is not defined in schema.`));
+    .filter(key => schema[key] === undefined);
 
   if (extraKeys.length > 0) {
-    throw extraKeys[0];
+    throw new ApiError(httpStatus.UNPROCESSABLE_ENTITY, `Object contains key(s) that is not defined in schema: ${extraKeys}`);
   }
 
   const invalidValues = Object.keys(schema)
     .filter(key => !schema[key](object[key]))
-    .map(key => new ApiError(httpStatus.UNPROCESSABLE_ENTITY, `Object key "${key}" contains invalid value "${object[key]}".`));
+    .map(key => `Key: ${key}, Value: ${object[key]}`);
 
   if (invalidValues.length > 0) {
-    throw invalidValues[0];
+    throw new ApiError(httpStatus.UNPROCESSABLE_ENTITY, `Some of object keys contains invalid value: ${invalidValues}`);
   }
 
   return;
 }
 
-function shcemaHelper(value, {name = '', type = false, match = false, required = false}) {
-  const [firstError] = [
+function schemaHelper(value, {name = '', type = false, match = false, required = false}) {
+  const errors = [
     checkType(value, name, type),
     checkMatch(value, name, match),
     checkRequired(value, name, required)
   ].filter(value => value);
 
-  if (firstError) {
-    throw firstError;
+  if (errors.length > 0) {
+    throw new ApiError(httpStatus.UNPROCESSABLE_ENTITY, `Object does not match to schema: ${errors}`);
   }
 
   return;
