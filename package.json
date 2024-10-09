@@ -36,7 +36,7 @@
     "@natlibfi/fixugen": "^2.0.5",
     "@natlibfi/melinda-backend-commons": "^2.3.1",
     "@natlibfi/melinda-commons": "^13.0.13",
-    "@natlibfi/melinda-record-import-commons": "^11.0.0-alpha.63",
+    "@natlibfi/melinda-record-import-commons": "^11.0.0-alpha.64",
     "@natlibfi/melinda-rest-api-client": "^4.0.3",
     "@natlibfi/melinda-rest-api-commons": "^4.1.7",
     "@natlibfi/passport-natlibfi-keycloak": "^2.2.0-alpha.2",
