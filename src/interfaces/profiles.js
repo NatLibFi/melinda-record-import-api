@@ -9,7 +9,7 @@ import {profileSchema, validate} from './models';
 
 export default async function ({MONGO_URI, MONGO_DB = 'db'}) {
   const logger = createLogger();
-  const mongoProfileOperator = await createMongoProfilesOperator(MONGO_URI, {db: MONGO_DB, collection: 'profiles'});
+  const mongoProfileOperator = await createMongoProfilesOperator(MONGO_URI, MONGO_DB);
 
   return {query, read, createOrUpdate, remove};
 

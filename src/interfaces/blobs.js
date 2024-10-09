@@ -13,8 +13,8 @@ import {hasPermission} from './utils';
 
 export default async function ({MONGO_URI, MELINDA_API_OPTIONS, BLOBS_QUERY_LIMIT, MONGO_DB = 'db'}) {
   const logger = createLogger();
-  const mongoBlobsOperator = await createMongoBlobsOperator(MONGO_URI, {db: MONGO_DB, collection: 'blobmetadatas'});
-  const mongoProfileOperator = await createMongoProfilesOperator(MONGO_URI, {db: MONGO_DB, collection: 'profiles'});
+  const mongoBlobsOperator = await createMongoBlobsOperator(MONGO_URI, MONGO_DB);
+  const mongoProfileOperator = await createMongoProfilesOperator(MONGO_URI, MONGO_DB);
   const melindaApiClient = MELINDA_API_OPTIONS.melindaApiUrl ? createMelindaApiClient(MELINDA_API_OPTIONS) : false;
 
   return {query, read, create, update, remove, removeContent, readContent};
