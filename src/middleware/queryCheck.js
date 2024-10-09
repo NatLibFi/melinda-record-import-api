@@ -71,7 +71,7 @@ export function validateQueryParams(queryParams = {}, groups = {}) {
 
   function checkState(state) {
     logger.debug(`State: ${state}`);
-    if (state.includes(',')) { // eslint-disable-line functional/no-conditional-statements
+    if (state.includes(',')) {
       const stateArray = state.split(',');
       return !stateArray.find(singleState => BLOB_STATE[singleState] === undefined);
     }

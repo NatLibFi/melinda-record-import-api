@@ -67,7 +67,7 @@ describe('interfaces/blobs', () => {
         }
         throw error;
       }
-      console.log(error); // eslint-disable-line
+      // console.log(error); // eslint-disable-line
       expect(expectToFail, 'This is expected to fail').to.equal(true);
       expect(error.status).to.equal(expectedFailStatus);
     }

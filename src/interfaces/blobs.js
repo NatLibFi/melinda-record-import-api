@@ -20,13 +20,10 @@ export default async function ({MONGO_URI, MELINDA_API_OPTIONS, BLOBS_QUERY_LIMI
   return {query, read, create, update, remove, removeContent, readContent};
 
   // MARK: Query
-  /* eslint-disable-next-line */
   async function query(params) {
     logger.silly('Query');
     const {user, offset: skip, limit = BLOBS_QUERY_LIMIT, getAll: tempGetAll, ...rest} = params;
-    console.log(tempGetAll);// eslint-disable-line
     const getAll = tempGetAll ? parseBoolean(tempGetAll) : true;
-    console.log(getAll);// eslint-disable-line
     const results = [];
     const nextOffset = await new Promise((resolve, reject) => {
       const emitter = mongoBlobsOperator.queryBlob({...rest, skip, limit, getAll}, user);
@@ -105,7 +102,7 @@ export default async function ({MONGO_URI, MELINDA_API_OPTIONS, BLOBS_QUERY_LIMI
     const blob = await mongoBlobsOperator.readBlob({id});
 
     const apiProfile = await getProfile({id: blob.profile});
-    if (hasPermission(user.roles.groups, apiProfile.groups)) { // eslint-disable-line functional/no-conditional-statements
+    if (hasPermission(user.roles.groups, apiProfile.groups)) {
       return mongoBlobsOperator.removeBlob({id});
     }
 
@@ -127,7 +124,7 @@ export default async function ({MONGO_URI, MELINDA_API_OPTIONS, BLOBS_QUERY_LIMI
         return id;
       }
 
-      throw new ApiError(403, 'Invalid profile permissions');
+      throw new ApiError(HttpStatus.FORBIDDEN, 'Blob creation permission error');
     }
   }
 
@@ -155,7 +152,7 @@ export default async function ({MONGO_URI, MELINDA_API_OPTIONS, BLOBS_QUERY_LIMI
 
     if (blob) {
       const apiProfile = await getProfile({id: blob.profile});
-      if (hasPermission(user.roles.groups, apiProfile.groups)) { // eslint-disable-line functional/no-conditional-statements
+      if (hasPermission(user.roles.groups, apiProfile.groups)) {
         return mongoBlobsOperator.removeBlobContent({id});
       }
 

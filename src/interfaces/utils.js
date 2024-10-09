@@ -1,3 +1,7 @@
+import {createLogger} from '@natlibfi/melinda-backend-commons';
+
+const logger = createLogger();
+
 export function hasPermission(userGroups, permittedGroups = []) {
   if (userGroups.includes('kvp')) {
     return true;
@@ -7,7 +11,7 @@ export function hasPermission(userGroups, permittedGroups = []) {
     return true;
   }
 
-  console.log('Permitted groups does not match'); // eslint-disable-line
+  logger.debug('Permitted groups does not match');
   // console.log(userGroups); // eslint-disable-line
   // console.log(permittedGroups); // eslint-disable-line
   return false;

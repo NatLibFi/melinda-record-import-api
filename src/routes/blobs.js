@@ -1,13 +1,14 @@
-import HttpStatus from 'http-status';
-import {Router} from 'express';
 import bodyParser from 'body-parser';
-import {blobsFactory} from '../interfaces';
-import validateContentType from '@natlibfi/express-validate-content-type';
-import {createLogger} from '@natlibfi/melinda-backend-commons';
-import {validateMax as validateContentLength} from 'express-content-length-validator';
-import sanitize from 'mongo-sanitize';
 import createDebugLogger from 'debug';
+import {Router} from 'express';
+import {validateMax as validateContentLength} from 'express-content-length-validator';
+import HttpStatus from 'http-status';
+import sanitize from 'mongo-sanitize';
+
+import {createLogger} from '@natlibfi/melinda-backend-commons';
 import {Error as ApiError} from '@natlibfi/melinda-commons';
+
+import {blobsFactory} from '../interfaces';
 import {checkQueryParams} from '../middleware/queryCheck';
 
 export default async function (permissionMiddleware, {CONTENT_MAX_LENGTH, MONGO_URI, MELINDA_API_OPTIONS, BLOBS_QUERY_LIMIT}) {
@@ -20,7 +21,7 @@ export default async function (permissionMiddleware, {CONTENT_MAX_LENGTH, MONGO_
     .post('/', permissionMiddleware('blobs', 'create'), getContentLengthMiddleware(), create)
     .get('/:id', permissionMiddleware('blobs', 'read'), read)
     .delete('/:id', permissionMiddleware('blobs', 'delete'), remove)
-    .post('/:id', permissionMiddleware('blobs', 'update'), validateContentType({type: 'application/json'}), bodyParser.json({type: 'application/json'}), update)
+    .post('/:id', permissionMiddleware('blobs', 'update'), validateContentType('application/json'), bodyParser.json({type: 'application/json'}), update)
     .get('/:id/content', permissionMiddleware('blobs', 'content'), readContent)
     .delete('/:id/content', permissionMiddleware('blobs', 'content'), removeContent);
 
@@ -156,5 +157,14 @@ export default async function (permissionMiddleware, {CONTENT_MAX_LENGTH, MONGO_
 
     logger.debug('Contentlength OK');
     return (req, res, next) => next();
+  }
+
+  function validateContentType(type) {
+    return (req, res, next) => {
+      if (req.is(type)) {
+        return next();
+      }
+      return res.sendStatus(415);
+    };
   }
 }

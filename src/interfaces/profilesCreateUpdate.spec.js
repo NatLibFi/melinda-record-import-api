@@ -65,7 +65,7 @@ describe('interfaces/profiles', () => {
       expect(db.profiles).to.eql(expectedDb.profiles);
       expect(expectToFail, 'This is expected to succes').to.equal(false);
     } catch (error) {
-      if (!expectToFail) { // eslint-disable-line
+      if (!expectToFail) {
         throw error;
       }
       // console.log(error); // eslint-disable-line
@@ -74,4 +74,4 @@ describe('interfaces/profiles', () => {
       expect(error.status).to.equal(expectedFailStatus);
     }
   }
-}); // eslint-disable-line
+});
