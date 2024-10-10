@@ -33,7 +33,8 @@
       },
       "id": "bar",
       "profile": "bar",
-      "contentType": "foo/bar"
+      "contentType": "foo/bar",
+      "state": "ABORTED"
     }
   ]
 }

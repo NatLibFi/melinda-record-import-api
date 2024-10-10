@@ -31,6 +31,7 @@
             "modificationTime": "2000-01-02T00:00:00.000Z",
             "id": "bar",
             "profile": "foo",
+            "state": "PROCESSED",
             "contentType": "foo/bar"
         }
     ]

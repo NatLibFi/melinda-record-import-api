@@ -24,6 +24,7 @@
       },
       "state": "ABORTED",
       "id": "foo",
+      "correlationId": "",
       "profile": "foo",
       "contentType": "foo/bar"
     }

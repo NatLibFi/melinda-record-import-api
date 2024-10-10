@@ -1,4 +1,6 @@
 {
   "description": "Should return blobs using contentType filter",
-  "params": {"contentType": ["foo/bar"]}
+  "params": {
+    "contentType": "foo/bar"
+  }
 }

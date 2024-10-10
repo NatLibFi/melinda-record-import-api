@@ -1,0 +1,10 @@
+{
+  "description": "Check Failing correlationId query params",
+  "only": false,
+  "query": {
+    "correlationId": "foo"
+  },
+  "expectedFailedParams": [
+    "correlationId"
+  ]
+}

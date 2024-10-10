@@ -2,19 +2,17 @@ import HttpStatus from 'http-status';
 import {Router} from 'express';
 import bodyParser from 'body-parser';
 import {profilesFactory} from '../interfaces';
-import {API_URL} from '../config';
-import validateContentType from '@natlibfi/express-validate-content-type';
 import {createLogger} from '@natlibfi/melinda-backend-commons';
 
-export default function (permissionMiddleware) {
-  const profiles = profilesFactory({url: API_URL});
+export default async function (permissionMiddleware, {MONGO_URI}) {
+  const profiles = await profilesFactory({MONGO_URI});
   const logger = createLogger();
 
   return new Router()
     .get('/', permissionMiddleware('profiles', 'read'), query)
     .get('/:id', permissionMiddleware('profiles', 'read'), read)
     .delete('/:id', permissionMiddleware('profiles', 'edit'), remove)
-    .post('/:id', permissionMiddleware('profiles', 'edit'), validateContentType({type: 'application/json'}), bodyParser.json({type: 'application/json'}), createOrUpdate);
+    .post('/:id', permissionMiddleware('profiles', 'edit'), validateContentType('application/json'), bodyParser.json({type: 'application/json'}), createOrUpdate);
 
   async function query(req, res, next) {
     logger.debug('Route - Profiles - Query');
@@ -75,5 +73,14 @@ export default function (permissionMiddleware) {
       .replace(/\n/gu, '')
       .replace(/%0a/gu, '')
       .replace(/%0A/gu, '');
+  }
+
+  function validateContentType(type) {
+    return (req, res, next) => {
+      if (req.is(type)) {
+        return next();
+      }
+      return res.sendStatus(415);
+    };
   }
 }

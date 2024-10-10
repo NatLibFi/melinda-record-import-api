@@ -1,7 +1,6 @@
 import httpStatus from 'http-status';
 import express from 'express';
 import cors from 'cors';
-import Mongoose from 'mongoose';
 import fs from 'fs';
 import https from 'https';
 
@@ -14,18 +13,18 @@ import {createLogger, createExpressLogger} from '@natlibfi/melinda-backend-commo
 import {
   createBlobsRouter,
   createProfilesRouter,
-  createApiDocRouter
+  createApiDocRouter,
+  createStatusRouter
 } from './routes';
 
-export default async function ({
-  ENABLE_PROXY, HTTPS_PORT,
-  MONGO_URI, MONGO_POOLSIZE, MONGO_DEBUG,
-  USER_AGENT_LOGGING_BLACKLIST, SOCKET_KEEP_ALIVE_TIMEOUT,
-  keycloakOpts, tlsKeyPath, tlsCertPath, allowSelfSignedApiCert
-}) {
+export default async function (config) {
   const logger = createLogger();
   const app = express();
-
+  const {
+    ENABLE_PROXY, HTTPS_PORT,
+    USER_AGENT_LOGGING_BLACKLIST, SOCKET_KEEP_ALIVE_TIMEOUT,
+    keycloakOpts, tlsKeyPath, tlsCertPath, allowSelfSignedApiCert
+  } = config;
   //---------------------------------------------------//
   // Setup Express OpenID authentication with keycloak
 
@@ -50,22 +49,11 @@ export default async function ({
     skip: r => USER_AGENT_LOGGING_BLACKLIST.includes(r.get('User-Agent'))
   }));
 
-  //---------------------------------------------------//
-  // Setup mongoose
-
-  Mongoose.set('debug', MONGO_DEBUG);
-  Mongoose.set('strictQuery', true);
-
-  try {
-    await Mongoose.connect(MONGO_URI, {maxPoolSize: MONGO_POOLSIZE, useUnifiedTopology: true});
-  } catch (error) {
-    throw new Error(`Failed connecting to MongoDB: ${error instanceof Error ? error.stack : error}`);
-  }
-
   app.use(pathValidator);
   app.use('/', createApiDocRouter());
-  app.use('/blobs', gatherUserInformationMiddlewares, createBlobsRouter(permissionMiddleware));
-  app.use('/profiles', gatherUserInformationMiddlewares, createProfilesRouter(permissionMiddleware));
+  app.use('/blobs', gatherUserInformationMiddlewares, await createBlobsRouter(permissionMiddleware, config));
+  app.use('/profiles', gatherUserInformationMiddlewares, await createProfilesRouter(permissionMiddleware, config));
+  app.use('/status', createStatusRouter());
 
   app.use(handleError);
 

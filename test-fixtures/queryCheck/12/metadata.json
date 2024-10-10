@@ -1,0 +1,7 @@
+{
+  "description": "Check single state query params",
+  "only": false,
+  "query": {
+    "state": "UPLOADING"
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "description": "Check multiple profile query params",
+  "only": false,
+  "query": {
+    "profile": "foo,bar"
+  },
+  "groups": [
+    "foo",
+    "bar",
+    "fuz"
+  ],
+  "expectedFailedParams": []
+}

@@ -75,13 +75,13 @@ function getRolesFromKeycloakRoles(userKeycloakRoles) {
   return Object.entries(KEYCLOAK_ROLE_MAP).reduce((prev, [applicationRole, filter]) => {
     if (typeof filter === 'string') {
       const tempObject = {};
-      tempObject[applicationRole] = filterAndMapRoles(filter, userKeycloakRoles);// eslint-disable-line
+      tempObject[applicationRole] = filterAndMapRoles(filter, userKeycloakRoles);// eslint-disable-line functional/immutable-data
       return [...prev, tempObject];
     }
 
     if (Array.isArray(filter)) {
       const tempObject = {};
-      tempObject[applicationRole] = filter.flatMap(filterRegExp => filterAndMapRoles(filterRegExp, userKeycloakRoles));// eslint-disable-line
+      tempObject[applicationRole] = filter.flatMap(filterRegExp => filterAndMapRoles(filterRegExp, userKeycloakRoles));// eslint-disable-line functional/immutable-data
       return [...prev, tempObject];
     }
 

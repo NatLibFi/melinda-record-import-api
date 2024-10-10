@@ -1,0 +1,10 @@
+{
+  "description": "Check Failing id query params",
+  "only": false,
+  "query": {
+    "id": "foo"
+  },
+  "expectedFailedParams": [
+    "id"
+  ]
+}

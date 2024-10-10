@@ -1,5 +1,3 @@
 {
-  "description": "Should fail because content still exists",
-  "expectToFail": true,
-  "expectedFailStatus": 409
+  "description": "Should automatically remove content that still exists"
 }

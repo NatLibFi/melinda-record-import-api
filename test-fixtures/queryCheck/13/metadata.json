@@ -1,0 +1,10 @@
+{
+  "description": "Check failing single state query params",
+  "only": false,
+  "query": {
+    "state": "foo"
+  },
+  "expectedFailedParams": [
+    "state"
+  ]
+}

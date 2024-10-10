@@ -1,0 +1,7 @@
+{
+  "description": "Check creationTime format query params",
+  "only": false,
+  "query": {
+    "creationTime": "2024-10-02T00:00:00+03:00"
+  }
+}

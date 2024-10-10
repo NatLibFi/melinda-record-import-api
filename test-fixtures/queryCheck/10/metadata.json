@@ -1,0 +1,7 @@
+{
+  "description": "Check content type query params",
+  "only": false,
+  "query": {
+    "contentType": "text-./"
+  }
+}

@@ -15,6 +15,7 @@
                 "failedRecords": [],
                 "importResults": []
             },
+            "state": "UPLOADING",
             "id": "1",
             "profile": "foo",
             "contentType": "foo/bar"
@@ -26,6 +27,7 @@
                 "failedRecords": [],
                 "importResults": []
             },
+            "state": "UPLOADING",
             "id": "2",
             "profile": "foo",
             "contentType": "foo/bar"
@@ -37,6 +39,7 @@
                 "failedRecords": [],
                 "importResults": []
             },
+            "state": "UPLOADING",
             "id": "3",
             "profile": "foo",
             "contentType": "foo/bar"
@@ -48,6 +51,7 @@
                 "failedRecords": [],
                 "importResults": []
             },
+            "state": "UPLOADING",
             "id": "4",
             "profile": "foo",
             "contentType": "foo/bar"
@@ -59,6 +63,7 @@
                 "failedRecords": [],
                 "importResults": []
             },
+            "state": "UPLOADING",
             "id": "5",
             "profile": "foo",
             "contentType": "foo/bar"

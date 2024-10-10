@@ -16,7 +16,8 @@
       },
       "id": "foo",
       "profile": "foo",
-      "contentType": "foo/bar"
+      "contentType": "foo/bar",
+      "state": "UPLOADING"
     },
     {
       "processingInfo": {
@@ -26,7 +27,8 @@
       },
       "id": "bar",
       "profile": "foo",
-      "contentType": "bar/foo"
+      "contentType": "bar/foo",
+      "state": "UPLOADING"
     }
   ]
 }

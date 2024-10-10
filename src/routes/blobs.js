@@ -1,26 +1,27 @@
-import HttpStatus from 'http-status';
-import {Router} from 'express';
 import bodyParser from 'body-parser';
-import {blobsFactory} from '../interfaces';
-import validateContentType from '@natlibfi/express-validate-content-type';
-import {createLogger} from '@natlibfi/melinda-backend-commons';
-import {validateMax as validateContentLength} from 'express-content-length-validator';
-import {API_URL, CONTENT_MAX_LENGTH} from '../config';
-import sanitize from 'mongo-sanitize';
 import createDebugLogger from 'debug';
+import {Router} from 'express';
+import {validateMax as validateContentLength} from 'express-content-length-validator';
+import HttpStatus from 'http-status';
+import sanitize from 'mongo-sanitize';
+
+import {createLogger} from '@natlibfi/melinda-backend-commons';
 import {Error as ApiError} from '@natlibfi/melinda-commons';
 
-export default function (permissionMiddleware) {
-  const blobs = blobsFactory({url: API_URL});
+import {blobsFactory} from '../interfaces';
+import {checkQueryParams} from '../middleware/queryCheck';
+
+export default async function (permissionMiddleware, {CONTENT_MAX_LENGTH, MONGO_URI, MELINDA_API_OPTIONS, BLOBS_QUERY_LIMIT}) {
+  const blobs = await blobsFactory({MONGO_URI, MELINDA_API_OPTIONS, BLOBS_QUERY_LIMIT});
   const logger = createLogger();
   const debug = createDebugLogger('@natlibfi/melinda-record-import-api:routes/blobs'); // eslint-disable-line no-unused-vars
 
   return new Router()
-    .get('/', permissionMiddleware('blobs', 'read'), query)
+    .get('/', permissionMiddleware('blobs', 'read'), checkQueryParams, query)
     .post('/', permissionMiddleware('blobs', 'create'), getContentLengthMiddleware(), create)
     .get('/:id', permissionMiddleware('blobs', 'read'), read)
     .delete('/:id', permissionMiddleware('blobs', 'delete'), remove)
-    .post('/:id', permissionMiddleware('blobs', 'update'), validateContentType({type: 'application/json'}), bodyParser.json({type: 'application/json'}), update)
+    .post('/:id', permissionMiddleware('blobs', 'update'), validateContentType('application/json'), bodyParser.json({type: 'application/json'}), update)
     .get('/:id/content', permissionMiddleware('blobs', 'content'), readContent)
     .delete('/:id/content', permissionMiddleware('blobs', 'content'), removeContent);
 
@@ -28,8 +29,7 @@ export default function (permissionMiddleware) {
   async function query(req, res, next) {
     logger.silly('Route - Blobs - Query');
     try {
-      const queryParams = getQueryParams();
-      const parameters = {user: req.user, ...queryParams};
+      const parameters = {...req.query, user: req.user};
 
       if (req.get('QueryOffset')) { // eslint-disable-line functional/no-conditional-statements
         parameters.offset = sanitize(req.get('QueryOffset')); // eslint-disable-line functional/immutable-data
@@ -45,18 +45,6 @@ export default function (permissionMiddleware) {
       res.json(results);
     } catch (error) {
       return next(error);
-    }
-
-    function getQueryParams() {
-      const KEYS = ['state', 'profile', 'contentType', 'creationTime', 'modificationTime'];
-
-      return Object.keys(req.query)
-        .filter(k => KEYS.includes(k))
-        .reduce((acc, k) => {
-          const cleanedK = sanitize(k);
-          const value = sanitize(req.query[k]);
-          return {...acc, [cleanedK]: Array.isArray(value) ? value : [value]};
-        }, {});
     }
   }
 
@@ -95,10 +83,11 @@ export default function (permissionMiddleware) {
         const id = await blobs.create({
           inputStream: req, user: req.user,
           profile: req.headers['import-profile'],
-          contentType: req.headers['content-type']
+          contentType: req.headers['content-type'],
+          date: new Date()
         });
-
-        res.set('Location', `${API_URL}/blobs/${id}`);
+        const apiUrl = `${req.protocol}://${req.header('host')}`;
+        res.set('Location', `${apiUrl}/blobs/${id}`);
         return res.sendStatus(HttpStatus.CREATED);
       } catch (error) {
         logger.error('Route - Blobs - Create - Error');
@@ -168,5 +157,14 @@ export default function (permissionMiddleware) {
 
     logger.debug('Contentlength OK');
     return (req, res, next) => next();
+  }
+
+  function validateContentType(type) {
+    return (req, res, next) => {
+      if (req.is(type)) {
+        return next();
+      }
+      return res.sendStatus(415);
+    };
   }
 }

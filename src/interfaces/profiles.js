@@ -1,13 +1,15 @@
-import Mongoose from 'mongoose';
-import {Error as ApiError} from '@natlibfi/melinda-commons';
-import {ProfileModel} from './models';
-import {hasPermission} from './utils';
-import {createLogger} from '@natlibfi/melinda-backend-commons';
 import httpStatus from 'http-status';
 
-export default function ({url}) {
-  Mongoose.model('Profile', ProfileModel);
+import {createLogger} from '@natlibfi/melinda-backend-commons';
+import {Error as ApiError} from '@natlibfi/melinda-commons';
+import {createMongoProfilesOperator} from '@natlibfi/melinda-record-import-commons';
+
+import {hasPermission} from './utils';
+import {profileSchema, validate} from './models';
+
+export default async function ({MONGO_URI, MONGO_DB = 'db'}) {
   const logger = createLogger();
+  const mongoProfileOperator = await createMongoProfilesOperator(MONGO_URI, MONGO_DB);
 
   return {query, read, createOrUpdate, remove};
 
@@ -15,44 +17,47 @@ export default function ({url}) {
   async function query({user}) {
     try {
       logger.debug('Looking for profiles');
-      const profiles = await Mongoose.models.Profile.find().exec();
-      return profiles.filter(p => hasPermission(user.roles.groups, p.groups))
-        .map(profile => ({id: profile.id, url: `${url}/profiles/${profile.id}`}));
+
+      const profiles = [];
+      await new Promise((resolve, reject) => {
+        const emitter = mongoProfileOperator.queryProfile();
+        emitter.on('profiles', profilesArray => profilesArray.forEach(profile => profiles.push(profile))) // eslint-disable-line functional/immutable-data
+          .on('error', error => reject(error))
+          .on('end', () => resolve());
+      });
+
+      return profiles.filter(profile => hasPermission(user.roles.groups, profile.groups))
+        .map(profile => ({id: profile.id}));
     } catch (error) {
-      logger.error(error); // eslint-disable-line
+      logger.error(error);
       return [];
     }
   }
 
   // MARK: Read
   async function read({id, user}) {
-    const profile = await Mongoose.models.Profile.findOne({id}).exec();
+    const profile = await mongoProfileOperator.readProfile({id});
 
     if (profile) {
       if (hasPermission(user.roles.groups, profile.groups)) {
         logger.debug('Reading profile');
-        return format(profile);
+        return profile;
       }
 
       throw new ApiError(httpStatus.FORBIDDEN, 'Permission error');
     }
 
     throw new ApiError(httpStatus.NOT_FOUND, 'Profile not found');
-
-    function format(profile) {
-      const doc = profile._doc;
-
-      return Object.keys(doc).reduce((acc, key) => (/^_+/u).test(key) ? acc : {[key]: doc[key], ...acc}, {});
-    }
   }
 
   // MARK: Remove
   async function remove({id, user}) {
-    const profile = await Mongoose.models.Profile.findOne({id}).exec();
+    const profile = await mongoProfileOperator.readProfile({id});
     if (profile) {
       if (hasPermission(user.roles.groups, profile.groups)) {
         logger.debug('Removing profile');
-        return Mongoose.models.Profile.deleteOne({id}).exec();
+        await mongoProfileOperator.removeProfile({id});
+        return;
       }
 
       throw new ApiError(httpStatus.FORBIDDEN, 'Permission error');
@@ -62,40 +67,12 @@ export default function ({url}) {
   }
 
   // MARK: Create or update
-  async function createOrUpdate({id, payload, user}) {
-    if (hasPermission(user.roles.groups)) {
-      const profile = await Mongoose.models.Profile.findOne({id});
-
-      logger.debug(profile ? 'got profile' : 'existing profile not found');
-
-      if (profile) {
-        return execute(true);
-      }
-
-      return execute();
+  function createOrUpdate({id, payload, user}) {
+    if (hasPermission(user.roles.groups, payload.groups)) {
+      validate({id, ...payload}, profileSchema);
+      return mongoProfileOperator.createOrModifyProfile({id, payload});
     }
 
     throw new ApiError(httpStatus.FORBIDDEN, 'Permission error');
-
-    async function execute(update = false) {
-      try {
-        if (update) {
-          logger.debug('Updating profile');
-          await Mongoose.models.Profile.updateOne({id}, {...payload, id}).exec();
-          return {status: httpStatus.NO_CONTENT};
-        }
-
-        logger.debug('Creating profile');
-        await Mongoose.models.Profile.create({...payload, id});
-        return {status: httpStatus.CREATED};
-      } catch (error) {
-        logger.debug('Profile handling error');
-        if (error instanceof Mongoose.Error && (error.name === 'ValidationError' || error.name === 'StrictModeError')) {
-          throw new ApiError(httpStatus.UNPROCESSABLE_ENTITY, 'Profile provided is malformed');
-        }
-
-        throw error;
-      }
-    }
   }
 }
