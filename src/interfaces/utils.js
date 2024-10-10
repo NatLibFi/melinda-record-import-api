@@ -12,6 +12,7 @@ export function hasPermission(userGroups, permittedGroups = []) {
   }
 
   logger.debug('Permitted groups does not match');
+
   // console.log(userGroups); // eslint-disable-line
   // console.log(permittedGroups); // eslint-disable-line
   return false;
