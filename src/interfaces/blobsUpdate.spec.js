@@ -65,7 +65,7 @@ describe('interfaces/blobs', () => {
       expect(formatedDump.blobmetadatas).to.eql(expectedDb.blobmetadatas);
       expect(expectToFail, 'This is expected to succes').to.equal(false);
     } catch (error) {
-      if (!expectToFail) { // eslint-disable-line
+      if (!expectToFail) {
         throw error;
       }
       // console.log(error); // eslint-disable-line

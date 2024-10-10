@@ -66,7 +66,7 @@ describe('interfaces/blobs', () => {
       expect(await getData(readStream)).to.equal(expectedContent);
       expect(expectToFail, 'This is expected to succes').to.equal(false);
     } catch (error) {
-      if (!expectToFail) { // eslint-disable-line
+      if (!expectToFail) {
         throw error;
       }
       expect(expectToFail, 'This is expected to fail').to.equal(true);

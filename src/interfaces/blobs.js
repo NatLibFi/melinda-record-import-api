@@ -134,7 +134,7 @@ export default async function ({MONGO_URI, MELINDA_API_OPTIONS, BLOBS_QUERY_LIMI
 
     if (blob) {
       const apiProfile = await getProfile({id: blob.profile});
-      if (hasPermission(user.roles.groups, apiProfile.groups)) { // eslint-disable-line functional/no-conditional-statements
+      if (hasPermission(user.roles.groups, apiProfile.groups)) {
         const {contentType} = blob;
         const readStream = mongoBlobsOperator.readBlobContent({id});
         return {contentType, readStream};

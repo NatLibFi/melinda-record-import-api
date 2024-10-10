@@ -60,7 +60,7 @@ describe('interfaces/profiles', () => {
       expect(results).to.eql(expectedResults);
       expect(expectToFail, 'This is expected to succes').to.equal(false);
     } catch (error) {
-      if (!expectToFail) { // eslint-disable-line
+      if (!expectToFail) {
         throw error;
       }
       expect(expectToFail, 'This is expected to fail').to.equal(true);

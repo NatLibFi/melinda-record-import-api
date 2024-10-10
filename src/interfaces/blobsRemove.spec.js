@@ -61,7 +61,7 @@ describe('interfaces/blobs', () => {
       expect(dump.blobmetadatas).to.eql(expectedDatabaseState);
       expect(expectToFail, 'This is expected to succes').to.equal(false);
     } catch (error) {
-      if (!expectToFail) { // eslint-disable-line functional/no-conditional-statements
+      if (!expectToFail) {
         if (error.status && error.payload) { // eslint-disable-line functional/no-conditional-statements
           console.log(`*** ERROR: Status: ${error.status}, message: ${error.payload} ***`); // eslint-disable-line
         }

@@ -29,7 +29,7 @@ export default async function ({MONGO_URI, MONGO_DB = 'db'}) {
       return profiles.filter(profile => hasPermission(user.roles.groups, profile.groups))
         .map(profile => ({id: profile.id}));
     } catch (error) {
-      logger.error(error); // eslint-disable-line
+      logger.error(error);
       return [];
     }
   }
@@ -69,7 +69,7 @@ export default async function ({MONGO_URI, MONGO_DB = 'db'}) {
   // MARK: Create or update
   function createOrUpdate({id, payload, user}) {
     if (hasPermission(user.roles.groups, payload.groups)) {
-      validate({id, ...payload}, profileSchema); // eslint-disable-line
+      validate({id, ...payload}, profileSchema);
       return mongoProfileOperator.createOrModifyProfile({id, payload});
     }
 
