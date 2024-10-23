@@ -7,6 +7,8 @@ export default function () {
 
   return new Router()
     .get('/', (req, res) => {
+      res.append('Access-Control-Allow-Origin', ['*']);
+      res.append('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE');
       res.set('content-type', 'application/yaml');
       res.send(apiDoc);
     });
