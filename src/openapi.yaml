@@ -11,23 +11,24 @@ info:
     url: https://opensource.org/license/mit
   version: 1.0.0
 servers:
-  - url: https://record-import.api.melinda-test.kansalliskirjasto.fi/
-    description: Internal staging server for testing
+  - url: https://record-import.api.{environment}.kansalliskirjasto.fi/
+    variables:
+      environment:
+        default: melinda-test    # Production server
+        enum:
+          - melinda      # Production server
+          - melinda-test # Development server
 tags:
   - name: blobs
     description: Operate on blobs
   - name: profiles
     description: Operate on profiles
-security:
-  - openId:
-      - melinda
 paths:
   /blobs:
     post:
       summary: Create a new blob
       security:
-        - openId:
-          - melinda
+        - oauth2: ['melinda']
       tags:
         - blobs
       parameters:
@@ -62,8 +63,7 @@ paths:
     get:
       summary: Query for blobs
       security:
-        - openId:
-          - melinda
+        - oauth2: ['melinda']
       tags:
         - blobs
       parameters:
@@ -147,8 +147,7 @@ paths:
     get:
       summary: Retrieve blob metadata
       security:
-        - openId:
-          - melinda
+        - oauth2: ['melinda']
       tags:
         - blobs
       responses:
@@ -167,8 +166,7 @@ paths:
     post:
       summary: Update blob metadata
       security:
-        - openId:
-          - melinda
+        - oauth2: ['melinda']
       tags:
         - blobs
       requestBody:
@@ -194,8 +192,7 @@ paths:
     delete:
       summary: Delete a blob
       security:
-        - openId:
-          - melinda
+        - oauth2: ['melinda']
       description: The blob is completely removed including all related records in the queue
       tags:
         - blobs
@@ -222,8 +219,7 @@ paths:
     get:
       summary: Retrieve blob content
       security:
-        - openId:
-          - melinda
+        - oauth2: ['melinda']
       tags:
         - blobs
       responses:
@@ -238,8 +234,7 @@ paths:
     delete:
       summary: Delete blob content
       security:
-        - openId:
-          - melinda
+        - oauth2: ['melinda']
       description: The blob content is removed
       tags:
         - blobs
@@ -264,8 +259,7 @@ paths:
     post:
       summary: Create or update a profile
       security:
-        - openId:
-          - melinda
+        - oauth2: ['melinda']
       tags:
         - profiles
       requestBody:
@@ -287,8 +281,7 @@ paths:
     get:
       summary: Retrieve a profile
       security:
-        - openId:
-          - melinda
+        - oauth2: ['melinda']
       tags:
         - profiles
       responses:
@@ -306,10 +299,17 @@ paths:
           description: The profile does not exist
 components:
   securitySchemes:
-    openId:
-      type: openIdConnect
-      description: Melinda openid auth
-      openIdConnectUrl: https://ssotest.natlib.fi/realms/melinda/.well-known/openid-configuration
+    oauth2:
+      type: oauth2
+      flows:
+        implicit:
+          authorizationUrl: https://ssotest.natlib.fi/realms/melinda/protocol/openid-connect/auth
+          scopes:
+            melinda: get melinda user info
+        clientCredentials:
+          tokenUrl: https://tunnistus.kansalliskirjasto.fi/realms/melinda/protocol/openid-connect/token
+          scopes:
+            melinda: get melinda user info
   schemas:
     BlobState:
       type: string
