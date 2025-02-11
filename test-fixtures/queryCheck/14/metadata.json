@@ -2,7 +2,7 @@
   "description": "Check multiple state query params",
   "only": false,
   "query": {
-    "state": "UPLOADING,PROCESSING_PRIO"
+    "state": "UPLOADING,PROCESSING_BULK"
   },
   "expectedFailedParams": []
 }
