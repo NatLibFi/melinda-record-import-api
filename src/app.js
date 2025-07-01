@@ -3,6 +3,7 @@ import express from 'express';
 import cors from 'cors';
 import fs from 'fs';
 import https from 'https';
+import ipRangeCheck from 'ip-range-check';
 
 import {getUserApplicationRoles, generateUserAuthorizationMiddleware, generatePermissionMiddleware} from './middleware';
 import {generatePassportMiddlewares} from '@natlibfi/passport-natlibfi-keycloak';
@@ -21,7 +22,7 @@ export default async function (config) {
   const logger = createLogger();
   const app = express();
   const {
-    ENABLE_PROXY, HTTPS_PORT,
+    ENABLE_PROXY, HTTPS_PORT, ipWhiteList,
     USER_AGENT_LOGGING_BLACKLIST, SOCKET_KEEP_ALIVE_TIMEOUT,
     keycloakOpts, tlsKeyPath, tlsCertPath, allowSelfSignedApiCert
   } = config;
@@ -51,8 +52,8 @@ export default async function (config) {
 
   app.use(pathValidator);
   app.use('/', createApiDocRouter());
-  app.use('/blobs', gatherUserInformationMiddlewares, await createBlobsRouter(permissionMiddleware, config));
-  app.use('/profiles', gatherUserInformationMiddlewares, await createProfilesRouter(permissionMiddleware, config));
+  app.use('/blobs', ipWhiteListMiddleware, gatherUserInformationMiddlewares, await createBlobsRouter(permissionMiddleware, config));
+  app.use('/profiles', ipWhiteListMiddleware, gatherUserInformationMiddlewares, await createProfilesRouter(permissionMiddleware, config));
   app.use('/status', createStatusRouter());
 
   app.use(handleError);
@@ -76,6 +77,22 @@ export default async function (config) {
   setSocketKeepAlive(server);
 
   return server;
+
+  function ipWhiteListMiddleware(req, res, next) {
+    logger.verbose('Ip whitelist middleware');
+    if (ipWhiteList.length === 0) {
+      return next();
+    }
+    const connectionIp = req.headers['cf-connecting-ip'];
+    //logger.debug(connectionIp);
+    if (ipRangeCheck(`${connectionIp}`, ipWhiteList)) {
+      logger.debug('IP ok');
+      return next();
+    }
+
+    logger.debug(`Bad IP: ${connectionIp}`);
+    return res.sendStatus(httpStatus.FORBIDDEN);
+  }
 
   function pathValidator(req, res, next) {
     if (req.path.startsWith('//')) {

@@ -14,6 +14,7 @@ export const HTTPS_PORT = readEnvironmentVariable('HTTPS_PORT', {defaultValue: 8
 export const tlsKeyPath = readEnvironmentVariable('TLS_KEY_PATH', {defaultValue: ''});
 export const tlsCertPath = readEnvironmentVariable('TLS_CERT_PATH', {defaultValue: ''});
 export const allowSelfSignedApiCert = readEnvironmentVariable('ALLOW_API_SELF_SIGNED', {defaultValue: false, format: parseBoolean});
+export const ipWhiteList = readEnvironmentVariable('IP_WHITELIST', {defaultValue: [], format: v => JSON.parse(v)});
 
 export const MONGO_URI = readEnvironmentVariable('MONGO_URI', {defaultValue: 'mongodb://127.0.0.1:27017/db'});
 export const MONGO_POOLSIZE = readEnvironmentVariable('MONGO_POOLSIZE', {defaultValue: 200, format: v => Number(v)});
