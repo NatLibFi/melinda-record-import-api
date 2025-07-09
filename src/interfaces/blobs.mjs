@@ -6,10 +6,11 @@ import {v4 as uuid} from 'uuid';
 import {createLogger} from '@natlibfi/melinda-backend-commons';
 import {Error as ApiError, parseBoolean} from '@natlibfi/melinda-commons';
 import {BLOB_STATE, createMongoBlobsOperator, createMongoProfilesOperator} from '@natlibfi/melinda-record-import-commons';
-import {createApiClient as createMelindaApiClient} from '@natlibfi/melinda-rest-api-client';
+import restApiClientpkg from '@natlibfi/melinda-rest-api-client';
+const {createApiClient: createMelindaApiClient} = restApiClientpkg;
 import {QUEUE_ITEM_STATE} from '@natlibfi/melinda-rest-api-commons';
 
-import {hasPermission} from './utils';
+import {hasPermission} from './utils.mjs';
 
 export default async function ({MONGO_URI, MELINDA_API_OPTIONS, BLOBS_QUERY_LIMIT, MONGO_DB = 'db'}) {
   const logger = createLogger();
@@ -27,7 +28,7 @@ export default async function ({MONGO_URI, MELINDA_API_OPTIONS, BLOBS_QUERY_LIMI
     const results = [];
     const nextOffset = await new Promise((resolve, reject) => {
       const emitter = mongoBlobsOperator.queryBlob({...rest, skip, limit, getAll}, user);
-      emitter.on('blobs', blobs => blobs.forEach(blob => results.push(blob))) // eslint-disable-line functional/immutable-data
+      emitter.on('blobs', blobs => blobs.forEach(blob => results.push(blob)))
         .on('error', error => reject(error))
         .on('end', nextOffset => resolve(nextOffset));
     });
@@ -36,7 +37,7 @@ export default async function ({MONGO_URI, MELINDA_API_OPTIONS, BLOBS_QUERY_LIMI
     function format(doc) {
       const blobs = doc.map(blob => formatBlobDocument(blob, true)).map(blob => {
         const {numberOfRecords, failedRecords, processedRecords} = blob.processingInfo;
-        delete blob.processingInfo; // eslint-disable-line functional/immutable-data
+        delete blob.processingInfo;
 
         return {
           ...blob,

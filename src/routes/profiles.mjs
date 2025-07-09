@@ -1,7 +1,7 @@
 import HttpStatus from 'http-status';
 import {Router} from 'express';
 import bodyParser from 'body-parser';
-import {profilesFactory} from '../interfaces';
+import {profilesFactory} from '../interfaces/index.mjs';
 import {createLogger} from '@natlibfi/melinda-backend-commons';
 
 export default async function (permissionMiddleware, {MONGO_URI}) {

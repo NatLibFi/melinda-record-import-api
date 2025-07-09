@@ -1,24 +1,26 @@
-import {expect} from 'chai';
+import {describe} from 'node:test';
+import assert from 'node:assert';
 import {READERS} from '@natlibfi/fixura';
 import mongoFixturesFactory from '@natlibfi/fixura-mongo';
 import generateTests from '@natlibfi/fixugen';
+import {Error as ApiError} from '@natlibfi/melinda-commons';
 
-import blobsFactory from './blobs';
+import blobsFactory from './blobs.mjs';
 
 
 describe('interfaces/blobs', () => {
-  let mongoFixtures; // eslint-disable-line functional/no-let
+  let mongoFixtures;
 
   generateTests({
     callback,
-    path: [__dirname, '..', '..', 'test-fixtures', 'blobs', 'removeContent'],
+    path: [import.meta.dirname, '..', '..', 'test-fixtures', 'blobs', 'readContent'],
     recurse: false,
     useMetadataFile: true,
     fixura: {
       failWhenNotFound: true,
       reader: READERS.JSON
     },
-    mocha: {
+    hooks: {
       before: async () => {
         await initMongofixtures();
       },
@@ -36,20 +38,15 @@ describe('interfaces/blobs', () => {
 
   async function initMongofixtures() {
     mongoFixtures = await mongoFixturesFactory({
-      rootPath: [__dirname, '..', '..', 'test-fixtures', 'blobs', 'removeContent'],
+      rootPath: [import.meta.dirname, '..', '..', 'test-fixtures', 'blobs', 'readContent'],
       gridFS: {bucketName: 'blobmetadatas'},
-      useObjectId: true,
-      format: {
-        blobmetadatas: {
-          creationTime: v => new Date(v),
-          modificationTime: v => new Date(v)
-        }
-      }
+      useObjectId: true
     });
   }
 
   async function callback({
     getFixture,
+    expectedContentType = 'foo/bar',
     expectToFail = false,
     expectedFailStatus = ''
   }) {
@@ -58,22 +55,40 @@ describe('interfaces/blobs', () => {
       const dbContents = getFixture('dbContents.json');
       const dbFiles = getFixture('dbFiles.json');
       const user = getFixture('user.json');
+      const expectedContent = getFixture({components: ['expectedContent.txt'], reader: READERS.TEXT});
       const blobs = await blobsFactory({MONGO_URI, MELINDA_API_OPTIONS: {}, BLOBS_QUERY_LIMIT: 100, MONGO_DB: ''});
 
       await mongoFixtures.populate(dbContents);
       await mongoFixtures.populateFiles(dbFiles);
 
-      await blobs.removeContent({id: 'foo', user});
+      const {contentType, readStream} = await blobs.readContent({id: 'foo', user});
 
-      const files = await mongoFixtures.dumpFiles(true);
-      expect(files).to.eql({});
-      expect(expectToFail, 'This is expected to succes').to.equal(false);
+      assert.equal(contentType, expectedContentType);
+      assert.deepStrictEqual(await getData(readStream), expectedContent);
+      assert.equal(expectToFail, false, 'This is expected to succes');
     } catch (error) {
       if (!expectToFail) {
         throw error;
       }
-      expect(expectToFail, 'This is expected to fail').to.equal(true);
-      expect(error.status).to.equal(expectedFailStatus);
+      assert.equal(expectToFail, true, 'This is expected to fail');
+      if (error.errmsg) {
+        assert.equal(error.errmsg.includes('FileNotFound'), true);
+        return;
+      }
+      assert(error instanceof ApiError);
+      assert.equal(error.status, expectedFailStatus);
+    }
+
+    function getData(stream) {
+      return new Promise((resolve, reject) => {
+        const chunks = [];
+
+        stream
+          .setEncoding('utf8')
+          .on('error', reject)
+          .on('data', chunk => chunks.push(chunk))
+          .on('end', () => resolve(chunks.join('')));
+      });
     }
   }
 });

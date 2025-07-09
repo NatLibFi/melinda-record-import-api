@@ -1,24 +1,26 @@
-import {expect} from 'chai';
+import {describe} from 'node:test';
+import assert from 'node:assert';
 import {READERS} from '@natlibfi/fixura';
+
 import mongoFixturesFactory from '@natlibfi/fixura-mongo';
+
 import generateTests from '@natlibfi/fixugen';
 import {validate} from 'uuid';
-
-import blobsFactory from './blobs';
+import blobsFactory from './blobs.mjs';
 
 describe('interfaces/blobs', () => {
-  let mongoFixtures; // eslint-disable-line functional/no-let
+  let mongoFixtures;
 
   generateTests({
     callback,
-    path: [__dirname, '..', '..', 'test-fixtures', 'blobs', 'create'],
+    path: [import.meta.dirname, '..', '..', 'test-fixtures', 'blobs', 'create'],
     recurse: false,
     useMetadataFile: true,
     fixura: {
       failWhenNotFound: true,
       reader: READERS.JSON
     },
-    mocha: {
+    hooks: {
       before: async () => {
         await initMongofixtures();
       },
@@ -36,7 +38,7 @@ describe('interfaces/blobs', () => {
 
   async function initMongofixtures() {
     mongoFixtures = await mongoFixturesFactory({
-      rootPath: [__dirname, '..', '..', 'test-fixtures', 'blobs', 'create'],
+      rootPath: [import.meta.dirname, '..', '..', 'test-fixtures', 'blobs', 'create'],
       gridFS: {bucketName: 'blobmetadatas'},
       useObjectId: true
     });
@@ -61,22 +63,22 @@ describe('interfaces/blobs', () => {
       const id = await blobs.create({contentType: 'foo/bar', profile: 'foo', inputStream, date: new Date('2024-07-20'), user});
       const dump = dumpParser(await mongoFixtures.dump());
 
-      expect(validate(id)).to.equal(true);
-      expect(dump.blobmetadatas).to.eql(expectedDb.blobmetadatas);
-      expect(expectToFail, 'This is expected to succes').to.equal(false);
+      assert.equal(validate(id), true);
+      assert.deepStrictEqual(dump.blobmetadatas, expectedDb.blobmetadatas);
+      assert.equal(expectToFail, false, 'This is expected to succes');
     } catch (error) {
       if (!expectToFail) {
         throw error;
       }
       // console.log(error);  // eslint-disable-line
-      expect(expectToFail, 'This is expected to fail').to.equal(true);
-      expect(error.status).to.equal(expectedFailStatus);
+      assert.equal(expectToFail, true, 'This is expected to fail');
+      assert.equal(error.status, expectedFailStatus);
     }
 
     function dumpParser(dump) {
       // Drop timestamps
       const blobmetadatas = dump.blobmetadatas.map(blobmetadata => {
-        const {_id, id, modificationTime, creationTime, timestamp, ...rest} = blobmetadata; // eslint-disable-line no-unused-vars
+        const {_id, id, modificationTime, creationTime, timestamp, ...rest} = blobmetadata;
         return {id: 'foo', ...rest};
       });
 

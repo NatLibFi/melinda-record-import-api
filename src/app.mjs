@@ -5,7 +5,7 @@ import fs from 'fs';
 import https from 'https';
 import ipRangeCheck from 'ip-range-check';
 
-import {getUserApplicationRoles, generateUserAuthorizationMiddleware, generatePermissionMiddleware} from './middleware';
+import {getUserApplicationRoles, generateUserAuthorizationMiddleware, generatePermissionMiddleware} from './middleware/index.mjs';
 import {generatePassportMiddlewares} from '@natlibfi/passport-natlibfi-keycloak';
 
 import {Error as ApiError} from '@natlibfi/melinda-commons';
@@ -16,7 +16,7 @@ import {
   createProfilesRouter,
   createApiDocRouter,
   createStatusRouter
-} from './routes';
+} from './routes/index.mjs';
 
 export default async function (config) {
   const logger = createLogger();
@@ -103,7 +103,7 @@ export default async function (config) {
     next();
   }
 
-  function handleError(error, req, res, next) { // eslint-disable-line no-unused-vars
+  function handleError(error, req, res, next) {  
     console.log('App Error handling'); // eslint-disable-line
     console.log(error); // eslint-disable-line
 
@@ -120,8 +120,8 @@ export default async function (config) {
   }
 
   function setSocketKeepAlive(server) {
-    if (SOCKET_KEEP_ALIVE_TIMEOUT) { // eslint-disable-line functional/no-conditional-statements
-      server.keepAliveTimeout = SOCKET_KEEP_ALIVE_TIMEOUT; // eslint-disable-line functional/immutable-data
+    if (SOCKET_KEEP_ALIVE_TIMEOUT) {
+      server.keepAliveTimeout = SOCKET_KEEP_ALIVE_TIMEOUT;
 
       server.on('connection', socket => {
         socket.setTimeout(SOCKET_KEEP_ALIVE_TIMEOUT);

@@ -1,13 +1,14 @@
-import {expect} from 'chai';
+import {describe} from 'node:test';
+import assert from 'node:assert';
 import {READERS} from '@natlibfi/fixura';
 import generateTests from '@natlibfi/fixugen';
 
-import {validateQueryParams} from './queryCheck';
+import {validateQueryParams} from './queryCheck.mjs';
 
-describe('interfaces/blobs', () => {
+describe('middleware', () => {
   generateTests({
     callback,
-    path: [__dirname, '..', '..', 'test-fixtures', 'queryCheck'],
+    path: [import.meta.dirname, '..', '..', 'test-fixtures', 'queryCheck'],
     recurse: false,
     useMetadataFile: true,
     fixura: {
@@ -17,7 +18,7 @@ describe('interfaces/blobs', () => {
   });
 
   function callback({
-    getFixture, // eslint-disable-line
+    getFixture,
     query,
     groups = [],
     expectedFailedParams = [],
@@ -29,15 +30,15 @@ describe('interfaces/blobs', () => {
       // console.log(groups); // eslint-disable-line
       const failedParams = validateQueryParams(query, groups);
 
-      expect(failedParams).to.eql(expectedFailedParams);
-      expect(expectToFail, 'This is expected to succes').to.equal(false);
+      assert.deepStrictEqual(failedParams, expectedFailedParams);
+      assert.equal(expectToFail, false, 'This is expected to succes');
     } catch (error) {
-      if (!expectToFail) { // eslint-disable-line
+      if (!expectToFail) {
         throw error;
       }
       // console.log(error); // eslint-disable-line
-      expect(expectToFail, 'This is expected to fail').to.equal(true);
-      expect(error.status).to.equal(expectedFailStatus);
+      assert.equal(expectToFail, true, 'This is expected to fail');
+      assert.equal(error.status, expectedFailStatus);
     }
   }
 });

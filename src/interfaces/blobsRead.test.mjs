@@ -1,24 +1,25 @@
-import {expect} from 'chai';
+import {describe} from 'node:test';
+import assert from 'node:assert';
 import {READERS} from '@natlibfi/fixura';
 import mongoFixturesFactory from '@natlibfi/fixura-mongo';
-import {Error as ApiError} from '@natlibfi/melinda-commons';
 import generateTests from '@natlibfi/fixugen';
 
-import profilesFactory from './profiles';
+import blobsFactory from './blobs.mjs';
+import {formatBlobMetadata} from './utils.mjs';
 
-describe('interfaces/profiles', () => {
-  let mongoFixtures; // eslint-disable-line functional/no-let
+describe('interfaces/blobs', () => {
+  let mongoFixtures;
 
   generateTests({
     callback,
-    path: [__dirname, '..', '..', 'test-fixtures', 'profiles', 'query'],
+    path: [import.meta.dirname, '..', '..', 'test-fixtures', 'blobs', 'read'],
     recurse: false,
     useMetadataFile: true,
     fixura: {
       failWhenNotFound: true,
       reader: READERS.JSON
     },
-    mocha: {
+    hooks: {
       before: async () => {
         await initMongofixtures();
       },
@@ -36,7 +37,7 @@ describe('interfaces/profiles', () => {
 
   async function initMongofixtures() {
     mongoFixtures = await mongoFixturesFactory({
-      rootPath: [__dirname, '..', '..', 'test-fixtures', 'profiles', 'query'],
+      rootPath: [import.meta.dirname, '..', '..', 'test-fixtures', 'blobs', 'read'],
       gridFS: {bucketName: 'blobmetadatas'},
       useObjectId: true
     });
@@ -48,24 +49,23 @@ describe('interfaces/profiles', () => {
     expectedFailStatus = ''
   }) {
     try {
-      const mongoUri = await mongoFixtures.getUri();
-      const dbContents = getFixture('dbContents.json');
+      const MONGO_URI = await mongoFixtures.getUri();
+      const expectedResults = getFixture('expectedResults.json');
       const user = getFixture('user.json');
-      const expectedResults = getFixture('results.json');
-      const profiles = await profilesFactory({MONGO_URI: mongoUri, MONGO_DB: ''});
+      const dbContents = getFixture('dbContents.json');
+      const blobs = await blobsFactory({MONGO_URI, MELINDA_API_OPTIONS: {}, BLOBS_QUERY_LIMIT: 100, MONGO_DB: ''});
 
       await mongoFixtures.populate(dbContents);
 
-      const results = await profiles.query({user});
-      expect(results).to.eql(expectedResults);
-      expect(expectToFail, 'This is expected to succes').to.equal(false);
+      const result = await blobs.read({id: 'foo', user});
+      assert.deepStrictEqual(formatBlobMetadata(result), expectedResults);
+      assert.equal(expectToFail, false, 'This is expected to succes');
     } catch (error) {
       if (!expectToFail) {
         throw error;
       }
-      expect(expectToFail, 'This is expected to fail').to.equal(true);
-      expect(error).to.be.an.instanceOf(ApiError);
-      expect(error.status).to.equal(expectedFailStatus);
+      assert.equal(expectToFail, true, 'This is expected to fail');
+      assert.equal(error.status, expectedFailStatus);
     }
   }
 });

@@ -1,23 +1,24 @@
-import {expect} from 'chai';
+import {describe} from 'node:test';
+import assert from 'node:assert';
 import {READERS} from '@natlibfi/fixura';
 import mongoFixturesFactory from '@natlibfi/fixura-mongo';
 import generateTests from '@natlibfi/fixugen';
 
-import profilesFactory from './profiles';
+import profilesFactory from './profiles.mjs';
 
 describe('interfaces/profiles', () => {
-  let mongoFixtures; // eslint-disable-line functional/no-let
+  let mongoFixtures;
 
   generateTests({
     callback,
-    path: [__dirname, '..', '..', 'test-fixtures', 'profiles', 'remove'],
+    path: [import.meta.dirname, '..', '..', 'test-fixtures', 'profiles', 'remove'],
     recurse: false,
     useMetadataFile: true,
     fixura: {
       failWhenNotFound: true,
       reader: READERS.JSON
     },
-    mocha: {
+    hooks: {
       before: async () => {
         await initMongofixtures();
       },
@@ -35,7 +36,7 @@ describe('interfaces/profiles', () => {
 
   async function initMongofixtures() {
     mongoFixtures = await mongoFixturesFactory({
-      rootPath: [__dirname, '..', '..', 'test-fixtures', 'profiles', 'remove'],
+      rootPath: [import.meta.dirname, '..', '..', 'test-fixtures', 'profiles', 'remove'],
       gridFS: {bucketName: 'blobmetadatas'},
       useObjectId: true
     });
@@ -58,14 +59,14 @@ describe('interfaces/profiles', () => {
 
       const db = await mongoFixtures.dump();
 
-      expect(db.profiles).to.eql(expectedDb.profiles);
-      expect(expectToFail, 'This is expected to succes').to.equal(false);
+      assert.deepStrictEqual(db.profiles, expectedDb.profiles);
+      assert.equal(expectToFail, false, 'This is expected to succes');
     } catch (error) {
       if (!expectToFail) {
         throw error;
       }
-      expect(expectToFail, 'This is expected to fail').to.equal(true);
-      expect(error.status).to.equal(expectedFailStatus);
+      assert.equal(expectToFail, true, 'This is expected to fail');
+      assert.equal(error.status, expectedFailStatus);
     }
   }
 });

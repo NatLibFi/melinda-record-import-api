@@ -1,6 +1,5 @@
 import HttpStatus from 'http-status';
 
-/* eslint-disable functional/no-this-expressions,functional/no-conditional-statements */
 export class ApiError extends Error {
   constructor(status, message, ...params) {
     super(status, ...params);
