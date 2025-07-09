@@ -50,9 +50,9 @@
     "uuid": "^11.1.0"
   },
   "devDependencies": {
-    "@natlibfi/fixugen": "file:../fixugen-js/",
-    "@natlibfi/fixura": "file:../fixura-js/",
-    "@natlibfi/fixura-mongo": "file:../fixura-mongo-js/",
+    "@natlibfi/fixugen": "^3.0.0-alpha.1",
+    "@natlibfi/fixura": "^4.0.0-alpha.1",
+    "@natlibfi/fixura-mongo": "^3.0.0-alpha.1",
     "cross-env": "^7.0.3",
     "eslint": "^9.30.1"
   },
