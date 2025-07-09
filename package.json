@@ -20,7 +20,7 @@
     "node": ">=18"
   },
   "scripts": {
-    "start": "node --watch src/index.mjs",
+    "start": "node src/index.mjs",
     "lint": "eslint ./src",
     "lint:dev": "eslint --fix ./src",
     "test:base": "node --test --test-force-exit --experimental-test-coverage --test-reporter=spec",
