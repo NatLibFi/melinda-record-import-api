@@ -50,9 +50,9 @@
     "uuid": "^11.1.0"
   },
   "devDependencies": {
-    "@natlibfi/fixugen": "^3.0.0-alpha.1",
-    "@natlibfi/fixura": "^4.0.0-alpha.1",
-    "@natlibfi/fixura-mongo": "^3.0.0-alpha.1",
+    "@natlibfi/fixugen": "^3.0.0-alpha.3",
+    "@natlibfi/fixura": "^4.0.0-alpha.8",
+    "@natlibfi/fixura-mongo": "^3.0.0-alpha.3",
     "cross-env": "^7.0.3",
     "eslint": "^9.30.1"
   },
