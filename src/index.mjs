@@ -29,7 +29,7 @@ async function run() {
   function handleTermination({code = 0, message = false}) {
     logMessage(message);
 
-    process.exit(code);  
+    process.exit(code);
 
     function logMessage(message) {
       if (message) {

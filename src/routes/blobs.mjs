@@ -8,13 +8,13 @@ import sanitize from 'mongo-sanitize';
 import {createLogger} from '@natlibfi/melinda-backend-commons';
 import {Error as ApiError} from '@natlibfi/melinda-commons';
 
-import {blobsFactory} from '../interfaces/index.mjs';
-import {checkQueryParams} from '../middleware/queryCheck.mjs';
+import {blobsFactory} from '../interfaces/index';
+import {checkQueryParams} from '../middleware/queryCheck';
 
 export default async function (permissionMiddleware, {CONTENT_MAX_LENGTH, MONGO_URI, MELINDA_API_OPTIONS, BLOBS_QUERY_LIMIT}) {
   const blobs = await blobsFactory({MONGO_URI, MELINDA_API_OPTIONS, BLOBS_QUERY_LIMIT});
   const logger = createLogger();
-  const debug = createDebugLogger('@natlibfi/melinda-record-import-api:routes/blobs');  
+  const debug = createDebugLogger('@natlibfi/melinda-record-import-api:routes/blobs');
 
   return new Router()
     .get('/', permissionMiddleware('blobs', 'read'), checkQueryParams, query)
@@ -137,7 +137,7 @@ export default async function (permissionMiddleware, {CONTENT_MAX_LENGTH, MONGO_
       res.sendStatus(HttpStatus.NO_CONTENT);
     } catch (error) {
       if (error instanceof ApiError && error.status === HttpStatus.NOT_FOUND) {
-        console.log(`*** ERROR: Status: ${error.status}, message: ${error.payload} ***`);  
+        console.log(`*** ERROR: Status: ${error.status}, message: ${error.payload} ***`);
         return res.status(error.status);
       }
 

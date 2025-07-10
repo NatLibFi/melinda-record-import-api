@@ -103,7 +103,7 @@ export default async function (config) {
     next();
   }
 
-  function handleError(error, req, res, next) {  
+  function handleError(error, req, res, next) {
     console.log('App Error handling'); // eslint-disable-line
     console.log(error); // eslint-disable-line
 
