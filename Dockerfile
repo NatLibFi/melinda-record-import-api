@@ -7,6 +7,7 @@ COPY --chown=node:node . build
 RUN apk add -U --no-cache --virtual .build-deps git build-base sudo \
   && sudo -u node sh -c 'cd build && npm install && npm run build' \
   && sudo -u node cp -r build/package.json build/dist/* . \
+  && sudo -u node cp -r build/openapi.yaml . \
   && sudo -u node npm install --prod \
   && sudo -u node npm cache clean -f \
   && apk del .build-deps \
