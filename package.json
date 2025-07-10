@@ -21,7 +21,7 @@
   },
   "scripts": {
     "start": "node dist/index.js",
-    "build": "esbuild src/*.mjs src/**/*.mjs --sourcemap --platform=node --resolve-extensions=.mjs --main-fields=main --outdir=dist --allow-overwrite --analyze",
+    "build": "esbuild src/*.mjs src/**/*.mjs --sourcemap --platform=node --out-extension:.js=.mjs --main-fields=main --outdir=dist --allow-overwrite --analyze",
     "lint": "eslint ./src",
     "lint:dev": "eslint --fix ./src",
     "test:base": "node --test --test-force-exit --experimental-test-coverage --test-reporter=spec './src/*.test.mjs' './src/**/*.test.mjs'",
