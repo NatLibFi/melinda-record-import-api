@@ -5,7 +5,7 @@ import fs from 'fs';
 import https from 'https';
 import ipRangeCheck from 'ip-range-check';
 
-import {getUserApplicationRoles, generateUserAuthorizationMiddleware, generatePermissionMiddleware} from './middleware/index.mjs';
+import {getUserApplicationRoles, generateUserAuthorizationMiddleware, generatePermissionMiddleware} from './middleware/index.js';
 import {generatePassportMiddlewares} from '@natlibfi/passport-natlibfi-keycloak';
 
 import {Error as ApiError} from '@natlibfi/melinda-commons';
@@ -16,7 +16,7 @@ import {
   createProfilesRouter,
   createApiDocRouter,
   createStatusRouter
-} from './routes/index.mjs';
+} from './routes/index.js';
 
 export default async function (config) {
   const logger = createLogger();

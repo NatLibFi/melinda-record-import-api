@@ -4,8 +4,8 @@ import {createLogger} from '@natlibfi/melinda-backend-commons';
 import {Error as ApiError} from '@natlibfi/melinda-commons';
 import {createMongoProfilesOperator} from '@natlibfi/melinda-record-import-commons';
 
-import {hasPermission} from './utils.mjs';
-import {profileSchema, validate} from './models.mjs';
+import {hasPermission} from './utils.js';
+import {profileSchema, validate} from './models.js';
 
 export default async function ({MONGO_URI, MONGO_DB = 'db'}) {
   const logger = createLogger();

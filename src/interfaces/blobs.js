@@ -10,7 +10,7 @@ import restApiClientpkg from '@natlibfi/melinda-rest-api-client';
 const {createApiClient: createMelindaApiClient} = restApiClientpkg;
 import {QUEUE_ITEM_STATE} from '@natlibfi/melinda-rest-api-commons';
 
-import {hasPermission} from './utils.mjs';
+import {hasPermission} from './utils.js';
 
 export default async function ({MONGO_URI, MELINDA_API_OPTIONS, BLOBS_QUERY_LIMIT, MONGO_DB = 'db'}) {
   const logger = createLogger();

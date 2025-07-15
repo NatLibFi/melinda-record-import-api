@@ -4,15 +4,14 @@ import {READERS} from '@natlibfi/fixura';
 import mongoFixturesFactory from '@natlibfi/fixura-mongo';
 import generateTests from '@natlibfi/fixugen';
 
-import blobsFactory from './blobs.mjs';
-import {formatBlobMetadata} from './utils.mjs';
+import profilesFactory from './profiles.js';
 
-describe('interfaces/blobs', () => {
+describe('interfaces/profiles', () => {
   let mongoFixtures;
 
   generateTests({
     callback,
-    path: [import.meta.dirname, '..', '..', 'test-fixtures', 'blobs', 'read'],
+    path: [import.meta.dirname, '..', '..', 'test-fixtures', 'profiles', 'read'],
     recurse: false,
     useMetadataFile: true,
     fixura: {
@@ -37,8 +36,7 @@ describe('interfaces/blobs', () => {
 
   async function initMongofixtures() {
     mongoFixtures = await mongoFixturesFactory({
-      rootPath: [import.meta.dirname, '..', '..', 'test-fixtures', 'blobs', 'read'],
-      gridFS: {bucketName: 'blobmetadatas'},
+      rootPath: [import.meta.dirname, '..', '..', 'test-fixtures', 'profiles', 'read'],
       useObjectId: true
     });
   }
@@ -49,16 +47,17 @@ describe('interfaces/blobs', () => {
     expectedFailStatus = ''
   }) {
     try {
-      const MONGO_URI = await mongoFixtures.getUri();
-      const expectedResults = getFixture('expectedResults.json');
-      const user = getFixture('user.json');
+      const mongoUri = await mongoFixtures.getUri();
       const dbContents = getFixture('dbContents.json');
-      const blobs = await blobsFactory({MONGO_URI, MELINDA_API_OPTIONS: {}, BLOBS_QUERY_LIMIT: 100, MONGO_DB: ''});
+      const expectedProfile = getFixture('expectedProfile.json');
+      const user = getFixture('user.json');
+      const profiles = await profilesFactory({MONGO_URI: mongoUri, MONGO_DB: ''});
 
       await mongoFixtures.populate(dbContents);
 
-      const result = await blobs.read({id: 'foo', user});
-      assert.deepStrictEqual(formatBlobMetadata(result), expectedResults);
+      const profile = await profiles.read({id: 'foo', user});
+
+      assert.deepStrictEqual(profile, expectedProfile);
       assert.equal(expectToFail, false, 'This is expected to succes');
     } catch (error) {
       if (!expectToFail) {

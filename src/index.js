@@ -1,6 +1,6 @@
 import {handleInterrupt} from '@natlibfi/melinda-backend-commons';
-import * as config from './config.mjs';
-import startApp from './app.mjs';
+import * as config from './config.js';
+import startApp from './app.js';
 import {logError} from '@natlibfi/melinda-rest-api-commons';
 
 run();

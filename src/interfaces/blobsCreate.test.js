@@ -6,7 +6,7 @@ import mongoFixturesFactory from '@natlibfi/fixura-mongo';
 
 import generateTests from '@natlibfi/fixugen';
 import {validate} from 'uuid';
-import blobsFactory from './blobs.mjs';
+import blobsFactory from './blobs.js';
 
 describe('interfaces/blobs', () => {
   let mongoFixtures;

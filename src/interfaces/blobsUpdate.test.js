@@ -4,8 +4,8 @@ import {READERS} from '@natlibfi/fixura';
 import mongoFixturesFactory from '@natlibfi/fixura-mongo';
 import generateTests from '@natlibfi/fixugen';
 
-import blobsFactory from './blobs.mjs';
-import {formatDump} from './utils.mjs';
+import blobsFactory from './blobs.js';
+import {formatDump} from './utils.js';
 
 
 describe('interfaces/blobs', () => {

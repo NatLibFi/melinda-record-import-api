@@ -3,17 +3,16 @@ import assert from 'node:assert';
 import {READERS} from '@natlibfi/fixura';
 import mongoFixturesFactory from '@natlibfi/fixura-mongo';
 import generateTests from '@natlibfi/fixugen';
-import {Error as ApiError} from '@natlibfi/melinda-commons';
 
-import blobsFactory from './blobs.mjs';
-
+import blobsFactory from './blobs.js';
+import {formatBlobMetadata} from './utils.js';
 
 describe('interfaces/blobs', () => {
   let mongoFixtures;
 
   generateTests({
     callback,
-    path: [import.meta.dirname, '..', '..', 'test-fixtures', 'blobs', 'readContent'],
+    path: [import.meta.dirname, '..', '..', 'test-fixtures', 'blobs', 'read'],
     recurse: false,
     useMetadataFile: true,
     fixura: {
@@ -38,7 +37,7 @@ describe('interfaces/blobs', () => {
 
   async function initMongofixtures() {
     mongoFixtures = await mongoFixturesFactory({
-      rootPath: [import.meta.dirname, '..', '..', 'test-fixtures', 'blobs', 'readContent'],
+      rootPath: [import.meta.dirname, '..', '..', 'test-fixtures', 'blobs', 'read'],
       gridFS: {bucketName: 'blobmetadatas'},
       useObjectId: true
     });
@@ -46,49 +45,27 @@ describe('interfaces/blobs', () => {
 
   async function callback({
     getFixture,
-    expectedContentType = 'foo/bar',
     expectToFail = false,
     expectedFailStatus = ''
   }) {
     try {
       const MONGO_URI = await mongoFixtures.getUri();
-      const dbContents = getFixture('dbContents.json');
-      const dbFiles = getFixture('dbFiles.json');
+      const expectedResults = getFixture('expectedResults.json');
       const user = getFixture('user.json');
-      const expectedContent = getFixture({components: ['expectedContent.txt'], reader: READERS.TEXT});
+      const dbContents = getFixture('dbContents.json');
       const blobs = await blobsFactory({MONGO_URI, MELINDA_API_OPTIONS: {}, BLOBS_QUERY_LIMIT: 100, MONGO_DB: ''});
 
       await mongoFixtures.populate(dbContents);
-      await mongoFixtures.populateFiles(dbFiles);
 
-      const {contentType, readStream} = await blobs.readContent({id: 'foo', user});
-
-      assert.equal(contentType, expectedContentType);
-      assert.deepStrictEqual(await getData(readStream), expectedContent);
+      const result = await blobs.read({id: 'foo', user});
+      assert.deepStrictEqual(formatBlobMetadata(result), expectedResults);
       assert.equal(expectToFail, false, 'This is expected to succes');
     } catch (error) {
       if (!expectToFail) {
         throw error;
       }
       assert.equal(expectToFail, true, 'This is expected to fail');
-      if (error.errmsg) {
-        assert.equal(error.errmsg.includes('FileNotFound'), true);
-        return;
-      }
-      assert(error instanceof ApiError);
       assert.equal(error.status, expectedFailStatus);
-    }
-
-    function getData(stream) {
-      return new Promise((resolve, reject) => {
-        const chunks = [];
-
-        stream
-          .setEncoding('utf8')
-          .on('error', reject)
-          .on('data', chunk => chunks.push(chunk))
-          .on('end', () => resolve(chunks.join('')));
-      });
     }
   }
 });

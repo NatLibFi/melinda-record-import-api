@@ -3,7 +3,7 @@ import assert from 'node:assert';
 import {READERS} from '@natlibfi/fixura';
 import generateTests from '@natlibfi/fixugen';
 
-import {validateQueryParams} from './queryCheck.mjs';
+import {validateQueryParams} from './queryCheck.js';
 
 describe('middleware', () => {
   generateTests({

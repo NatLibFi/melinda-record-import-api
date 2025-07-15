@@ -4,14 +4,15 @@ import {READERS} from '@natlibfi/fixura';
 import mongoFixturesFactory from '@natlibfi/fixura-mongo';
 import generateTests from '@natlibfi/fixugen';
 
-import profilesFactory from './profiles.mjs';
+import blobsFactory from './blobs.js';
 
-describe('interfaces/profiles', () => {
+
+describe('interfaces/blobs', () => {
   let mongoFixtures;
 
   generateTests({
     callback,
-    path: [import.meta.dirname, '..', '..', 'test-fixtures', 'profiles', 'read'],
+    path: [import.meta.dirname, '..', '..', 'test-fixtures', 'blobs', 'remove'],
     recurse: false,
     useMetadataFile: true,
     fixura: {
@@ -36,7 +37,8 @@ describe('interfaces/profiles', () => {
 
   async function initMongofixtures() {
     mongoFixtures = await mongoFixturesFactory({
-      rootPath: [import.meta.dirname, '..', '..', 'test-fixtures', 'profiles', 'read'],
+      rootPath: [import.meta.dirname, '..', '..', 'test-fixtures', 'blobs', 'remove'],
+      gridFS: {bucketName: 'blobmetadatas'},
       useObjectId: true
     });
   }
@@ -47,22 +49,26 @@ describe('interfaces/profiles', () => {
     expectedFailStatus = ''
   }) {
     try {
-      const mongoUri = await mongoFixtures.getUri();
+      const MONGO_URI = await mongoFixtures.getUri();
       const dbContents = getFixture('dbContents.json');
-      const expectedProfile = getFixture('expectedProfile.json');
       const user = getFixture('user.json');
-      const profiles = await profilesFactory({MONGO_URI: mongoUri, MONGO_DB: ''});
+      const expectedDatabaseState = getFixture('expectedDatabaseState.json');
+      const blobs = await blobsFactory({MONGO_URI, MELINDA_API_OPTIONS: {}, BLOBS_QUERY_LIMIT: 100, MONGO_DB: ''});
 
       await mongoFixtures.populate(dbContents);
 
-      const profile = await profiles.read({id: 'foo', user});
-
-      assert.deepStrictEqual(profile, expectedProfile);
+      await blobs.remove({id: 'foo', user});
+      const dump = await mongoFixtures.dump();
+      assert.deepStrictEqual(dump.blobmetadatas, expectedDatabaseState);
       assert.equal(expectToFail, false, 'This is expected to succes');
     } catch (error) {
       if (!expectToFail) {
+        if (error.status && error.payload) {
+          console.log(`*** ERROR: Status: ${error.status}, message: ${error.payload} ***`);
+        }
         throw error;
       }
+      // console.log(error); // eslint-disable-line
       assert.equal(expectToFail, true, 'This is expected to fail');
       assert.equal(error.status, expectedFailStatus);
     }

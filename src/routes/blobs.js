@@ -8,8 +8,8 @@ import sanitize from 'mongo-sanitize';
 import {createLogger} from '@natlibfi/melinda-backend-commons';
 import {Error as ApiError} from '@natlibfi/melinda-commons';
 
-import {blobsFactory} from '../interfaces/index.mjs';
-import {checkQueryParams} from '../middleware/queryCheck.mjs';
+import {blobsFactory} from '../interfaces/index.js';
+import {checkQueryParams} from '../middleware/queryCheck.js';
 
 export default async function (permissionMiddleware, {CONTENT_MAX_LENGTH, MONGO_URI, MELINDA_API_OPTIONS, BLOBS_QUERY_LIMIT}) {
   const blobs = await blobsFactory({MONGO_URI, MELINDA_API_OPTIONS, BLOBS_QUERY_LIMIT});

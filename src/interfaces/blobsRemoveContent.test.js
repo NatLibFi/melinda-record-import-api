@@ -4,7 +4,7 @@ import {READERS} from '@natlibfi/fixura';
 import mongoFixturesFactory from '@natlibfi/fixura-mongo';
 import generateTests from '@natlibfi/fixugen';
 
-import blobsFactory from './blobs.mjs';
+import blobsFactory from './blobs.js';
 
 
 describe('interfaces/blobs', () => {
@@ -12,7 +12,7 @@ describe('interfaces/blobs', () => {
 
   generateTests({
     callback,
-    path: [import.meta.dirname, '..', '..', 'test-fixtures', 'blobs', 'remove'],
+    path: [import.meta.dirname, '..', '..', 'test-fixtures', 'blobs', 'removeContent'],
     recurse: false,
     useMetadataFile: true,
     fixura: {
@@ -37,9 +37,15 @@ describe('interfaces/blobs', () => {
 
   async function initMongofixtures() {
     mongoFixtures = await mongoFixturesFactory({
-      rootPath: [import.meta.dirname, '..', '..', 'test-fixtures', 'blobs', 'remove'],
+      rootPath: [import.meta.dirname, '..', '..', 'test-fixtures', 'blobs', 'removeContent'],
       gridFS: {bucketName: 'blobmetadatas'},
-      useObjectId: true
+      useObjectId: true,
+      format: {
+        blobmetadatas: {
+          creationTime: v => new Date(v),
+          modificationTime: v => new Date(v)
+        }
+      }
     });
   }
 
@@ -51,24 +57,22 @@ describe('interfaces/blobs', () => {
     try {
       const MONGO_URI = await mongoFixtures.getUri();
       const dbContents = getFixture('dbContents.json');
+      const dbFiles = getFixture('dbFiles.json');
       const user = getFixture('user.json');
-      const expectedDatabaseState = getFixture('expectedDatabaseState.json');
       const blobs = await blobsFactory({MONGO_URI, MELINDA_API_OPTIONS: {}, BLOBS_QUERY_LIMIT: 100, MONGO_DB: ''});
 
       await mongoFixtures.populate(dbContents);
+      await mongoFixtures.populateFiles(dbFiles);
 
-      await blobs.remove({id: 'foo', user});
-      const dump = await mongoFixtures.dump();
-      assert.deepStrictEqual(dump.blobmetadatas, expectedDatabaseState);
+      await blobs.removeContent({id: 'foo', user});
+
+      const files = await mongoFixtures.dumpFiles(true);
+      assert.deepEqual(files, {});
       assert.equal(expectToFail, false, 'This is expected to succes');
     } catch (error) {
       if (!expectToFail) {
-        if (error.status && error.payload) {
-          console.log(`*** ERROR: Status: ${error.status}, message: ${error.payload} ***`);
-        }
         throw error;
       }
-      // console.log(error); // eslint-disable-line
       assert.equal(expectToFail, true, 'This is expected to fail');
       assert.equal(error.status, expectedFailStatus);
     }

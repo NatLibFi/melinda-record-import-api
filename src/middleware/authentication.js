@@ -1,8 +1,8 @@
 import HttpStatus from 'http-status';
 
-import {permissions} from './permissions.mjs';
-import {KEYCLOAK_ROLE_MAP} from '../config.mjs';
-import {ApiError} from '../utils/apiError.mjs';
+import {permissions} from './permissions.js';
+import {KEYCLOAK_ROLE_MAP} from '../config.js';
+import {ApiError} from '../utils/apiError.js';
 
 
 export function generateUserAuthorizationMiddleware(passportMiddlewares) {
