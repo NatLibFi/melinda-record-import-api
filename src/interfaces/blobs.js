@@ -6,8 +6,8 @@ import {v4 as uuid} from 'uuid';
 import {createLogger} from '@natlibfi/melinda-backend-commons';
 import {Error as ApiError, parseBoolean} from '@natlibfi/melinda-commons';
 import {BLOB_STATE, createMongoBlobsOperator, createMongoProfilesOperator} from '@natlibfi/melinda-record-import-commons';
-import restApiClientpkg from '@natlibfi/melinda-rest-api-client';
-const {createApiClient: createMelindaApiClient} = restApiClientpkg;
+import {createMelindaApiRecordClient} from '@natlibfi/melinda-rest-api-client';
+
 import {QUEUE_ITEM_STATE} from '@natlibfi/melinda-rest-api-commons';
 
 import {hasPermission} from './utils.js';
@@ -16,7 +16,7 @@ export default async function ({MONGO_URI, MELINDA_API_OPTIONS, BLOBS_QUERY_LIMI
   const logger = createLogger();
   const mongoBlobsOperator = await createMongoBlobsOperator(MONGO_URI, MONGO_DB);
   const mongoProfileOperator = await createMongoProfilesOperator(MONGO_URI, MONGO_DB);
-  const melindaApiClient = MELINDA_API_OPTIONS.melindaApiUrl ? createMelindaApiClient(MELINDA_API_OPTIONS) : false;
+  const melindaApiClient = MELINDA_API_OPTIONS.melindaApiUrl ? createMelindaApiRecordClient(MELINDA_API_OPTIONS) : false;
 
   return {query, read, create, update, remove, removeContent, readContent};
 

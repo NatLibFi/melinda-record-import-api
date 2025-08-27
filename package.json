@@ -32,11 +32,11 @@
     "dev:debug": "cross-env LOG_LEVEL=debug DEBUG=@natlibfi/* NODE_ENV=test npm run watch:test"
   },
   "dependencies": {
-    "@natlibfi/melinda-backend-commons": "^3.0.0-alpha.1",
-    "@natlibfi/melinda-commons": "^14.0.0-alpha.2",
-    "@natlibfi/melinda-record-import-commons": "^13.0.0-alpha.1",
-    "@natlibfi/melinda-rest-api-client": "^6.0.0-alpha.1",
-    "@natlibfi/melinda-rest-api-commons": "^5.0.0-alpha.1",
+    "@natlibfi/melinda-backend-commons": "^3.0.0-alpha.4",
+    "@natlibfi/melinda-commons": "^14.0.0-alpha.3",
+    "@natlibfi/melinda-record-import-commons": "^13.0.0-alpha.4",
+    "@natlibfi/melinda-rest-api-client": "^6.0.0-alpha.2",
+    "@natlibfi/melinda-rest-api-commons": "^5.0.0-alpha.2",
     "@natlibfi/passport-natlibfi-keycloak": "^3.0.0-alpha.1",
     "body-parser": "^2.2.0",
     "cors": "^2.8.5",
