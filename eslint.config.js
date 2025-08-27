@@ -23,7 +23,7 @@ const configSrc = {
     "array-callback-return": [
       "error",
       {
-        "checkForEach": true
+        "checkForEach": false
       }
     ],
     "no-unused-vars": [
