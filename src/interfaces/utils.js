@@ -27,13 +27,13 @@ export function hasPermission(userGroups, permittedGroups = []) {
 export function formatDump(dump) {
   dump['blobs.chunks'].forEach(doc => {
     Object.keys(doc).forEach(k => {
-      delete doc[k]; // eslint-disable-line functional/immutable-data
+      delete doc[k];
     });
   });
 
   dump['blobs.files'].forEach(doc => {
     Object.keys(doc).filter(k => k !== 'filename').forEach(k => {
-      delete doc[k]; // eslint-disable-line functional/immutable-data
+      delete doc[k];
     });
   });
 
@@ -49,7 +49,7 @@ export function formatBlobMetadata(doc) {
   function format(o) {
     Object.keys(o).forEach(key => {
       if (['_id', 'creationTime', 'modificationTime', 'creationTime', 'timestamp'].includes(key)) {
-        return delete o[key]; // eslint-disable-line functional/immutable-data
+        return delete o[key];
       }
 
       if (Array.isArray(o[key])) {

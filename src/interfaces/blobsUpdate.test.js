@@ -1,24 +1,26 @@
-import {expect} from 'chai';
+import {describe} from 'node:test';
+import assert from 'node:assert';
 import {READERS} from '@natlibfi/fixura';
 import mongoFixturesFactory from '@natlibfi/fixura-mongo';
 import generateTests from '@natlibfi/fixugen';
 
-import blobsFactory from './blobs';
-import {formatBlobMetadata} from './utils';
+import blobsFactory from './blobs.js';
+import {formatDump} from './utils.js';
+
 
 describe('interfaces/blobs', () => {
-  let mongoFixtures; // eslint-disable-line functional/no-let
+  let mongoFixtures;
 
   generateTests({
     callback,
-    path: [__dirname, '..', '..', 'test-fixtures', 'blobs', 'read'],
+    path: [import.meta.dirname, '..', '..', 'test-fixtures', 'blobs', 'update'],
     recurse: false,
     useMetadataFile: true,
     fixura: {
       failWhenNotFound: true,
       reader: READERS.JSON
     },
-    mocha: {
+    hooks: {
       before: async () => {
         await initMongofixtures();
       },
@@ -36,7 +38,7 @@ describe('interfaces/blobs', () => {
 
   async function initMongofixtures() {
     mongoFixtures = await mongoFixturesFactory({
-      rootPath: [__dirname, '..', '..', 'test-fixtures', 'blobs', 'read'],
+      rootPath: [import.meta.dirname, '..', '..', 'test-fixtures', 'blobs', 'update'],
       gridFS: {bucketName: 'blobmetadatas'},
       useObjectId: true
     });
@@ -44,27 +46,42 @@ describe('interfaces/blobs', () => {
 
   async function callback({
     getFixture,
+    loadDbContents = true,
     expectToFail = false,
     expectedFailStatus = ''
   }) {
     try {
       const MONGO_URI = await mongoFixtures.getUri();
-      const expectedResults = getFixture('expectedResults.json');
+      const expectedDb = getFixture('expectedDb.json');
+      const payload = getFixture('payload.json');
       const user = getFixture('user.json');
-      const dbContents = getFixture('dbContents.json');
       const blobs = await blobsFactory({MONGO_URI, MELINDA_API_OPTIONS: {}, BLOBS_QUERY_LIMIT: 100, MONGO_DB: ''});
+      await populateDB();
 
-      await mongoFixtures.populate(dbContents);
+      await blobs.update({id: 'foo', payload, user});
 
-      const result = await blobs.read({id: 'foo', user});
-      expect(formatBlobMetadata(result)).to.eql(expectedResults);
-      expect(expectToFail, 'This is expected to succes').to.equal(false);
+      const db = await mongoFixtures.dump();
+      const formatedDump = formatDump(db);
+
+      assert.deepStrictEqual(formatedDump.blobmetadatas, expectedDb.blobmetadatas);
+      assert.equal(expectToFail, false, 'This is expected to succes');
     } catch (error) {
       if (!expectToFail) {
         throw error;
       }
-      expect(expectToFail, 'This is expected to fail').to.equal(true);
-      expect(error.status).to.equal(expectedFailStatus);
+      //console.log(error); // eslint-disable-line
+      assert.equal(expectToFail, true, 'This is expected to fail');
+      assert.equal(error.status, expectedFailStatus);
+    }
+
+    async function populateDB() {
+      if (loadDbContents) {
+        const dbContents = getFixture('dbContents.json');
+        await mongoFixtures.populate(dbContents);
+        return;
+      }
+
+      return;
     }
   }
 });

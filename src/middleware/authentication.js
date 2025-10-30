@@ -1,8 +1,8 @@
 import HttpStatus from 'http-status';
 
-import {permissions} from './permissions';
-import {KEYCLOAK_ROLE_MAP} from '../config';
-import {ApiError} from '../utils/apiError';
+import {permissions} from './permissions.js';
+import {KEYCLOAK_ROLE_MAP} from '../config.js';
+import {ApiError} from '../utils/apiError.js';
 
 
 export function generateUserAuthorizationMiddleware(passportMiddlewares) {
@@ -24,9 +24,9 @@ export function getUserApplicationRoles(req, res, next) {
   }
 
   const userRolesGrouped = getRolesFromKeycloakRoles(req.user.roles);
-  req.user.roles = userRolesGrouped.reduce((result, item) => { // eslint-disable-line functional/immutable-data
+  req.user.roles = userRolesGrouped.reduce((result, item) => {
     const [key] = Object.keys(item);
-    result[key] = item[key]; // eslint-disable-line functional/immutable-data
+    result[key] = item[key];
     return result;
   }, {});
   return next();
@@ -75,13 +75,13 @@ function getRolesFromKeycloakRoles(userKeycloakRoles) {
   return Object.entries(KEYCLOAK_ROLE_MAP).reduce((prev, [applicationRole, filter]) => {
     if (typeof filter === 'string') {
       const tempObject = {};
-      tempObject[applicationRole] = filterAndMapRoles(filter, userKeycloakRoles);// eslint-disable-line functional/immutable-data
+      tempObject[applicationRole] = filterAndMapRoles(filter, userKeycloakRoles);
       return [...prev, tempObject];
     }
 
     if (Array.isArray(filter)) {
       const tempObject = {};
-      tempObject[applicationRole] = filter.flatMap(filterRegExp => filterAndMapRoles(filterRegExp, userKeycloakRoles));// eslint-disable-line functional/immutable-data
+      tempObject[applicationRole] = filter.flatMap(filterRegExp => filterAndMapRoles(filterRegExp, userKeycloakRoles));
       return [...prev, tempObject];
     }
 

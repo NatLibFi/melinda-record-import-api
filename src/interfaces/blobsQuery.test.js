@@ -1,23 +1,24 @@
-import {expect} from 'chai';
+import {describe} from 'node:test';
+import assert from 'node:assert';
 import {READERS} from '@natlibfi/fixura';
 import mongoFixturesFactory from '@natlibfi/fixura-mongo';
 import generateTests from '@natlibfi/fixugen';
 
-import blobsFactory from './blobs';
+import blobsFactory from './blobs.js';
 
 describe('interfaces/blobs', () => {
-  let mongoFixtures; // eslint-disable-line functional/no-let
+  let mongoFixtures;
 
   generateTests({
     callback,
-    path: [__dirname, '..', '..', 'test-fixtures', 'blobs', 'query'],
+    path: [import.meta.dirname, '..', '..', 'test-fixtures', 'blobs', 'query'],
     recurse: false,
     useMetadataFile: true,
     fixura: {
       failWhenNotFound: true,
       reader: READERS.JSON
     },
-    mocha: {
+    hooks: {
       before: async () => {
         await initMongofixtures();
       },
@@ -35,7 +36,7 @@ describe('interfaces/blobs', () => {
 
   async function initMongofixtures() {
     mongoFixtures = await mongoFixturesFactory({
-      rootPath: [__dirname, '..', '..', 'test-fixtures', 'blobs', 'query'],
+      rootPath: [import.meta.dirname, '..', '..', 'test-fixtures', 'blobs', 'query'],
       gridFS: {bucketName: 'blobmetadatas'},
       useObjectId: true
     });
@@ -54,19 +55,19 @@ describe('interfaces/blobs', () => {
       const blobs = await blobsFactory({MONGO_URI, MELINDA_API_OPTIONS: {}, BLOBS_QUERY_LIMIT: 100, MONGO_DB: ''});
 
       const {results} = await blobs.query({user, ...params});
-      expect(formatResults(results)).to.eql(expectedResults);
-      expect(expectToFail, 'This is expected to succes').to.equal(false);
+      assert.deepStrictEqual(formatResults(results), expectedResults);
+      assert.equal(expectToFail, false, 'This is expected to succes');
     } catch (error) {
       if (!expectToFail) {
         throw error;
       }
-      expect(expectToFail, 'This is expected to fail').to.equal(true);
+      assert.equal(expectToFail, true, 'This is expected to fail');
     }
 
     function formatResults(results) {
       return results.map(result => {
-        delete result.modificationTime; // eslint-disable-line functional/immutable-data
-        delete result.creationTime; // eslint-disable-line functional/immutable-data
+        delete result.modificationTime;
+        delete result.creationTime;
         return result;
       });
     }

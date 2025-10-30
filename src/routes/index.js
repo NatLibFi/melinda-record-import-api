@@ -1,4 +1,4 @@
-export {default as createBlobsRouter} from './blobs';
-export {default as createProfilesRouter} from './profiles';
-export {default as createApiDocRouter} from './api-doc';
-export {createStatusRouter} from './status';
+export {default as createBlobsRouter} from './blobs.js';
+export {default as createProfilesRouter} from './profiles.js';
+export {default as createApiDocRouter} from './api-doc.js';
+export {createStatusRouter} from './status.js';

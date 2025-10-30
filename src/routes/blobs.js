@@ -8,13 +8,13 @@ import sanitize from 'mongo-sanitize';
 import {createLogger} from '@natlibfi/melinda-backend-commons';
 import {Error as ApiError} from '@natlibfi/melinda-commons';
 
-import {blobsFactory} from '../interfaces';
-import {checkQueryParams} from '../middleware/queryCheck';
+import {blobsFactory} from '../interfaces/index.js';
+import {checkQueryParams} from '../middleware/queryCheck.js';
 
 export default async function (permissionMiddleware, {CONTENT_MAX_LENGTH, MONGO_URI, MELINDA_API_OPTIONS, BLOBS_QUERY_LIMIT}) {
   const blobs = await blobsFactory({MONGO_URI, MELINDA_API_OPTIONS, BLOBS_QUERY_LIMIT});
   const logger = createLogger();
-  const debug = createDebugLogger('@natlibfi/melinda-record-import-api:routes/blobs'); // eslint-disable-line no-unused-vars
+  const debug = createDebugLogger('@natlibfi/melinda-record-import-api:routes/blobs');
 
   return new Router()
     .get('/', permissionMiddleware('blobs', 'read'), checkQueryParams, query)
@@ -31,8 +31,8 @@ export default async function (permissionMiddleware, {CONTENT_MAX_LENGTH, MONGO_
     try {
       const parameters = {...req.query, user: req.user};
 
-      if (req.get('QueryOffset')) { // eslint-disable-line functional/no-conditional-statements
-        parameters.offset = sanitize(req.get('QueryOffset')); // eslint-disable-line functional/immutable-data
+      if (req.get('QueryOffset')) {
+        parameters.offset = sanitize(req.get('QueryOffset'));
       }
 
       const {nextOffset, results} = await blobs.query(parameters); // njsscan-ignore: node_sqli_injection
@@ -73,7 +73,7 @@ export default async function (permissionMiddleware, {CONTENT_MAX_LENGTH, MONGO_
   // MARK: Create
   async function create(req, res, next) {
     logger.verbose('Route - Blobs - Create');
-    if ('content-type' in req.headers && 'import-profile' in req.headers) { // eslint-disable-line functional/no-conditional-statements
+    if ('content-type' in req.headers && 'import-profile' in req.headers) {
       // logger.debug(`Content-type: ${req.headers['content-type']}`);
       logger.debug(`Import-profile: ${req.headers['import-profile']}`);
       // debug(`Content-type: ${req.headers['content-type']}`);
@@ -136,8 +136,8 @@ export default async function (permissionMiddleware, {CONTENT_MAX_LENGTH, MONGO_
       await blobs.removeContent({id: req.params.id, user: req.user});
       res.sendStatus(HttpStatus.NO_CONTENT);
     } catch (error) {
-      if (error instanceof ApiError && error.status === HttpStatus.NOT_FOUND) { // eslint-disable-line functional/no-conditional-statements
-        console.log(`*** ERROR: Status: ${error.status}, message: ${error.payload} ***`); // eslint-disable-line
+      if (error instanceof ApiError && error.status === HttpStatus.NOT_FOUND) {
+        console.log(`*** ERROR: Status: ${error.status}, message: ${error.payload} ***`);
         return res.status(error.status);
       }
 

@@ -3,8 +3,9 @@ import express from 'express';
 import cors from 'cors';
 import fs from 'fs';
 import https from 'https';
+import ipRangeCheck from 'ip-range-check';
 
-import {getUserApplicationRoles, generateUserAuthorizationMiddleware, generatePermissionMiddleware} from './middleware';
+import {getUserApplicationRoles, generateUserAuthorizationMiddleware, generatePermissionMiddleware} from './middleware/index.js';
 import {generatePassportMiddlewares} from '@natlibfi/passport-natlibfi-keycloak';
 
 import {Error as ApiError} from '@natlibfi/melinda-commons';
@@ -15,13 +16,13 @@ import {
   createProfilesRouter,
   createApiDocRouter,
   createStatusRouter
-} from './routes';
+} from './routes/index.js';
 
 export default async function (config) {
   const logger = createLogger();
   const app = express();
   const {
-    ENABLE_PROXY, HTTPS_PORT,
+    ENABLE_PROXY, HTTPS_PORT, ipWhiteList,
     USER_AGENT_LOGGING_BLACKLIST, SOCKET_KEEP_ALIVE_TIMEOUT,
     keycloakOpts, tlsKeyPath, tlsCertPath, allowSelfSignedApiCert
   } = config;
@@ -51,8 +52,8 @@ export default async function (config) {
 
   app.use(pathValidator);
   app.use('/', createApiDocRouter());
-  app.use('/blobs', gatherUserInformationMiddlewares, await createBlobsRouter(permissionMiddleware, config));
-  app.use('/profiles', gatherUserInformationMiddlewares, await createProfilesRouter(permissionMiddleware, config));
+  app.use('/blobs', ipWhiteListMiddleware, gatherUserInformationMiddlewares, await createBlobsRouter(permissionMiddleware, config));
+  app.use('/profiles', ipWhiteListMiddleware, gatherUserInformationMiddlewares, await createProfilesRouter(permissionMiddleware, config));
   app.use('/status', createStatusRouter());
 
   app.use(handleError);
@@ -77,6 +78,22 @@ export default async function (config) {
 
   return server;
 
+  function ipWhiteListMiddleware(req, res, next) {
+    logger.verbose('Ip whitelist middleware');
+    if (ipWhiteList.length === 0) {
+      return next();
+    }
+    const connectionIp = req.headers['cf-connecting-ip'];
+    //logger.debug(connectionIp);
+    if (ipRangeCheck(`${connectionIp}`, ipWhiteList)) {
+      logger.debug('IP ok');
+      return next();
+    }
+
+    logger.debug(`Bad IP: ${connectionIp}`);
+    return res.sendStatus(httpStatus.FORBIDDEN);
+  }
+
   function pathValidator(req, res, next) {
     if (req.path.startsWith('//')) {
       logger.debug(`path: ${req.path}, query: ${JSON.stringify(req.query)}`);
@@ -86,7 +103,7 @@ export default async function (config) {
     next();
   }
 
-  function handleError(error, req, res, next) { // eslint-disable-line no-unused-vars
+  function handleError(error, req, res, next) {
     console.log('App Error handling'); // eslint-disable-line
     console.log(error); // eslint-disable-line
 
@@ -103,8 +120,8 @@ export default async function (config) {
   }
 
   function setSocketKeepAlive(server) {
-    if (SOCKET_KEEP_ALIVE_TIMEOUT) { // eslint-disable-line functional/no-conditional-statements
-      server.keepAliveTimeout = SOCKET_KEEP_ALIVE_TIMEOUT; // eslint-disable-line functional/immutable-data
+    if (SOCKET_KEEP_ALIVE_TIMEOUT) {
+      server.keepAliveTimeout = SOCKET_KEEP_ALIVE_TIMEOUT;
 
       server.on('connection', socket => {
         socket.setTimeout(SOCKET_KEEP_ALIVE_TIMEOUT);

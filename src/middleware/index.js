@@ -1,1 +1,1 @@
-export {getUserApplicationRoles, generateUserAuthorizationMiddleware, generatePermissionMiddleware} from './authentication';
+export {getUserApplicationRoles, generateUserAuthorizationMiddleware, generatePermissionMiddleware} from './authentication.js';

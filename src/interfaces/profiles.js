@@ -4,8 +4,8 @@ import {createLogger} from '@natlibfi/melinda-backend-commons';
 import {Error as ApiError} from '@natlibfi/melinda-commons';
 import {createMongoProfilesOperator} from '@natlibfi/melinda-record-import-commons';
 
-import {hasPermission} from './utils';
-import {profileSchema, validate} from './models';
+import {hasPermission} from './utils.js';
+import {profileSchema, validate} from './models.js';
 
 export default async function ({MONGO_URI, MONGO_DB = 'db'}) {
   const logger = createLogger();
@@ -21,7 +21,7 @@ export default async function ({MONGO_URI, MONGO_DB = 'db'}) {
       const profiles = [];
       await new Promise((resolve, reject) => {
         const emitter = mongoProfileOperator.queryProfile();
-        emitter.on('profiles', profilesArray => profilesArray.forEach(profile => profiles.push(profile))) // eslint-disable-line functional/immutable-data
+        emitter.on('profiles', profilesArray => profilesArray.forEach(profile => profiles.push(profile)))
           .on('error', error => reject(error))
           .on('end', () => resolve());
       });
