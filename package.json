@@ -38,7 +38,7 @@
     "@natlibfi/melinda-rest-api-client": "^6.0.0",
     "@natlibfi/melinda-rest-api-commons": "^5.0.0",
     "@natlibfi/passport-natlibfi-keycloak": "^3.0.1",
-    "body-parser": "^2.2.0",
+    "body-parser": "^2.2.2",
     "cors": "^2.8.5",
     "debug": "^4.4.1",
     "express": "^5.1.0",
