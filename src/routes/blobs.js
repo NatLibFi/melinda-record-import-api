@@ -20,7 +20,7 @@ export default async function (permissionMiddleware, {CONTENT_MAX_LENGTH, MONGO_
     .get('/', permissionMiddleware('blobs', 'read'), checkQueryParams, query)
     .post('/', permissionMiddleware('blobs', 'create'), getContentLengthMiddleware(), create)
     .get('/:id', permissionMiddleware('blobs', 'read'), read)
-    .delete('/:id', permissionMiddleware('blobs', 'delete'), remove)
+    .delete('/:id', permissionMiddleware('blobs', 'remove'), remove)
     .post('/:id', permissionMiddleware('blobs', 'update'), validateContentType('application/json'), bodyParser.json({type: 'application/json'}), update)
     .get('/:id/content', permissionMiddleware('blobs', 'content'), readContent)
     .delete('/:id/content', permissionMiddleware('blobs', 'content'), removeContent);
